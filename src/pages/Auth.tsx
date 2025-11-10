@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import stadiumBg from "@/assets/backgrounds/stadium-hero.jpg";
-import logo from "@/assets/endzone-logo-header.png";
+import logo from "@/assets/endzone-logo-light.png";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -186,7 +186,7 @@ export default function Auth() {
         <div className="bg-card shadow-lg rounded-lg p-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img src={logo} alt="EndZone Logo" className="h-16" />
+            <img src={logo} alt="EndZone Logo" className="h-20" />
           </div>
 
           {/* Heading */}
