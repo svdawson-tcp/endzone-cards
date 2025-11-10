@@ -14,7 +14,319 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cash_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          related_expense_id: string | null
+          related_lot_id: string | null
+          related_transaction_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          related_expense_id?: string | null
+          related_lot_id?: string | null
+          related_transaction_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          related_expense_id?: string | null
+          related_lot_id?: string | null
+          related_transaction_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_transactions_related_expense_id_fkey"
+            columns: ["related_expense_id"]
+            isOneToOne: false
+            referencedRelation: "expenses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_related_lot_id_fkey"
+            columns: ["related_lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_related_transaction_id_fkey"
+            columns: ["related_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          expense_date: string
+          id: string
+          notes: string | null
+          show_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          expense_date: string
+          id?: string
+          notes?: string | null
+          show_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          expense_date?: string
+          id?: string
+          notes?: string | null
+          show_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lots: {
+        Row: {
+          closure_date: string | null
+          closure_reason: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          purchase_date: string
+          source: string
+          status: string
+          total_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closure_date?: string | null
+          closure_reason?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchase_date: string
+          source: string
+          status?: string
+          total_cost: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closure_date?: string | null
+          closure_reason?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchase_date?: string
+          source?: string
+          status?: string
+          total_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      show_cards: {
+        Row: {
+          asking_price: number | null
+          card_details: Json | null
+          cost_basis: number
+          created_at: string
+          destination_lot_id: string | null
+          disposition_type: string | null
+          id: string
+          lot_id: string
+          photo_back_url: string | null
+          photo_front_url: string | null
+          player_name: string
+          status: string
+          updated_at: string
+          user_id: string
+          year: string | null
+        }
+        Insert: {
+          asking_price?: number | null
+          card_details?: Json | null
+          cost_basis: number
+          created_at?: string
+          destination_lot_id?: string | null
+          disposition_type?: string | null
+          id?: string
+          lot_id: string
+          photo_back_url?: string | null
+          photo_front_url?: string | null
+          player_name: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          year?: string | null
+        }
+        Update: {
+          asking_price?: number | null
+          card_details?: Json | null
+          cost_basis?: number
+          created_at?: string
+          destination_lot_id?: string | null
+          disposition_type?: string | null
+          id?: string
+          lot_id?: string
+          photo_back_url?: string | null
+          photo_front_url?: string | null
+          player_name?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "show_cards_destination_lot_id_fkey"
+            columns: ["destination_lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_cards_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shows: {
+        Row: {
+          booth_number: string | null
+          created_at: string
+          id: string
+          location: string | null
+          name: string
+          notes: string | null
+          show_date: string
+          status: string
+          table_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booth_number?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          name: string
+          notes?: string | null
+          show_date: string
+          status?: string
+          table_cost?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booth_number?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          name?: string
+          notes?: string | null
+          show_date?: string
+          status?: string
+          table_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          lot_id: string | null
+          notes: string | null
+          quantity: number | null
+          revenue: number
+          show_card_id: string | null
+          show_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lot_id?: string | null
+          notes?: string | null
+          quantity?: number | null
+          revenue?: number
+          show_card_id?: string | null
+          show_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lot_id?: string | null
+          notes?: string | null
+          quantity?: number | null
+          revenue?: number
+          show_card_id?: string | null
+          show_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_show_card_id_fkey"
+            columns: ["show_card_id"]
+            isOneToOne: false
+            referencedRelation: "show_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "shows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
