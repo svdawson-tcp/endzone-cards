@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import stadiumBg from "@/assets/backgrounds/stadium-hero.jpg";
-import logo from "@/assets/endzone-logo.png";
+import logo from "@/assets/endzone-logo-header.png";
 
 export default function Auth() {
   const navigate = useNavigate();
