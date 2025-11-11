@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Info } from "lucide-react";
@@ -12,6 +13,8 @@ import { format } from "date-fns";
 export default function CreateLot() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   // Default to today
   const todayStr = format(new Date(), "yyyy-MM-dd");
@@ -21,6 +24,44 @@ export default function CreateLot() {
   const [totalCost, setTotalCost] = useState("");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load existing lot data in edit mode
+  const { data: existingLot, isLoading: loadingLot } = useQuery({
+    queryKey: ["lot", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("lots")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Pre-populate form fields when existing lot loads
+  useEffect(() => {
+    if (existingLot) {
+      setPurchaseDate(existingLot.purchase_date);
+      setSource(existingLot.source);
+      setTotalCost(existingLot.total_cost.toString());
+      setNotes(existingLot.notes || "");
+    }
+  }, [existingLot]);
+
+  // Handle load errors
+  useEffect(() => {
+    if (isEditMode && !loadingLot && !existingLot) {
+      toast({
+        title: "Error loading lot",
+        description: "Lot not found",
+        variant: "destructive",
+      });
+      navigate("/lots");
+    }
+  }, [isEditMode, loadingLot, existingLot, toast, navigate]);
 
   const [errors, setErrors] = useState({
     purchaseDate: "",
@@ -85,34 +126,51 @@ export default function CreateLot() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Insert lot
-      const { data: lot, error: lotError } = await supabase
-        .from("lots")
-        .insert({
-          user_id: user.id,
-          purchase_date: purchaseDate,
-          source: source.trim(),
-          total_cost: parseFloat(totalCost),
-          status: "active",
-          notes: notes.trim() || null,
-        })
-        .select()
-        .single();
+      const lotData = {
+        purchase_date: purchaseDate,
+        source: source.trim(),
+        total_cost: parseFloat(totalCost),
+        notes: notes.trim() || null,
+      };
 
-      if (lotError) throw lotError;
+      if (isEditMode) {
+        // Update existing lot (do NOT trigger cash_transaction)
+        const { error } = await supabase
+          .from("lots")
+          .update(lotData)
+          .eq("id", id);
 
-      // Database trigger automatically creates cash_transaction for purchase
+        if (error) throw error;
 
-      toast({
-        title: "Lot created!",
-        description: `${source} - $${totalCost} recorded. Cash balance updated.`,
-      });
+        toast({
+          title: "Lot updated!",
+          description: `${source} has been updated successfully`,
+        });
+      } else {
+        // Create new lot (database trigger will create cash_transaction)
+        const { data: lot, error: lotError } = await supabase
+          .from("lots")
+          .insert({
+            ...lotData,
+            user_id: user.id,
+            status: "active",
+          })
+          .select()
+          .single();
+
+        if (lotError) throw lotError;
+
+        toast({
+          title: "Lot created!",
+          description: `${source} - $${totalCost} recorded. Cash balance updated.`,
+        });
+      }
 
       navigate("/lots");
     } catch (error: any) {
-      console.error("Create lot error:", error);
+      console.error(`${isEditMode ? "Update" : "Create"} lot error:`, error);
       toast({
-        title: "Error creating lot",
+        title: `Error ${isEditMode ? "updating" : "creating"} lot`,
         description: error.message || "Please try again",
         variant: "destructive",
       });
@@ -125,22 +183,36 @@ export default function CreateLot() {
     navigate("/lots");
   };
 
+  // Show loading spinner while fetching existing lot data
+  if (isEditMode && loadingLot) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Loading lot data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-h1 mb-2">CREATE LOT</h1>
+          <h1 className="text-h1 mb-2">{isEditMode ? "EDIT LOT" : "CREATE LOT"}</h1>
           <p className="text-muted-foreground">Record a new purchase</p>
         </div>
 
-        {/* Info Callout */}
-        <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
-          <Info className="h-5 w-5 text-blue-500" />
-          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
-            Lots are purchase containers. After creating a lot, you can add individual show
-            cards to it for detailed tracking.
-          </AlertDescription>
-        </Alert>
+        {/* Info Callout - only show in create mode */}
+        {!isEditMode && (
+          <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
+            <Info className="h-5 w-5 text-blue-500" />
+            <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
+              Lots are purchase containers. After creating a lot, you can add individual show
+              cards to it for detailed tracking.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
           {/* Purchase Date */}
@@ -246,10 +318,10 @@ export default function CreateLot() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {isEditMode ? "Updating..." : "Creating..."}
                 </>
               ) : (
-                "CREATE LOT"
+                isEditMode ? "UPDATE LOT" : "CREATE LOT"
               )}
             </Button>
           </div>

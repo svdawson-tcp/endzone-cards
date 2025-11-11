@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -462,9 +462,10 @@ export default function Lots() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      disabled
+                      onClick={() => navigate(`/lots/${lot.id}/edit`)}
                     >
-                      View Details
+                      <Edit className="mr-1 h-4 w-4" />
+                      Edit
                     </Button>
                     <Button
                       variant="outline"
