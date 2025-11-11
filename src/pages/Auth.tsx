@@ -186,7 +186,7 @@ export default function Auth() {
         <div className="bg-card shadow-lg rounded-lg p-8">
           {/* Logo */}
           <div className="flex justify-center mb-8">
-            <img src={logo} alt="EndZone Logo" className="h-20" />
+            <img src={logo} alt="EndZone Logo" className="h-60" />
           </div>
 
           {/* Heading */}
