@@ -284,19 +284,19 @@ export default function Dashboard() {
                 <tbody>
                   {recentActivity.map((transaction: any) => (
                     <tr key={transaction.id} className="border-b border-border/50">
-                      <td className="py-3 px-2 text-sm">
+                      <td className="py-3 px-2 text-sm text-gray-900">
                         {format(new Date(transaction.created_at), "MM/dd/yy")}
                       </td>
                       <td className="py-3 px-2">
                         {getTransactionTypeBadge(transaction.transaction_type)}
                       </td>
-                      <td className="py-3 px-2 text-sm">
+                      <td className="py-3 px-2 text-sm text-gray-900">
                         {transaction.show_cards?.player_name || transaction.lots?.source || "—"}
                       </td>
-                      <td className="py-3 px-2 text-sm text-right text-[hsl(var(--success))]">
+                      <td className="py-3 px-2 text-sm text-right text-green-600">
                         ${Number(transaction.revenue).toFixed(2)}
                       </td>
-                      <td className="py-3 px-2 text-sm">
+                      <td className="py-3 px-2 text-sm text-gray-900">
                         {transaction.shows?.name || "—"}
                       </td>
                     </tr>
