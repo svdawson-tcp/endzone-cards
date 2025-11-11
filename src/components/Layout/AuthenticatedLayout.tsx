@@ -10,7 +10,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen">
       <TopBar />
-      <main className="flex-1 pb-20 pt-28">
+      <main className="flex-1 pb-20 pt-16">
         {children}
       </main>
       <BottomTabBar />
