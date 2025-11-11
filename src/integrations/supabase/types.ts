@@ -159,7 +159,7 @@ export type Database = {
         Row: {
           asking_price: number | null
           card_details: Json | null
-          cost_basis: number
+          cost_basis: number | null
           created_at: string
           destination_lot_id: string | null
           disposition_type: string | null
@@ -176,7 +176,7 @@ export type Database = {
         Insert: {
           asking_price?: number | null
           card_details?: Json | null
-          cost_basis: number
+          cost_basis?: number | null
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
@@ -193,7 +193,7 @@ export type Database = {
         Update: {
           asking_price?: number | null
           card_details?: Json | null
-          cost_basis?: number
+          cost_basis?: number | null
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
