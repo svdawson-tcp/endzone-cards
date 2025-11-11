@@ -55,7 +55,7 @@ const DesktopSidebar = () => {
                   "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all",
                   isActive
                     ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
-                    : "text-foreground hover:bg-muted/50"
+                    : "text-card-foreground hover:bg-muted/50"
                 )}
               >
                 <Icon
