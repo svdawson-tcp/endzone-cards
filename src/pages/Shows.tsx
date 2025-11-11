@@ -265,14 +265,14 @@ export default function Shows() {
                 </div>
 
                 {/* Show Name */}
-                <h3 className="text-h3 text-foreground mb-4 pr-20">{show.name}</h3>
+                <h3 className="text-h3 text-gray-900 mb-4 pr-20">{show.name}</h3>
 
                 {/* Show Details */}
                 <div className="space-y-3 mb-4">
                   {/* Date */}
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">
+                    <span className="text-sm text-gray-900">
                       {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </span>
                   </div>
@@ -281,14 +281,14 @@ export default function Shows() {
                   {show.location && (
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-foreground">{show.location}</span>
+                      <span className="text-sm text-gray-900">{show.location}</span>
                     </div>
                   )}
 
                   {/* Table Cost */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">
+                    <span className="text-sm text-gray-900">
                       Table Cost: ${show.table_cost.toFixed(2)}
                     </span>
                   </div>
