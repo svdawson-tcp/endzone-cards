@@ -6,6 +6,9 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { FormField } from "@/components/forms/FormField";
+import { CurrencyInput } from "@/components/forms/CurrencyInput";
+import { DateInput } from "@/components/forms/DateInput";
 import { format } from "date-fns";
 
 export default function CreateShow() {
@@ -141,8 +144,12 @@ export default function CreateShow() {
 
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
           {/* Show Name */}
-          <div>
-            <label htmlFor="show-name" className="form-label">Show Name *</label>
+          <FormField
+            label="Show Name"
+            required
+            error={errors.showName}
+            htmlFor="show-name"
+          >
             <Input
               id="show-name"
               type="text"
@@ -153,35 +160,35 @@ export default function CreateShow() {
               }}
               placeholder="Dallas Sports Card Show"
               maxLength={100}
-              className="mt-2 min-h-[44px]"
+              className="min-h-[44px]"
             />
-            {errors.showName && (
-              <p className="text-destructive text-sm mt-1">{errors.showName}</p>
-            )}
-          </div>
+          </FormField>
 
           {/* Show Date */}
-          <div>
-            <label htmlFor="show-date" className="form-label">Date *</label>
-            <Input
+          <FormField
+            label="Date"
+            required
+            error={errors.showDate}
+            htmlFor="show-date"
+          >
+            <DateInput
               id="show-date"
-              type="date"
               value={showDate}
               onChange={(e) => {
                 setShowDate(e.target.value);
                 if (errors.showDate) setErrors({ ...errors, showDate: "" });
               }}
               min={format(new Date(), "yyyy-MM-dd")}
-              className="mt-2 min-h-[44px]"
             />
-            {errors.showDate && (
-              <p className="text-destructive text-sm mt-1">{errors.showDate}</p>
-            )}
-          </div>
+          </FormField>
 
           {/* Location */}
-          <div>
-            <label htmlFor="location" className="form-label">Location *</label>
+          <FormField
+            label="Location"
+            required
+            error={errors.location}
+            htmlFor="location"
+          >
             <Input
               id="location"
               type="text"
@@ -192,42 +199,34 @@ export default function CreateShow() {
               }}
               placeholder="Dallas Convention Center"
               maxLength={200}
-              className="mt-2 min-h-[44px]"
+              className="min-h-[44px]"
             />
-            {errors.location && (
-              <p className="text-destructive text-sm mt-1">{errors.location}</p>
-            )}
-          </div>
+          </FormField>
 
           {/* Table Cost */}
-          <div>
-            <label htmlFor="table-cost" className="form-label">Table Cost *</label>
-            <div className="relative mt-2">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="table-cost"
-                type="number"
-                step="0.01"
-                min="0"
-                value={tableCost}
-                onChange={(e) => {
-                  setTableCost(e.target.value);
-                  if (errors.tableCost) setErrors({ ...errors, tableCost: "" });
-                }}
-                placeholder="0.00"
-                className="pl-8 min-h-[44px]"
-              />
-            </div>
-            {errors.tableCost && (
-              <p className="text-destructive text-sm mt-1">{errors.tableCost}</p>
-            )}
-          </div>
+          <FormField
+            label="Table Cost"
+            required
+            error={errors.tableCost}
+            htmlFor="table-cost"
+          >
+            <CurrencyInput
+              id="table-cost"
+              value={tableCost}
+              onChange={(e) => {
+                setTableCost(e.target.value);
+                if (errors.tableCost) setErrors({ ...errors, tableCost: "" });
+              }}
+              placeholder="0.00"
+              min="0"
+            />
+          </FormField>
 
           {/* Booth Number */}
-          <div>
-            <label htmlFor="booth-number" className="form-label">Booth Number (Optional)</label>
+          <FormField
+            label="Booth Number"
+            htmlFor="booth-number"
+          >
             <Input
               id="booth-number"
               type="text"
@@ -235,13 +234,15 @@ export default function CreateShow() {
               onChange={(e) => setBoothNumber(e.target.value)}
               placeholder="A-123"
               maxLength={20}
-              className="mt-2 min-h-[44px]"
+              className="min-h-[44px]"
             />
-          </div>
+          </FormField>
 
           {/* Notes */}
-          <div>
-            <label htmlFor="notes" className="form-label">Notes (Optional)</label>
+          <FormField
+            label="Notes"
+            htmlFor="notes"
+          >
             <Textarea
               id="notes"
               value={notes}
@@ -249,9 +250,8 @@ export default function CreateShow() {
               placeholder="Additional details about the show..."
               maxLength={500}
               rows={4}
-              className="mt-2"
             />
-          </div>
+          </FormField>
 
           {/* Buttons */}
           <div className="flex gap-3 mt-6">
