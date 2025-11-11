@@ -82,7 +82,7 @@ export default function BulkSale() {
           user_id: user.id,
           transaction_type: "bulk_sale",
           lot_id: selectedLotId,
-          show_id: selectedShowId,
+          show_id: selectedShowId || null,
           quantity: quantityNum,
           revenue: revenueNum,
           notes: notes || null,
@@ -141,9 +141,6 @@ export default function BulkSale() {
     }
     if (!revenueNum || revenueNum <= 0) {
       validationErrors.revenue = "Revenue must be greater than 0";
-    }
-    if (!selectedShowId) {
-      validationErrors.show = "Show selection is required";
     }
     
     // If validation errors exist, show them and stop
@@ -258,7 +255,7 @@ export default function BulkSale() {
 
           {/* Show Selection */}
           <div>
-            <label htmlFor="show-select" className="form-label">Show *</label>
+            <label htmlFor="show-select" className="form-label">Show (Optional)</label>
             <Select
               value={selectedShowId}
               onValueChange={(value) => {
@@ -290,7 +287,7 @@ export default function BulkSale() {
               <p className="text-destructive text-sm mt-1">{errors.show}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Which show were these cards sold at?
+              Select show if sold at an event, leave blank for online/personal sales
             </p>
           </div>
 
