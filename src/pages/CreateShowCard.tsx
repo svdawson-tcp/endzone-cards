@@ -8,6 +8,7 @@ import { Loader2, Info, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import {
   Select,
   SelectContent,
@@ -586,21 +587,15 @@ export default function CreateShowCard() {
           {/* Cost Basis */}
           <div>
             <label htmlFor="cost-basis" className="form-label">Cost Basis (Optional)</label>
-            <div className="relative mt-2">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="cost-basis"
-                type="number"
-                step="0.01"
-                min="0"
-                value={costBasis}
-                onChange={(e) => setCostBasis(e.target.value)}
-                placeholder="Leave empty to auto-calculate"
-                className="pl-8 min-h-[44px]"
-              />
-            </div>
+            <CurrencyInput
+              id="cost-basis"
+              value={costBasis}
+              onChange={(e) => setCostBasis(e.target.value)}
+              placeholder="Leave empty to auto-calculate"
+              min={0}
+              step={0.01}
+              className="mt-2"
+            />
             <p className="text-xs text-muted-foreground mt-1">
               Card's cost from lot. Leave blank to calculate later.
             </p>
@@ -609,24 +604,18 @@ export default function CreateShowCard() {
           {/* Asking Price */}
           <div>
             <label htmlFor="asking-price" className="form-label">Asking Price *</label>
-            <div className="relative mt-2">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="asking-price"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={askingPrice}
-                onChange={(e) => {
-                  setAskingPrice(e.target.value);
-                  if (errors.askingPrice) setErrors({ ...errors, askingPrice: "" });
-                }}
-                placeholder="25.00"
-                className="pl-8 min-h-[44px]"
-              />
-            </div>
+            <CurrencyInput
+              id="asking-price"
+              value={askingPrice}
+              onChange={(e) => {
+                setAskingPrice(e.target.value);
+                if (errors.askingPrice) setErrors({ ...errors, askingPrice: "" });
+              }}
+              placeholder="25.00"
+              min={0.01}
+              step={0.01}
+              className="mt-2"
+            />
             <p className="text-xs text-muted-foreground mt-1">
               What price will you list this card at?
             </p>
