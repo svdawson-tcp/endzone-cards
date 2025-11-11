@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -146,7 +145,7 @@ export default function CreateLot() {
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
           {/* Purchase Date */}
           <div>
-            <Label htmlFor="purchase-date">Purchase Date *</Label>
+            <label htmlFor="purchase-date" className="form-label">Purchase Date *</label>
             <Input
               id="purchase-date"
               type="date"
@@ -165,7 +164,7 @@ export default function CreateLot() {
 
           {/* Source */}
           <div>
-            <Label htmlFor="source">Source *</Label>
+            <label htmlFor="source" className="form-label">Source *</label>
             <Input
               id="source"
               type="text"
@@ -188,7 +187,7 @@ export default function CreateLot() {
 
           {/* Total Cost */}
           <div>
-            <Label htmlFor="total-cost">Total Cost *</Label>
+            <label htmlFor="total-cost" className="form-label">Total Cost *</label>
             <div className="relative mt-2">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
@@ -217,7 +216,7 @@ export default function CreateLot() {
 
           {/* Notes */}
           <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <label htmlFor="notes" className="form-label">Notes (Optional)</label>
             <Textarea
               id="notes"
               value={notes}

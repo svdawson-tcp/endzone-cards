@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -143,7 +142,7 @@ export default function CreateShow() {
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
           {/* Show Name */}
           <div>
-            <Label htmlFor="show-name">Show Name *</Label>
+            <label htmlFor="show-name" className="form-label">Show Name *</label>
             <Input
               id="show-name"
               type="text"
@@ -163,7 +162,7 @@ export default function CreateShow() {
 
           {/* Show Date */}
           <div>
-            <Label htmlFor="show-date">Date *</Label>
+            <label htmlFor="show-date" className="form-label">Date *</label>
             <Input
               id="show-date"
               type="date"
@@ -182,7 +181,7 @@ export default function CreateShow() {
 
           {/* Location */}
           <div>
-            <Label htmlFor="location">Location *</Label>
+            <label htmlFor="location" className="form-label">Location *</label>
             <Input
               id="location"
               type="text"
@@ -202,7 +201,7 @@ export default function CreateShow() {
 
           {/* Table Cost */}
           <div>
-            <Label htmlFor="table-cost">Table Cost *</Label>
+            <label htmlFor="table-cost" className="form-label">Table Cost *</label>
             <div className="relative mt-2">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
@@ -228,7 +227,7 @@ export default function CreateShow() {
 
           {/* Booth Number */}
           <div>
-            <Label htmlFor="booth-number">Booth Number (Optional)</Label>
+            <label htmlFor="booth-number" className="form-label">Booth Number (Optional)</label>
             <Input
               id="booth-number"
               type="text"
@@ -242,7 +241,7 @@ export default function CreateShow() {
 
           {/* Notes */}
           <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <label htmlFor="notes" className="form-label">Notes (Optional)</label>
             <Textarea
               id="notes"
               value={notes}

@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Package, Archive, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -208,7 +207,7 @@ export default function TransactionEntry() {
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-6">
           {/* Transaction Type Selector */}
           <div>
-            <Label className="text-base font-semibold mb-3 block">Transaction Type</Label>
+            <label className="form-label text-base font-semibold mb-3 block">Transaction Type</label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <button
                 type="button"
@@ -258,7 +257,7 @@ export default function TransactionEntry() {
           {transactionType === "show_card_sale" && (
             <>
               <div>
-                <Label htmlFor="show-card">Show Card *</Label>
+                <label htmlFor="show-card" className="form-label">Show Card *</label>
                 <Select value={selectedCardId} onValueChange={handleCardSelection} disabled={loadingCards}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
                     <SelectValue placeholder="Select a show card" />
@@ -274,7 +273,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="revenue">Sale Amount *</Label>
+                <label htmlFor="revenue" className="form-label">Sale Amount *</label>
                 <div className="relative mt-2">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
@@ -291,7 +290,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="show">Show (Optional)</Label>
+                <label htmlFor="show" className="form-label">Show (Optional)</label>
                 <Select value={selectedShowId} onValueChange={setSelectedShowId} disabled={loadingShows}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
                     <SelectValue placeholder="Select show (optional)" />
@@ -308,7 +307,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
+                <label htmlFor="notes" className="form-label">Notes (Optional)</label>
                 <Textarea
                   id="notes"
                   value={notes}
@@ -326,7 +325,7 @@ export default function TransactionEntry() {
           {transactionType === "bulk_sale" && (
             <>
               <div>
-                <Label htmlFor="lot">Lot *</Label>
+                <label htmlFor="lot" className="form-label">Lot *</label>
                 <Select value={selectedLotId} onValueChange={setSelectedLotId} disabled={loadingLots}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
                     <SelectValue placeholder="Select a lot" />
@@ -342,7 +341,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="quantity">Number of Cards Sold *</Label>
+                <label htmlFor="quantity" className="form-label">Number of Cards Sold *</label>
                 <Input
                   id="quantity"
                   type="number"
@@ -356,7 +355,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="bulk-revenue">Total Sale Amount *</Label>
+                <label htmlFor="bulk-revenue" className="form-label">Total Sale Amount *</label>
                 <div className="relative mt-2">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
@@ -373,7 +372,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="bulk-show">Show (Optional)</Label>
+                <label htmlFor="bulk-show" className="form-label">Show (Optional)</label>
                 <Select value={selectedShowId} onValueChange={setSelectedShowId} disabled={loadingShows}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
                     <SelectValue placeholder="Select show (optional)" />
@@ -390,7 +389,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label htmlFor="bulk-notes">Notes (Optional)</Label>
+                <label htmlFor="bulk-notes" className="form-label">Notes (Optional)</label>
                 <Textarea
                   id="bulk-notes"
                   value={notes}
@@ -408,7 +407,7 @@ export default function TransactionEntry() {
           {transactionType === "disposition" && (
             <>
               <div>
-                <Label htmlFor="disposition-card">Show Card *</Label>
+                <label htmlFor="disposition-card" className="form-label">Show Card *</label>
                 <Select value={selectedCardId} onValueChange={setSelectedCardId} disabled={loadingCards}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
                     <SelectValue placeholder="Select a show card" />
@@ -424,26 +423,26 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <Label className="mb-3 block">Disposition Type *</Label>
+                <label className="form-label mb-3 block">Disposition Type *</label>
                 <RadioGroup value={dispositionType} onValueChange={(value) => setDispositionType(value as DispositionType)}>
                   <div className="flex items-center space-x-2 min-h-[44px]">
                     <RadioGroupItem value="discard" id="discard" />
-                    <Label htmlFor="discard" className="cursor-pointer">Discard</Label>
+                    <label htmlFor="discard" className="form-label cursor-pointer">Discard</label>
                   </div>
                   <div className="flex items-center space-x-2 min-h-[44px]">
                     <RadioGroupItem value="lost" id="lost" />
-                    <Label htmlFor="lost" className="cursor-pointer">Lost</Label>
+                    <label htmlFor="lost" className="form-label cursor-pointer">Lost</label>
                   </div>
                   <div className="flex items-center space-x-2 min-h-[44px]">
                     <RadioGroupItem value="combined" id="combined" />
-                    <Label htmlFor="combined" className="cursor-pointer">Combined Into</Label>
+                    <label htmlFor="combined" className="form-label cursor-pointer">Combined Into</label>
                   </div>
                 </RadioGroup>
               </div>
 
               {dispositionType === "combined" && (
                 <div>
-                  <Label htmlFor="destination-lot">Destination Lot *</Label>
+                  <label htmlFor="destination-lot" className="form-label">Destination Lot *</label>
                   <Select value={destinationLotId} onValueChange={setDestinationLotId} disabled={loadingLots}>
                     <SelectTrigger className="mt-2 min-h-[44px]">
                       <SelectValue placeholder="Select destination lot" />
@@ -460,7 +459,7 @@ export default function TransactionEntry() {
               )}
 
               <div>
-                <Label htmlFor="disposition-notes">Notes (Optional)</Label>
+                <label htmlFor="disposition-notes" className="form-label">Notes (Optional)</label>
                 <Textarea
                   id="disposition-notes"
                   value={notes}

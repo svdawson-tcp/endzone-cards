@@ -6,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
 import { Loader2, Info, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -325,7 +324,7 @@ export default function CreateShowCard() {
         >
           {/* Select Lot */}
           <div>
-            <Label htmlFor="lot">Lot *</Label>
+            <label htmlFor="lot" className="form-label">Lot *</label>
             <Select value={selectedLotId} onValueChange={setSelectedLotId}>
               <SelectTrigger className="mt-2 min-h-[44px]">
                 <SelectValue placeholder="Select lot this card came from" />
@@ -347,7 +346,7 @@ export default function CreateShowCard() {
 
           {/* Player Name */}
           <div>
-            <Label htmlFor="player-name">Player Name *</Label>
+            <label htmlFor="player-name" className="form-label">Player Name *</label>
             <Input
               id="player-name"
               type="text"
@@ -367,7 +366,7 @@ export default function CreateShowCard() {
 
           {/* Year */}
           <div>
-            <Label htmlFor="year">Year *</Label>
+            <label htmlFor="year" className="form-label">Year *</label>
             <Input
               id="year"
               type="number"
@@ -386,14 +385,14 @@ export default function CreateShowCard() {
 
           {/* Card Details - Collapsible Section */}
           <div className="border border-border rounded-lg p-4">
-            <Label className="text-base font-semibold mb-3 block">
+            <label className="form-label text-base font-semibold mb-3 block">
               Card Details (Optional)
-            </Label>
+            </label>
             <div className="space-y-3">
               <div>
-                <Label htmlFor="brand" className="text-sm">
+                <label htmlFor="brand" className="form-label text-sm">
                   Brand
-                </Label>
+                </label>
                 <Input
                   id="brand"
                   type="text"
@@ -404,9 +403,9 @@ export default function CreateShowCard() {
                 />
               </div>
               <div>
-                <Label htmlFor="set" className="text-sm">
+                <label htmlFor="set" className="form-label text-sm">
                   Set
-                </Label>
+                </label>
                 <Input
                   id="set"
                   type="text"
@@ -417,9 +416,9 @@ export default function CreateShowCard() {
                 />
               </div>
               <div>
-                <Label htmlFor="card-number" className="text-sm">
+                <label htmlFor="card-number" className="form-label text-sm">
                   Card Number
-                </Label>
+                </label>
                 <Input
                   id="card-number"
                   type="text"
@@ -430,9 +429,9 @@ export default function CreateShowCard() {
                 />
               </div>
               <div>
-                <Label htmlFor="condition" className="text-sm">
+                <label htmlFor="condition" className="form-label text-sm">
                   Condition
-                </Label>
+                </label>
                 <Select value={condition} onValueChange={setCondition}>
                   <SelectTrigger className="mt-1 min-h-[44px]">
                     <SelectValue placeholder="Select condition" />
@@ -452,7 +451,7 @@ export default function CreateShowCard() {
 
           {/* Cost Basis */}
           <div>
-            <Label htmlFor="cost-basis">Cost Basis (Optional)</Label>
+            <label htmlFor="cost-basis" className="form-label">Cost Basis (Optional)</label>
             <div className="relative mt-2">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
@@ -475,7 +474,7 @@ export default function CreateShowCard() {
 
           {/* Asking Price */}
           <div>
-            <Label htmlFor="asking-price">Asking Price *</Label>
+            <label htmlFor="asking-price" className="form-label">Asking Price *</label>
             <div className="relative mt-2">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 $
@@ -504,7 +503,7 @@ export default function CreateShowCard() {
 
           {/* Front Photo */}
           <div>
-            <Label>Front Photo (Optional)</Label>
+            <label className="form-label">Front Photo (Optional)</label>
             <div className="mt-2">
               {!frontPreview ? (
                 <label
@@ -550,7 +549,7 @@ export default function CreateShowCard() {
 
           {/* Back Photo */}
           <div>
-            <Label>Back Photo (Optional)</Label>
+            <label className="form-label">Back Photo (Optional)</label>
             <div className="mt-2">
               {!backPreview ? (
                 <label
