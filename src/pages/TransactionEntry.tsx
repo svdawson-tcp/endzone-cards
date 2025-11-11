@@ -216,7 +216,7 @@ export default function TransactionEntry() {
                   "flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all min-h-[100px]",
                   transactionType === "show_card_sale"
                     ? "bg-[hsl(var(--navy-base))] text-white border-[hsl(var(--navy-base))]"
-                    : "border-input hover:bg-muted/50"
+                    : "border-input hover:bg-muted/50 text-card-foreground"
                 )}
               >
                 <CreditCard size={32} className="mb-2" />
@@ -230,7 +230,7 @@ export default function TransactionEntry() {
                   "flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all min-h-[100px]",
                   transactionType === "bulk_sale"
                     ? "bg-[hsl(var(--navy-base))] text-white border-[hsl(var(--navy-base))]"
-                    : "border-input hover:bg-muted/50"
+                    : "border-input hover:bg-muted/50 text-card-foreground"
                 )}
               >
                 <Package size={32} className="mb-2" />
@@ -244,7 +244,7 @@ export default function TransactionEntry() {
                   "flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all min-h-[100px]",
                   transactionType === "disposition"
                     ? "bg-[hsl(var(--navy-base))] text-white border-[hsl(var(--navy-base))]"
-                    : "border-input hover:bg-muted/50"
+                    : "border-input hover:bg-muted/50 text-card-foreground"
                 )}
               >
                 <Archive size={32} className="mb-2" />
