@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/endzone-logo-light.png";
+import logo from "@/assets/endzone-logo-main.png";
 
 const TopBar = () => {
   const navigate = useNavigate();
