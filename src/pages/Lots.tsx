@@ -310,31 +310,31 @@ export default function Lots() {
                 </div>
 
                 {/* Lot Source */}
-                <h3 className="text-h3 mb-4 pr-20">{lot.source}</h3>
+                <h3 className="text-h3 text-foreground mb-4 pr-20">{lot.source}</h3>
 
                 {/* Lot Details */}
                 <div className="space-y-3 mb-4">
                   {/* Purchase Date */}
-                  <div className="flex items-center gap-2 text-foreground">
+                  <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">
+                    <span className="text-sm text-foreground">
                       {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
                     </span>
                   </div>
 
                   {/* Cost */}
-                  <div className="flex items-center gap-2 text-foreground">
+                  <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold">
+                    <span className="text-sm font-semibold text-foreground">
                       Cost: ${Number(lot.total_cost).toFixed(2)}
                     </span>
                   </div>
 
                   {/* Revenue (if > 0) */}
                   {lot.revenue > 0 && (
-                    <div className="flex items-center gap-2 text-foreground">
+                    <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">
+                      <span className="text-sm text-foreground">
                         Revenue: ${lot.revenue.toFixed(2)}
                       </span>
                     </div>
