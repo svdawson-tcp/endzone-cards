@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
-import TransactionNew from "./pages/TransactionNew";
+import TransactionEntry from "./pages/TransactionEntry";
 import ShowCardNew from "./pages/ShowCardNew";
 import ShowNew from "./pages/ShowNew";
 import Shows from "./pages/Shows";
@@ -28,7 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
-          <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionEntry /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><ShowCardNew /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><ShowNew /></AuthenticatedLayout></ProtectedRoute>} />
