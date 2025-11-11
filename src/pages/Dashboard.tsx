@@ -130,13 +130,14 @@ export default function Dashboard() {
   });
 
   const getTransactionTypeBadge = (type: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string; className?: string }> = {
       show_card_sale: { variant: "default", label: "Card Sale" },
-      bulk_sale: { variant: "secondary", label: "Bulk Sale" },
+      bulk_sale: { variant: "secondary", label: "Bulk Sale", className: "text-gray-900" },
+      disposition: { variant: "outline", label: "Disposition", className: "text-gray-900" },
     };
     
-    const config = variants[type] || { variant: "outline" as const, label: type };
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    const config = variants[type] || { variant: "outline" as const, label: type, className: "text-gray-900" };
+    return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
   };
 
   const getStatusBadge = (status: string) => {
