@@ -296,7 +296,6 @@ export default function ShowCards() {
                 <div className="absolute top-4 right-4">
                   <Badge 
                     variant={getStatusBadgeVariant(card.status)}
-                    className={card.status === "sold" ? "text-[hsl(var(--success))]" : ""}
                   >
                     {card.status.toUpperCase()}
                   </Badge>
