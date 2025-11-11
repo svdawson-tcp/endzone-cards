@@ -36,7 +36,12 @@ const TopBar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <img src={logo} alt="EndZone Logo" className="h-12" />
+        <button 
+          onClick={() => navigate("/dashboard")}
+          className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+        >
+          <img src={logo} alt="EndZone Logo" className="h-12 cursor-pointer" />
+        </button>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
