@@ -153,7 +153,7 @@ export default function Shows() {
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
             <h1 className="text-h1 mb-2">SHOWS</h1>
             <p className="text-muted-foreground">Manage your card show events</p>
@@ -167,8 +167,10 @@ export default function Shows() {
           </Button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Filter Tabs and Sort */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-2 flex-1">
           <Button
             variant={filterTab === "all" ? "default" : "outline"}
             onClick={() => setFilterTab("all")}
@@ -197,21 +199,22 @@ export default function Shows() {
           >
             Completed ({counts.completed})
           </Button>
-        </div>
+          </div>
 
-        {/* Sort Dropdown */}
-        <div className="mb-6 flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Sort by:</span>
-          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
-              <SelectItem value="date-desc">Date (Newest First)</SelectItem>
-              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Sort by:</span>
+            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+              <SelectTrigger className="w-auto min-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
+                <SelectItem value="date-desc">Date (Newest First)</SelectItem>
+                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Loading State */}
