@@ -141,13 +141,14 @@ export default function Dashboard() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      planned: "secondary",
-      active: "default",
-      completed: "outline",
+    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; className?: string }> = {
+      planned: { variant: "secondary", className: "text-gray-900" },
+      active: { variant: "default" },
+      completed: { variant: "outline", className: "text-gray-900" },
     };
     
-    return <Badge variant={variants[status] || "outline"}>{status}</Badge>;
+    const config = variants[status] || { variant: "outline" as const, className: "text-gray-900" };
+    return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
   };
 
   return (
@@ -327,16 +328,16 @@ export default function Dashboard() {
                 {upcomingShows.map((show: any) => (
                   <div key={show.id} className="bg-card shadow-card-shadow rounded-lg p-6">
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-h1 text-sm">{show.name}</h3>
+                      <h3 className="text-h1 text-sm text-gray-900">{show.name}</h3>
                       {getStatusBadge(show.status)}
                     </div>
-                    <p className="text-sm text-foreground mb-1">
+                    <p className="text-sm text-gray-900 mb-1">
                       {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </p>
-                    <p className="text-sm text-muted-foreground mb-3">
+                    <p className="text-sm text-gray-600 mb-3">
                       {show.location || "Location TBD"}
                     </p>
-                    <p className="text-sm font-semibold text-foreground">
+                    <p className="text-sm font-semibold text-gray-900">
                       Table Cost: ${Number(show.table_cost).toFixed(2)}
                     </p>
                   </div>
