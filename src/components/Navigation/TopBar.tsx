@@ -35,8 +35,8 @@ const TopBar = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-card border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-        <img src={logo} alt="EndZone Logo" className="h-10" />
+      <div className="max-w-7xl mx-auto px-4 h-28 flex items-center justify-between">
+        <img src={logo} alt="EndZone Logo" className="h-25" />
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
