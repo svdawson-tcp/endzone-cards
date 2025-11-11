@@ -353,6 +353,15 @@ export default function ShowCards() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4 border-t border-border">
+                  {card.status === "available" && (
+                    <Button 
+                      className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white"
+                      onClick={() => navigate(`/transactions/show-card-sale/${card.id}`, { state: { showCard: card } })}
+                    >
+                      <DollarSign className="mr-1 h-4 w-4" />
+                      SELL
+                    </Button>
+                  )}
                   <Button 
                     variant="outline" 
                     className="flex-1"
