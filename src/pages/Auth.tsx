@@ -11,7 +11,7 @@ export default function Auth() {
   
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(false);
   
   const [formData, setFormData] = useState({
     email: "",
