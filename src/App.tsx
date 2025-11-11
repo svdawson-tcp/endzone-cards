@@ -10,8 +10,11 @@ import TransactionNew from "./pages/TransactionNew";
 import ShowCardNew from "./pages/ShowCardNew";
 import ShowNew from "./pages/ShowNew";
 import Shows from "./pages/Shows";
+import Lots from "./pages/Lots";
+import ShowCards from "./pages/ShowCards";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuthenticatedLayout from "./components/Layout/AuthenticatedLayout";
 
 const queryClient = new QueryClient();
 
@@ -24,11 +27,13 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/transactions/new" element={<ProtectedRoute><TransactionNew /></ProtectedRoute>} />
-          <Route path="/show-cards/new" element={<ProtectedRoute><ShowCardNew /></ProtectedRoute>} />
-          <Route path="/shows/new" element={<ProtectedRoute><ShowNew /></ProtectedRoute>} />
-          <Route path="/shows" element={<ProtectedRoute><Shows /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><ShowCardNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><ShowNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/lots" element={<ProtectedRoute><AuthenticatedLayout><Lots /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
