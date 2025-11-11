@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CurrencyInput } from "@/components/forms/CurrencyInput";
+import { DateInput } from "@/components/forms/DateInput";
+import { FormField } from "@/components/forms/FormField";
 import { format } from "date-fns";
 
 export default function CreateLot() {
@@ -216,23 +219,22 @@ export default function CreateLot() {
 
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
           {/* Purchase Date */}
-          <div>
-            <label htmlFor="purchase-date" className="form-label">Purchase Date *</label>
-            <Input
+          <FormField
+            label="Purchase Date"
+            required
+            error={errors.purchaseDate}
+            htmlFor="purchase-date"
+          >
+            <DateInput
               id="purchase-date"
-              type="date"
               value={purchaseDate}
               onChange={(e) => {
                 setPurchaseDate(e.target.value);
                 if (errors.purchaseDate) setErrors({ ...errors, purchaseDate: "" });
               }}
               max={format(new Date(), "yyyy-MM-dd")}
-              className="mt-2 min-h-[44px]"
             />
-            {errors.purchaseDate && (
-              <p className="text-destructive text-sm mt-1">{errors.purchaseDate}</p>
-            )}
-          </div>
+          </FormField>
 
           {/* Source */}
           <div>
@@ -258,33 +260,25 @@ export default function CreateLot() {
           </div>
 
           {/* Total Cost */}
-          <div>
-            <label htmlFor="total-cost" className="form-label">Total Cost *</label>
-            <div className="relative mt-2">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                $
-              </span>
-              <Input
-                id="total-cost"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={totalCost}
-                onChange={(e) => {
-                  setTotalCost(e.target.value);
-                  if (errors.totalCost) setErrors({ ...errors, totalCost: "" });
-                }}
-                placeholder="0.00"
-                className="pl-8 min-h-[44px]"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Total amount paid for this purchase
-            </p>
-            {errors.totalCost && (
-              <p className="text-destructive text-sm mt-1">{errors.totalCost}</p>
-            )}
-          </div>
+          <FormField
+            label="Total Cost"
+            required
+            error={errors.totalCost}
+            helperText="Total amount paid for this purchase"
+            htmlFor="total-cost"
+          >
+            <CurrencyInput
+              id="total-cost"
+              value={totalCost}
+              onChange={(e) => {
+                setTotalCost(e.target.value);
+                if (errors.totalCost) setErrors({ ...errors, totalCost: "" });
+              }}
+              placeholder="0.00"
+              min={0.01}
+              step={0.01}
+            />
+          </FormField>
 
           {/* Notes */}
           <div>
