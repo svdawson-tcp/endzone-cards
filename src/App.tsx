@@ -8,7 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TransactionEntry from "./pages/TransactionEntry";
 import ShowCardNew from "./pages/ShowCardNew";
-import ShowNew from "./pages/ShowNew";
+import CreateShow from "./pages/CreateShow";
 import Shows from "./pages/Shows";
 import Lots from "./pages/Lots";
 import ShowCards from "./pages/ShowCards";
@@ -31,7 +31,7 @@ const App = () => (
           <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionEntry /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><ShowCardNew /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
-          <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><ShowNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots" element={<ProtectedRoute><AuthenticatedLayout><Lots /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
