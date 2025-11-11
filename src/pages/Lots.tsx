@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2 } from "lucide-react";
+import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -54,6 +54,10 @@ export default function Lots() {
   const [sortOption, setSortOption] = useState<SortOption>("date-desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [lotToDelete, setLotToDelete] = useState<LotWithRevenue | null>(null);
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [lotToClose, setLotToClose] = useState<LotWithRevenue | null>(null);
+  const [unsoldCardCount, setUnsoldCardCount] = useState(0);
 
   // Fetch lots with revenue calculation
   const { data: lots = [], isLoading } = useQuery({
@@ -166,6 +170,71 @@ export default function Lots() {
     active: lots.filter((l) => l.status === "active").length,
     closed: lots.filter((l) => l.status === "closed").length,
     archived: lots.filter((l) => l.status === "archived").length,
+  };
+
+  // Close lot mutation
+  const closeLotMutation = useMutation({
+    mutationFn: async (lotId: string) => {
+      const { error } = await supabase
+        .from("lots")
+        .update({
+          status: "closed",
+          closure_date: new Date().toISOString().split("T")[0],
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", lotId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lots"] });
+      toast({
+        title: "Lot closed successfully",
+        description: "The lot has been marked as closed",
+      });
+      setCloseDialogOpen(false);
+      setLotToClose(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error closing lot",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCloseLotClick = async (lot: LotWithRevenue) => {
+    setLotToClose(lot);
+
+    // Check for unsold show cards
+    const { data: unsoldCards, error } = await supabase
+      .from("show_cards")
+      .select("id")
+      .eq("lot_id", lot.id)
+      .eq("status", "available");
+
+    if (error) {
+      toast({
+        title: "Error checking show cards",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (unsoldCards && unsoldCards.length > 0) {
+      setUnsoldCardCount(unsoldCards.length);
+      setErrorDialogOpen(true);
+    } else {
+      setCloseDialogOpen(true);
+    }
+  };
+
+  const handleCloseConfirm = () => {
+    if (lotToClose) {
+      closeLotMutation.mutate(lotToClose.id);
+    }
   };
 
   const handleDeleteClick = (lot: LotWithRevenue) => {
@@ -378,6 +447,16 @@ export default function Lots() {
                     <Plus className="mr-2 h-4 w-4" />
                     ADD SHOW CARD
                   </Button>
+                  {lot.status === "active" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleCloseLotClick(lot)}
+                      className="w-full"
+                    >
+                      <CheckCircle2 className="mr-2 h-4 w-4" />
+                      CLOSE LOT
+                    </Button>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -419,6 +498,47 @@ export default function Lots() {
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Close Lot Error Dialog */}
+      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Cannot Close Lot</AlertDialogTitle>
+            <AlertDialogDescription>
+              This lot has {unsoldCardCount} unsold show card{unsoldCardCount !== 1 ? "s" : ""}. You must sell, transfer, or mark them as lost before closing this lot.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => setErrorDialogOpen(false)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              OK
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Close Lot Confirmation Dialog */}
+      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Lot?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Have you accounted for all cards through sales, dispositions, or combinations? This will mark lot "{lotToClose?.source}" as closed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseConfirm}
+              className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]"
+            >
+              Close Lot
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
