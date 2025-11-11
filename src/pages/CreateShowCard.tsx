@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +20,8 @@ import { format } from "date-fns";
 export default function CreateShowCard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   const [selectedLotId, setSelectedLotId] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -34,6 +36,8 @@ export default function CreateShowCard() {
   const [backPhoto, setBackPhoto] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
   const [backPreview, setBackPreview] = useState<string | null>(null);
+  const [existingFrontUrl, setExistingFrontUrl] = useState<string | null>(null);
+  const [existingBackUrl, setExistingBackUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
 
@@ -45,6 +49,63 @@ export default function CreateShowCard() {
   });
 
   const currentYear = new Date().getFullYear();
+
+  // Load existing show card data in edit mode
+  const { data: existingCard, isLoading: loadingCard } = useQuery({
+    queryKey: ["show_card", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("show_cards")
+        .select("*, lots!lot_id(source)")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Pre-populate form fields when existing card loads
+  useEffect(() => {
+    if (existingCard) {
+      setSelectedLotId(existingCard.lot_id);
+      setPlayerName(existingCard.player_name);
+      setYear(existingCard.year || "");
+      
+      // Extract card_details JSONB
+      const details = existingCard.card_details as any;
+      setBrand(details?.brand || "");
+      setSet(details?.set || "");
+      setCardNumber(details?.card_number || "");
+      setCondition(details?.condition || "");
+      
+      setCostBasis(existingCard.cost_basis ? existingCard.cost_basis.toString() : "");
+      setAskingPrice(existingCard.asking_price ? existingCard.asking_price.toString() : "");
+      
+      // Set existing photo URLs (not File objects)
+      if (existingCard.photo_front_url) {
+        setFrontPreview(existingCard.photo_front_url);
+        setExistingFrontUrl(existingCard.photo_front_url);
+      }
+      if (existingCard.photo_back_url) {
+        setBackPreview(existingCard.photo_back_url);
+        setExistingBackUrl(existingCard.photo_back_url);
+      }
+    }
+  }, [existingCard]);
+
+  // Handle load errors
+  useEffect(() => {
+    if (isEditMode && !loadingCard && !existingCard) {
+      toast({
+        title: "Error loading show card",
+        description: "Show card not found",
+        variant: "destructive",
+      });
+      navigate("/show-cards");
+    }
+  }, [isEditMode, loadingCard, existingCard, toast, navigate]);
 
   // Fetch active lots
   const { data: lots, isLoading: loadingLots } = useQuery({
@@ -106,11 +167,13 @@ export default function CreateShowCard() {
   const removeFrontPhoto = () => {
     setFrontPhoto(null);
     setFrontPreview(null);
+    setExistingFrontUrl(null);
   };
 
   const removeBackPhoto = () => {
     setBackPhoto(null);
     setBackPreview(null);
+    setExistingBackUrl(null);
   };
 
   const validateForm = () => {
@@ -172,11 +235,25 @@ export default function CreateShowCard() {
       } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      let frontPhotoUrl = null;
-      let backPhotoUrl = null;
+      let frontPhotoUrl = existingFrontUrl;
+      let backPhotoUrl = existingBackUrl;
 
-      // Compress and upload front photo if provided
+      // Helper function to delete old photo from storage
+      const deletePhotoFromStorage = async (url: string) => {
+        if (!url) return;
+        try {
+          const path = url.split('/show_cards/')[1];
+          if (path) {
+            await supabase.storage.from("show_cards").remove([path]);
+          }
+        } catch (error) {
+          console.error("Error deleting old photo:", error);
+        }
+      };
+
+      // Handle front photo
       if (frontPhoto) {
+        // New photo selected - upload it
         setUploadProgress("Processing front photo...");
         const compressedFront = await compressPhoto(frontPhoto);
         const frontFileName = `${user.id}/${Date.now()}_front.webp`;
@@ -195,10 +272,20 @@ export default function CreateShowCard() {
         } = supabase.storage.from("show_cards").getPublicUrl(frontFileName);
 
         frontPhotoUrl = publicUrl;
+
+        // Delete old photo if it exists
+        if (isEditMode && existingFrontUrl) {
+          await deletePhotoFromStorage(existingFrontUrl);
+        }
+      } else if (!frontPreview && isEditMode && existingFrontUrl) {
+        // Photo was removed in edit mode
+        await deletePhotoFromStorage(existingFrontUrl);
+        frontPhotoUrl = null;
       }
 
-      // Compress and upload back photo if provided
+      // Handle back photo
       if (backPhoto) {
+        // New photo selected - upload it
         setUploadProgress("Processing back photo...");
         const compressedBack = await compressPhoto(backPhoto);
         const backFileName = `${user.id}/${Date.now()}_back.webp`;
@@ -217,9 +304,18 @@ export default function CreateShowCard() {
         } = supabase.storage.from("show_cards").getPublicUrl(backFileName);
 
         backPhotoUrl = publicUrl;
+
+        // Delete old photo if it exists
+        if (isEditMode && existingBackUrl) {
+          await deletePhotoFromStorage(existingBackUrl);
+        }
+      } else if (!backPreview && isEditMode && existingBackUrl) {
+        // Photo was removed in edit mode
+        await deletePhotoFromStorage(existingBackUrl);
+        backPhotoUrl = null;
       }
 
-      setUploadProgress("Creating card...");
+      setUploadProgress(isEditMode ? "Updating card..." : "Creating card...");
 
       // Build card_details JSONB
       const cardDetails = {
@@ -229,32 +325,51 @@ export default function CreateShowCard() {
         condition: condition || null,
       };
 
-      // Insert show card
-      const { error } = await supabase.from("show_cards").insert({
-        user_id: user.id,
-        lot_id: selectedLotId,
+      const cardData = {
         player_name: playerName.trim(),
         year: year,
         card_details: cardDetails,
         cost_basis: costBasis ? parseFloat(costBasis) : null,
         asking_price: parseFloat(askingPrice),
-        status: "available",
         photo_front_url: frontPhotoUrl,
         photo_back_url: backPhotoUrl,
-      });
+      };
 
-      if (error) throw error;
+      if (isEditMode) {
+        // Update existing show card
+        const { error } = await supabase
+          .from("show_cards")
+          .update(cardData)
+          .eq("id", id);
 
-      toast({
-        title: "Show card added!",
-        description: `${playerName} (${year}) added to inventory`,
-      });
+        if (error) throw error;
+
+        toast({
+          title: "Show card updated!",
+          description: `${playerName} (${year}) has been updated successfully`,
+        });
+      } else {
+        // Create new show card
+        const { error } = await supabase.from("show_cards").insert({
+          ...cardData,
+          user_id: user.id,
+          lot_id: selectedLotId,
+          status: "available",
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Show card added!",
+          description: `${playerName} (${year}) added to inventory`,
+        });
+      }
 
       navigate("/show-cards");
     } catch (error: any) {
-      console.error("Create show card error:", error);
+      console.error(`${isEditMode ? "Update" : "Create"} show card error:`, error);
       toast({
-        title: "Error creating show card",
+        title: `Error ${isEditMode ? "updating" : "creating"} show card`,
         description: error.message || "Please try again",
         variant: "destructive",
       });
@@ -268,15 +383,20 @@ export default function CreateShowCard() {
     navigate("/show-cards");
   };
 
-  if (loadingLots) {
+  if (loadingLots || (isEditMode && loadingCard)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+          <p className="text-muted-foreground">
+            {isEditMode ? "Loading show card data..." : "Loading..."}
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (!lots || lots.length === 0) {
+  if (!isEditMode && (!lots || lots.length === 0)) {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-2xl mx-auto px-4 py-8">
@@ -305,18 +425,22 @@ export default function CreateShowCard() {
     <div className="min-h-screen bg-background pb-32 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-h1 mb-2">ADD SHOW CARD</h1>
-          <p className="text-muted-foreground">Add a premium card to your inventory</p>
+          <h1 className="text-h1 mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
+          <p className="text-muted-foreground">
+            {isEditMode ? "Update card details" : "Add a premium card to your inventory"}
+          </p>
         </div>
 
-        {/* Info Callout */}
-        <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
-          <Info className="h-5 w-5 text-blue-500" />
-          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
-            Show cards are premium inventory items that you photograph and track
-            individually. These are your best cards that you'll showcase at shows.
-          </AlertDescription>
-        </Alert>
+        {/* Info Callout - only show in create mode */}
+        {!isEditMode && (
+          <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
+            <Info className="h-5 w-5 text-blue-500" />
+            <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
+              Show cards are premium inventory items that you photograph and track
+              individually. These are your best cards that you'll showcase at shows.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form
           onSubmit={handleSubmit}
@@ -325,21 +449,31 @@ export default function CreateShowCard() {
           {/* Select Lot */}
           <div>
             <label htmlFor="lot" className="form-label">Lot *</label>
-            <Select value={selectedLotId} onValueChange={setSelectedLotId}>
+            <Select 
+              value={selectedLotId} 
+              onValueChange={setSelectedLotId}
+              disabled={isEditMode}
+            >
               <SelectTrigger className="mt-2 min-h-[44px]">
                 <SelectValue placeholder="Select lot this card came from" />
               </SelectTrigger>
               <SelectContent>
-                {lots?.map((lot) => (
-                  <SelectItem key={lot.id} value={lot.id}>
-                    {lot.source} - ${lot.total_cost} (
-                    {format(new Date(lot.purchase_date), "MMM dd, yyyy")})
+                {isEditMode && existingCard ? (
+                  <SelectItem value={existingCard.lot_id}>
+                    {existingCard.lots?.source || "Unknown Lot"}
                   </SelectItem>
-                ))}
+                ) : (
+                  lots?.map((lot) => (
+                    <SelectItem key={lot.id} value={lot.id}>
+                      {lot.source} - ${lot.total_cost} (
+                      {format(new Date(lot.purchase_date), "MMM dd, yyyy")})
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              Which purchase did this card come from?
+              {isEditMode ? "Lot cannot be changed in edit mode" : "Which purchase did this card come from?"}
             </p>
             {errors.lot && <p className="text-destructive text-sm mt-1">{errors.lot}</p>}
           </div>
@@ -539,9 +673,11 @@ export default function CreateShowCard() {
                   >
                     <X size={16} />
                   </button>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {frontPhoto?.name} ({(frontPhoto!.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
+                  {frontPhoto && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {frontPhoto.name} ({(frontPhoto.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -585,9 +721,11 @@ export default function CreateShowCard() {
                   >
                     <X size={16} />
                   </button>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {backPhoto?.name} ({(backPhoto!.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
+                  {backPhoto && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {backPhoto.name} ({(backPhoto.size / 1024 / 1024).toFixed(2)} MB)
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -612,10 +750,10 @@ export default function CreateShowCard() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {uploadProgress || "Creating..."}
+                  {uploadProgress || (isEditMode ? "Updating..." : "Creating...")}
                 </>
               ) : (
-                "ADD SHOW CARD"
+                isEditMode ? "UPDATE SHOW CARD" : "ADD SHOW CARD"
               )}
             </Button>
           </div>

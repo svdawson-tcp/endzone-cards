@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Plus, Trash2, Package, DollarSign, Calendar, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Package, DollarSign, Calendar, Image as ImageIcon, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 type CardStatus = "available" | "sold" | "lost" | "combined";
@@ -353,8 +353,13 @@ export default function ShowCards() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4 border-t border-border">
-                  <Button variant="outline" className="flex-1" disabled>
-                    View Details
+                  <Button 
+                    variant="outline" 
+                    className="flex-1"
+                    onClick={() => navigate(`/show-cards/${card.id}/edit`)}
+                  >
+                    <Edit className="mr-1 h-4 w-4" />
+                    Edit
                   </Button>
                   <Button
                     variant="outline"
