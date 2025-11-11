@@ -7,7 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import TransactionEntry from "./pages/TransactionEntry";
-import ShowCardNew from "./pages/ShowCardNew";
+import CreateShowCard from "./pages/CreateShowCard";
 import CreateShow from "./pages/CreateShow";
 import CreateLot from "./pages/CreateLot";
 import Shows from "./pages/Shows";
@@ -30,7 +30,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionEntry /></AuthenticatedLayout></ProtectedRoute>} />
-          <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><ShowCardNew /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
