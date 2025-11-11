@@ -101,16 +101,6 @@ export default function ShowCardSale() {
       if (!showCard) throw new Error("Show card not found");
 
       const salePriceNum = parseFloat(salePrice);
-      
-      // Validate
-      if (salePriceNum <= 0) {
-        setErrors({ salePrice: "Sale price must be greater than 0" });
-        throw new Error("Invalid sale price");
-      }
-      if (!selectedShowId) {
-        setErrors({ show: "Show selection is required" });
-        throw new Error("Show required");
-      }
 
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -177,13 +167,29 @@ export default function ShowCardSale() {
     setErrors({});
     
     const salePriceNum = parseFloat(salePrice);
+    const validationErrors: { salePrice?: string; show?: string } = {};
     
-    // Check if asking price differs from sale price
+    // VALIDATE FIRST - before any dialogs
+    if (!salePriceNum || salePriceNum <= 0) {
+      validationErrors.salePrice = "Sale price must be greater than 0";
+    }
+    if (!selectedShowId) {
+      validationErrors.show = "Show selection is required";
+    }
+    
+    // If validation errors exist, show them and stop
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    
+    // THEN check price difference
     if (showCard?.asking_price && showCard.asking_price !== salePriceNum) {
       setShowConfirmDialog(true);
       return;
     }
     
+    // If no price difference, submit directly
     submitMutation.mutate();
   };
 
