@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -14,6 +15,8 @@ import { format } from "date-fns";
 export default function CreateShow() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
+  const isEditMode = !!id;
 
   // Default date: 7 days from today
   const defaultDate = new Date();
@@ -26,7 +29,49 @@ export default function CreateShow() {
   const [tableCost, setTableCost] = useState("");
   const [boothNumber, setBoothNumber] = useState("");
   const [notes, setNotes] = useState("");
+  const [showStatus, setShowStatus] = useState<"planned" | "active" | "completed">("planned");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load existing show data in edit mode
+  const { data: existingShow, isLoading: loadingShow } = useQuery({
+    queryKey: ["show", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("shows")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Pre-populate form fields when existing show loads
+  useEffect(() => {
+    if (existingShow) {
+      setShowName(existingShow.name);
+      setShowDate(existingShow.show_date);
+      setLocation(existingShow.location || "");
+      setTableCost(existingShow.table_cost.toString());
+      setBoothNumber(existingShow.booth_number || "");
+      setNotes(existingShow.notes || "");
+      setShowStatus(existingShow.status as "planned" | "active" | "completed");
+    }
+  }, [existingShow]);
+
+  // Handle load errors
+  useEffect(() => {
+    if (isEditMode && !loadingShow && !existingShow) {
+      toast({
+        title: "Error loading show",
+        description: "Show not found",
+        variant: "destructive",
+      });
+      navigate("/shows");
+    }
+  }, [isEditMode, loadingShow, existingShow, toast, navigate]);
 
   const [errors, setErrors] = useState({
     showName: "",
@@ -53,7 +98,8 @@ export default function CreateShow() {
     if (!showDate) {
       newErrors.showDate = "Date is required";
       isValid = false;
-    } else {
+    } else if (!isEditMode || showStatus === "planned") {
+      // Only validate future dates for new shows or planned shows in edit mode
       const selectedDate = new Date(showDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -78,14 +124,19 @@ export default function CreateShow() {
   };
 
   const isFormValid = () => {
-    return (
+    const basicValidation = 
       showName.trim() !== "" &&
       showDate !== "" &&
       location.trim() !== "" &&
       tableCost !== "" &&
-      parseFloat(tableCost) >= 0 &&
-      new Date(showDate) >= new Date(new Date().setHours(0, 0, 0, 0))
-    );
+      parseFloat(tableCost) >= 0;
+    
+    // Date validation: only check future dates for new shows or planned shows
+    if (!isEditMode || showStatus === "planned") {
+      return basicValidation && new Date(showDate) >= new Date(new Date().setHours(0, 0, 0, 0));
+    }
+    
+    return basicValidation;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -99,29 +150,49 @@ export default function CreateShow() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase.from("shows").insert({
-        user_id: user.id,
+      const showData = {
         name: showName.trim(),
         show_date: showDate,
         location: location.trim(),
         table_cost: parseFloat(tableCost),
         booth_number: boothNumber.trim() || null,
-        status: "planned",
         notes: notes.trim() || null,
-      });
+      };
 
-      if (error) throw error;
+      if (isEditMode) {
+        // Update existing show
+        const { error } = await supabase
+          .from("shows")
+          .update(showData)
+          .eq("id", id);
 
-      toast({
-        title: "Show created!",
-        description: `${showName} scheduled for ${format(new Date(showDate), "MMM dd, yyyy")}`,
-      });
+        if (error) throw error;
+
+        toast({
+          title: "Show updated!",
+          description: `${showName} has been updated successfully`,
+        });
+      } else {
+        // Create new show
+        const { error } = await supabase.from("shows").insert({
+          ...showData,
+          user_id: user.id,
+          status: "planned",
+        });
+
+        if (error) throw error;
+
+        toast({
+          title: "Show created!",
+          description: `${showName} scheduled for ${format(new Date(showDate), "MMM dd, yyyy")}`,
+        });
+      }
 
       navigate("/shows");
     } catch (error: any) {
-      console.error("Create show error:", error);
+      console.error(`${isEditMode ? "Update" : "Create"} show error:`, error);
       toast({
-        title: "Error creating show",
+        title: `Error ${isEditMode ? "updating" : "creating"} show`,
         description: error.message || "Please try again",
         variant: "destructive",
       });
@@ -134,11 +205,23 @@ export default function CreateShow() {
     navigate("/shows");
   };
 
+  // Show loading spinner while fetching existing show data
+  if (isEditMode && loadingShow) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Loading show data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-h1 mb-2">CREATE SHOW</h1>
+          <h1 className="text-h1 mb-2">{isEditMode ? "EDIT SHOW" : "CREATE SHOW"}</h1>
           <p className="text-muted-foreground">Plan your next card show event</p>
         </div>
 
@@ -271,10 +354,10 @@ export default function CreateShow() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  {isEditMode ? "Updating..." : "Creating..."}
                 </>
               ) : (
-                "CREATE SHOW"
+                isEditMode ? "UPDATE SHOW" : "CREATE SHOW"
               )}
             </Button>
           </div>

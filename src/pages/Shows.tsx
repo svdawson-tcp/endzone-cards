@@ -314,7 +314,7 @@ export default function Shows() {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    disabled
+                    onClick={() => navigate(`/shows/${show.id}/edit`)}
                   >
                     <Edit className="mr-1 h-4 w-4" />
                     Edit
