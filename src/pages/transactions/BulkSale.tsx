@@ -270,7 +270,6 @@ export default function BulkSale() {
                 <SelectValue placeholder="Select show where sold" />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
-                <SelectItem value="">No show</SelectItem>
                 {loadingShows ? (
                   <SelectItem value="loading" disabled>Loading shows...</SelectItem>
                 ) : shows && shows.length > 0 ? (
