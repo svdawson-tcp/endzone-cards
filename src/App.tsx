@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import TransactionEntry from "./pages/TransactionEntry";
 import ShowCardNew from "./pages/ShowCardNew";
 import CreateShow from "./pages/CreateShow";
+import CreateLot from "./pages/CreateLot";
 import Shows from "./pages/Shows";
 import Lots from "./pages/Lots";
 import ShowCards from "./pages/ShowCards";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots" element={<ProtectedRoute><AuthenticatedLayout><Lots /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/lots/new" element={<ProtectedRoute><AuthenticatedLayout><CreateLot /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
