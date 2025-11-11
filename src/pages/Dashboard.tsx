@@ -184,7 +184,7 @@ export default function Dashboard() {
             {loadingRevenue ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-3xl font-bold text-foreground">
+              <p className="text-3xl font-bold text-card-foreground">
                 ${(monthlyRevenue || 0).toFixed(2)}
               </p>
             )}
@@ -200,7 +200,7 @@ export default function Dashboard() {
             {loadingLots ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <p className="text-3xl font-bold text-foreground">{activeLots}</p>
+              <p className="text-3xl font-bold text-card-foreground">{activeLots}</p>
             )}
           </div>
 
@@ -214,7 +214,7 @@ export default function Dashboard() {
             {loadingCards ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <p className="text-3xl font-bold text-foreground">{availableCards}</p>
+              <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
             )}
           </div>
 
@@ -228,7 +228,7 @@ export default function Dashboard() {
             {loadingShowsCount ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <p className="text-3xl font-bold text-foreground">{upcomingShowsCount}</p>
+              <p className="text-3xl font-bold text-card-foreground">{upcomingShowsCount}</p>
             )}
           </div>
         </section>
