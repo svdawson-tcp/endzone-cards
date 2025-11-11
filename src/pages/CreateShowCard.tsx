@@ -312,7 +312,7 @@ export default function CreateShowCard() {
         {/* Info Callout */}
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
           <Info className="h-5 w-5 text-blue-500" />
-          <AlertDescription className="ml-2 text-foreground">
+          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
             Show cards are premium inventory items that you photograph and track
             individually. These are your best cards that you'll showcase at shows.
           </AlertDescription>

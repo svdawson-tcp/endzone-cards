@@ -136,7 +136,7 @@ export default function CreateLot() {
         {/* Info Callout */}
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
           <Info className="h-5 w-5 text-blue-500" />
-          <AlertDescription className="ml-2 text-foreground">
+          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
             Lots are purchase containers. After creating a lot, you can add individual show
             cards to it for detailed tracking.
           </AlertDescription>
