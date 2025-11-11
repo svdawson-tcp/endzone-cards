@@ -178,7 +178,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-foreground mb-2">
               TOTAL REVENUE (THIS MONTH)
             </p>
             {loadingRevenue ? (
@@ -194,7 +194,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-foreground mb-2">
               ACTIVE LOTS
             </p>
             {loadingLots ? (
@@ -208,7 +208,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-foreground mb-2">
               SHOW CARDS AVAILABLE
             </p>
             {loadingCards ? (
@@ -222,7 +222,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Calendar className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-foreground mb-2">
               UPCOMING SHOWS
             </p>
             {loadingShowsCount ? (
@@ -273,11 +273,11 @@ export default function Dashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Date</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Type</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Description</th>
-                    <th className="text-right py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Amount</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Show</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-foreground uppercase">Date</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-foreground uppercase">Type</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-foreground uppercase">Description</th>
+                    <th className="text-right py-3 px-2 text-sm font-semibold text-foreground uppercase">Amount</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-foreground uppercase">Show</th>
                   </tr>
                 </thead>
                 <tbody>
