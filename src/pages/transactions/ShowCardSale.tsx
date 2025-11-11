@@ -114,7 +114,7 @@ export default function ShowCardSale() {
           transaction_type: "show_card_sale",
           show_card_id: showCard.id,
           lot_id: showCard.lot_id,
-          show_id: selectedShowId,
+          show_id: selectedShowId || null,
           revenue: salePriceNum,
           quantity: 1,
           notes: notes || null,
@@ -172,9 +172,6 @@ export default function ShowCardSale() {
     // VALIDATE FIRST - before any dialogs
     if (!salePriceNum || salePriceNum <= 0) {
       validationErrors.salePrice = "Sale price must be greater than 0";
-    }
-    if (!selectedShowId) {
-      validationErrors.show = "Show selection is required";
     }
     
     // If validation errors exist, show them and stop
@@ -290,7 +287,7 @@ export default function ShowCardSale() {
 
           {/* Show Selection */}
           <div>
-            <label htmlFor="show-select" className="form-label">Show *</label>
+            <label htmlFor="show-select" className="form-label">Show (Optional)</label>
             <Select
               value={selectedShowId}
               onValueChange={(value) => {
@@ -304,7 +301,8 @@ export default function ShowCardSale() {
               >
                 <SelectValue placeholder="Select show where sold" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent className="bg-white z-50">
+                <SelectItem value="">No show</SelectItem>
                 {loadingShows ? (
                   <SelectItem value="loading" disabled>Loading shows...</SelectItem>
                 ) : shows && shows.length > 0 ? (
@@ -322,7 +320,7 @@ export default function ShowCardSale() {
               <p className="text-destructive text-sm mt-1">{errors.show}</p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Which show was this card sold at?
+              Select show if sold at an event, leave blank for online/personal sales
             </p>
           </div>
 
