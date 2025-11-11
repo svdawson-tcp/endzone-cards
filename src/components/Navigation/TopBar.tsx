@@ -40,7 +40,7 @@ const TopBar = () => {
           onClick={() => navigate("/dashboard")}
           className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
         >
-          <img src={logo} alt="EndZone Logo" className="h-12 cursor-pointer" />
+          <img src={logo} alt="EndZone Logo" className="h-14 cursor-pointer" />
         </button>
         
         <DropdownMenu>
