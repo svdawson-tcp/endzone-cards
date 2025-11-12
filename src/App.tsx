@@ -7,6 +7,7 @@ import Auth from "./pages/Auth";
 import AuthRedirect from "./components/AuthRedirect";
 import Dashboard from "./pages/Dashboard";
 import TransactionEntry from "./pages/TransactionEntry";
+import TransactionHistory from "./pages/TransactionHistory";
 import ShowCardSale from "./pages/transactions/ShowCardSale";
 import BulkSale from "./pages/transactions/BulkSale";
 import Disposition from "./pages/transactions/Disposition";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/" element={<AuthRedirect />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/transactions" element={<ProtectedRoute><AuthenticatedLayout><TransactionHistory /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionEntry /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/show-card-sale/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowCardSale /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/bulk-sale/new" element={<ProtectedRoute><AuthenticatedLayout><BulkSale /></AuthenticatedLayout></ProtectedRoute>} />
