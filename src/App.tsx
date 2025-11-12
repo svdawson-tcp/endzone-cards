@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AuthRedirect from "./components/AuthRedirect";
 import Dashboard from "./pages/Dashboard";
 import TransactionEntry from "./pages/TransactionEntry";
 import ShowCardSale from "./pages/transactions/ShowCardSale";
@@ -31,7 +31,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<AuthRedirect />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/new" element={<ProtectedRoute><AuthenticatedLayout><TransactionEntry /></AuthenticatedLayout></ProtectedRoute>} />
