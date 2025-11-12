@@ -232,8 +232,8 @@ export default function ShowDetail() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                {/* Card Title - Uses card-title class for dark text on light background */}
-                <h1 className="card-title">{show.name}</h1>
+                {/* Page Title - Uses page-title class for white text on dark background */}
+                <h1 className="page-title mb-2">{show.name}</h1>
                 <Badge variant={getStatusBadgeVariant(show.status)} className="text-gray-900">
                   {show.status}
                 </Badge>
