@@ -133,7 +133,7 @@ export default function Shows() {
       // Step 1: If changing to "planned", validate no linked data
       if (newStatus === "planned") {
         // Check for transactions
-        const { data: transactions, error: txError } = await supabase
+        const { count: txCount, error: txError } = await supabase
           .from("transactions")
           .select("id", { count: "exact", head: true })
           .eq("show_id", showId);
@@ -141,7 +141,7 @@ export default function Shows() {
         if (txError) throw txError;
 
         // Check for expenses  
-        const { data: expenses, error: expError } = await supabase
+        const { count: expCount, error: expError } = await supabase
           .from("expenses")
           .select("id", { count: "exact", head: true })
           .eq("show_id", showId);
@@ -149,12 +149,9 @@ export default function Shows() {
         if (expError) throw expError;
 
         // Block if any linked data exists
-        const txCount = transactions?.length || 0;
-        const expCount = expenses?.length || 0;
-        
-        if (txCount > 0 || expCount > 0) {
+        if ((txCount || 0) > 0 || (expCount || 0) > 0) {
           throw new Error(
-            `Cannot revert to Planned - this show has ${txCount} transaction(s) and ${expCount} expense(s) recorded. Shows with financial records cannot be reverted.`
+            `Cannot revert to Planned - this show has ${txCount || 0} transaction(s) and ${expCount || 0} expense(s) recorded. Shows with financial records cannot be reverted.`
           );
         }
       }
