@@ -182,11 +182,11 @@ const ManualCashTransaction = () => {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="add" id="add" />
-                    <Label htmlFor="add" className="cursor-pointer">Add Cash (+)</Label>
+                    <Label htmlFor="add" className="cursor-pointer text-card-foreground">Add Cash (+)</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="remove" id="remove" />
-                    <Label htmlFor="remove" className="cursor-pointer">Remove Cash (-)</Label>
+                    <Label htmlFor="remove" className="cursor-pointer text-card-foreground">Remove Cash (-)</Label>
                   </div>
                 </RadioGroup>
               </FormField>
