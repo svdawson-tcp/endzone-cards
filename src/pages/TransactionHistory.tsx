@@ -29,17 +29,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
-type FilterType = "all" | TransactionType;
+type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
+type FilterCategory = "all" | "sales" | "cash";
 type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
-interface Transaction {
+interface BaseTransaction {
   id: string;
   transaction_type: TransactionType;
-  revenue: number;
-  quantity: number | null;
   notes: string | null;
   created_at: string;
+  source: "sales" | "cash";
+}
+
+interface SalesTransaction extends BaseTransaction {
+  source: "sales";
+  revenue: number;
+  quantity: number | null;
   show_id: string | null;
   lot_id: string | null;
   show_card_id: string | null;
@@ -47,8 +52,15 @@ interface Transaction {
   lots?: { source: string } | null;
 }
 
+interface CashTransaction extends BaseTransaction {
+  source: "cash";
+  amount: number;
+}
+
+type Transaction = SalesTransaction | CashTransaction;
+
 export default function TransactionHistory() {
-  const [filterType, setFilterType] = useState<FilterType>("all");
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
   const [sortOption, setSortOption] = useState<SortOption>("date-desc");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -58,7 +70,8 @@ export default function TransactionHistory() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      // Fetch sales transactions
+      const { data: salesData, error: salesError } = await supabase
         .from("transactions")
         .select(`
           *,
@@ -68,25 +81,67 @@ export default function TransactionHistory() {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data as Transaction[];
+      if (salesError) throw salesError;
+
+      // Fetch manual cash transactions (exclude auto-generated ones)
+      const { data: cashData, error: cashError } = await supabase
+        .from("cash_transactions")
+        .select("*")
+        .eq("user_id", user.id)
+        .in("transaction_type", ["deposit", "withdrawal", "adjustment"])
+        .order("created_at", { ascending: false });
+
+      if (cashError) throw cashError;
+
+      // Merge and sort by date
+      const allTransactions: Transaction[] = [
+        ...(salesData || []).map(t => ({ 
+          ...t, 
+          source: "sales" as const,
+          transaction_type: t.transaction_type as TransactionType
+        })),
+        ...(cashData || []).map(t => ({ 
+          ...t, 
+          source: "cash" as const,
+          transaction_type: t.transaction_type as TransactionType
+        }))
+      ].sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      return allTransactions;
     },
   });
 
   const filteredTransactions = transactions.filter((tx) => {
-    if (filterType !== "all" && tx.transaction_type !== filterType) {
-      return false;
+    // Filter by category
+    if (filterCategory === "sales") {
+      if (tx.source !== "sales") return false;
+    } else if (filterCategory === "cash") {
+      if (tx.source !== "cash") return false;
     }
 
+    // Search filtering
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       const matchesNotes = tx.notes?.toLowerCase().includes(searchLower);
-      const matchesLot = tx.lots?.source?.toLowerCase().includes(searchLower);
-      const matchesShow = tx.shows?.name?.toLowerCase().includes(searchLower);
-      const matchesAmount = tx.revenue.toString().includes(searchLower);
       
-      if (!matchesNotes && !matchesLot && !matchesShow && !matchesAmount) {
-        return false;
+      if (tx.source === "sales") {
+        const salesTx = tx as SalesTransaction;
+        const matchesLot = salesTx.lots?.source?.toLowerCase().includes(searchLower);
+        const matchesShow = salesTx.shows?.name?.toLowerCase().includes(searchLower);
+        const matchesAmount = salesTx.revenue.toString().includes(searchLower);
+        
+        if (!matchesNotes && !matchesLot && !matchesShow && !matchesAmount) {
+          return false;
+        }
+      } else {
+        const cashTx = tx as CashTransaction;
+        const matchesAmount = Math.abs(cashTx.amount).toString().includes(searchLower);
+        
+        if (!matchesNotes && !matchesAmount) {
+          return false;
+        }
       }
     }
 
@@ -99,37 +154,62 @@ export default function TransactionHistory() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       case "date-asc":
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      case "amount-desc":
-        return Number(b.revenue) - Number(a.revenue);
-      case "amount-asc":
-        return Number(a.revenue) - Number(b.revenue);
+      case "amount-desc": {
+        const aAmount = a.source === "sales" ? (a as SalesTransaction).revenue : Math.abs((a as CashTransaction).amount);
+        const bAmount = b.source === "sales" ? (b as SalesTransaction).revenue : Math.abs((b as CashTransaction).amount);
+        return bAmount - aAmount;
+      }
+      case "amount-asc": {
+        const aAmount = a.source === "sales" ? (a as SalesTransaction).revenue : Math.abs((a as CashTransaction).amount);
+        const bAmount = b.source === "sales" ? (b as SalesTransaction).revenue : Math.abs((b as CashTransaction).amount);
+        return aAmount - bAmount;
+      }
       default:
         return 0;
     }
   });
 
   const totalRevenue = filteredTransactions
-    .filter(tx => tx.transaction_type !== "disposition")
-    .reduce((sum, tx) => sum + Number(tx.revenue), 0);
+    .filter(tx => tx.source === "sales" && tx.transaction_type !== "disposition")
+    .reduce((sum, tx) => sum + Number((tx as SalesTransaction).revenue), 0);
 
   const counts = {
     all: transactions.length,
+    sales: transactions.filter(tx => tx.source === "sales").length,
+    cash: transactions.filter(tx => tx.source === "cash").length,
     show_card_sale: transactions.filter(tx => tx.transaction_type === "show_card_sale").length,
     bulk_sale: transactions.filter(tx => tx.transaction_type === "bulk_sale").length,
-    disposition: transactions.filter(tx => tx.transaction_type === "disposition").length,
   };
 
   const handleExport = () => {
-    const headers = ["Date", "Type", "Lot", "Show", "Amount", "Quantity", "Notes"];
-    const rows = sortedTransactions.map(tx => [
-      format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
-      tx.transaction_type,
-      tx.lots?.source || "-",
-      tx.shows?.name || "-",
-      tx.revenue.toFixed(2),
-      tx.quantity || "-",
-      tx.notes || "-"
-    ]);
+    const headers = ["Date", "Type", "Source", "Lot", "Show", "Amount", "Quantity", "Notes"];
+    const rows = sortedTransactions.map(tx => {
+      if (tx.source === "sales") {
+        const salesTx = tx as SalesTransaction;
+        return [
+          format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
+          tx.transaction_type,
+          "sales",
+          salesTx.lots?.source || "-",
+          salesTx.shows?.name || "-",
+          salesTx.revenue.toFixed(2),
+          salesTx.quantity || "-",
+          tx.notes || "-"
+        ];
+      } else {
+        const cashTx = tx as CashTransaction;
+        return [
+          format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
+          tx.transaction_type,
+          "cash",
+          "-",
+          "-",
+          cashTx.amount.toFixed(2),
+          "-",
+          tx.notes || "-"
+        ];
+      }
+    });
 
     const csv = [
       headers.join(","),
@@ -144,29 +224,42 @@ export default function TransactionHistory() {
     a.click();
   };
 
-  const getTypeBadgeVariant = (type: TransactionType) => {
+  const getTypeBadge = (type: TransactionType) => {
     switch (type) {
       case "show_card_sale":
-        return "default" as const;
+        return { label: "Premium Sale", className: "bg-[hsl(var(--navy-base))] text-white" };
       case "bulk_sale":
-        return "secondary" as const;
+        return { label: "Bulk Sale", className: "bg-green-600 text-white" };
       case "disposition":
-        return "outline" as const;
+        return { label: "Disposition", className: "bg-gray-500 text-white" };
+      case "deposit":
+        return { label: "Deposit", className: "bg-green-600 text-white" };
+      case "withdrawal":
+        return { label: "Withdrawal", className: "bg-red-600 text-white" };
+      case "adjustment":
+        return { label: "Adjustment", className: "bg-yellow-600 text-white" };
       default:
-        return "secondary" as const;
+        return { label: type, className: "bg-gray-500 text-white" };
     }
   };
 
-  const getTypeLabel = (type: TransactionType) => {
-    switch (type) {
-      case "show_card_sale":
-        return "Premium Sale";
-      case "bulk_sale":
-        return "Bulk Sale";
-      case "disposition":
-        return "Disposition";
-      default:
-        return type;
+  const getAmountDisplay = (tx: Transaction) => {
+    if (tx.source === "sales") {
+      const salesTx = tx as SalesTransaction;
+      const isDisposition = tx.transaction_type === "disposition";
+      return (
+        <span className={isDisposition ? "text-gray-500" : "text-green-600 font-semibold"}>
+          {isDisposition ? "" : "+"}${salesTx.revenue.toFixed(2)}
+        </span>
+      );
+    } else {
+      const cashTx = tx as CashTransaction;
+      const isPositive = cashTx.amount >= 0;
+      return (
+        <span className={isPositive ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+          {isPositive ? "+" : ""}${Math.abs(cashTx.amount).toFixed(2)}
+        </span>
+      );
     }
   };
 
@@ -179,7 +272,7 @@ export default function TransactionHistory() {
               {/* Page Title - Uses page-title class for white text on dark background */}
               <h1 className="page-title mb-2">TRANSACTION HISTORY</h1>
               <p className="text-gray-600">
-                Complete audit trail of all sales and dispositions
+                Complete audit trail of all financial transactions
               </p>
             </div>
             <Button
@@ -224,16 +317,15 @@ export default function TransactionHistory() {
               />
             </div>
 
-            <Select value={filterType} onValueChange={(value) => setFilterType(value as FilterType)}>
+            <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value as FilterCategory)}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <Filter className="mr-2 h-4 w-4" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types ({counts.all})</SelectItem>
-                <SelectItem value="show_card_sale">Premium ({counts.show_card_sale})</SelectItem>
-                <SelectItem value="bulk_sale">Bulk ({counts.bulk_sale})</SelectItem>
-                <SelectItem value="disposition">Dispositions ({counts.disposition})</SelectItem>
+                <SelectItem value="all">All Transactions ({counts.all})</SelectItem>
+                <SelectItem value="sales">Sales Only ({counts.sales})</SelectItem>
+                <SelectItem value="cash">Cash Only ({counts.cash})</SelectItem>
               </SelectContent>
             </Select>
 
@@ -262,7 +354,7 @@ export default function TransactionHistory() {
             <Receipt className="h-16 w-16 text-gray-400 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">No transactions yet</h2>
             <p className="text-gray-600">
-              Transactions will appear here as you record sales and dispositions
+              Transactions will appear here as you record sales, cash movements, and dispositions
             </p>
           </div>
         )}
@@ -283,55 +375,57 @@ export default function TransactionHistory() {
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Type</TableHead>
-                    <TableHead>Lot</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead>Show</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
                     <TableHead>Notes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sortedTransactions.map((tx) => (
-                    <TableRow key={tx.id}>
-                       <TableCell className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <span className="text-gray-900 font-medium">{format(new Date(tx.created_at), "MM/dd/yy")}</span>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {format(new Date(tx.created_at), "h:mm a")}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getTypeBadgeVariant(tx.transaction_type)}>
-                          {getTypeLabel(tx.transaction_type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="max-w-[150px] truncate text-gray-900">
-                        {tx.lots?.source || "-"}
-                      </TableCell>
-                      <TableCell className="max-w-[150px] truncate text-gray-900">
-                        {tx.shows?.name || "-"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <DollarSign className="h-4 w-4 text-gray-500" />
-                          <span className={tx.transaction_type === "disposition" 
-                            ? "text-gray-500" 
-                            : "text-green-600 font-semibold"
-                          }>
-                            {Number(tx.revenue).toFixed(2)}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right text-gray-600">
-                        {tx.quantity || "-"}
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate text-gray-600 text-sm">
-                        {tx.notes || "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {sortedTransactions.map((tx) => {
+                    const badge = getTypeBadge(tx.transaction_type);
+                    return (
+                      <TableRow key={tx.id}>
+                        <TableCell className="whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-500" />
+                            <span className="text-gray-900 font-medium">{format(new Date(tx.created_at), "MM/dd/yy")}</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {format(new Date(tx.created_at), "h:mm a")}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={badge.className}>
+                            {badge.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-gray-900">
+                          {tx.source === "sales" ? (
+                            (tx as SalesTransaction).lots?.source || "-"
+                          ) : (
+                            tx.notes || "Manual cash entry"
+                          )}
+                        </TableCell>
+                        <TableCell className="max-w-[150px] truncate text-gray-900">
+                          {tx.source === "sales" ? (
+                            (tx as SalesTransaction).shows?.name || "-"
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <DollarSign className="h-4 w-4 text-gray-500" />
+                            {getAmountDisplay(tx)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate text-gray-600 text-sm">
+                          {tx.notes || "-"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
