@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus } from "lucide-react";
+import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -476,7 +476,7 @@ export default function Shows() {
                     </div>
                   )}
 
-                  {/* View Details, Edit and Delete Buttons - always visible */}
+                  {/* View, Edit and Delete Buttons - always visible */}
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -484,7 +484,8 @@ export default function Shows() {
                       className="flex-1"
                       onClick={() => navigate(`/shows/${show.id}`)}
                     >
-                      View Details
+                      <Eye className="mr-1 h-4 w-4" />
+                      View
                     </Button>
                     <Button
                       variant="outline"

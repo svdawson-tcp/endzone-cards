@@ -10,13 +10,20 @@ import {
   ArrowLeft, 
   Edit,
   TrendingUp,
+  TrendingDown,
   Receipt,
   ShoppingCart,
-  Package
+  Package,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 type ShowStatus = "planned" | "active" | "completed";
 
@@ -359,145 +366,145 @@ export default function ShowDetail() {
           </Card>
         </div>
 
-        {/* Revenue Breakdown */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Revenue Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-[hsl(var(--navy-base))]" />
-                  <span className="text-gray-900">Premium Card Sales</span>
-                </div>
-                <span className="font-semibold text-green-600">${showCardRevenue.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Package className="h-5 w-5 text-[hsl(var(--navy-base))]" />
-                  <span className="text-gray-900">Bulk Sales</span>
-                </div>
-                <span className="font-semibold text-green-600">${bulkRevenue.toFixed(2)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Transaction History */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Transaction History ({transactions.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {transactions.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No transactions recorded yet</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Date</th>
-                      <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Type</th>
-                      <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Amount</th>
-                      <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Notes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((tx) => (
-                      <tr key={tx.id} className="border-b last:border-0">
-                        <td className="py-3 px-2 text-sm text-gray-900">
-                          {format(new Date(tx.created_at), "MM/dd/yy")}
-                        </td>
-                        <td className="py-3 px-2">
-                          <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
-                            {tx.transaction_type === "show_card_sale" ? "Premium" : "Bulk"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-2 text-sm font-semibold text-green-600">
-                          ${Number(tx.revenue).toFixed(2)}
-                        </td>
-                        <td className="py-3 px-2 text-sm text-gray-600 truncate max-w-xs">
-                          {tx.notes || "-"}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Expense History */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-gray-900">Expenses ({expenses.length + 1})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Date</th>
-                    <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Category</th>
-                    <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Amount</th>
-                    <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* Table cost as first expense */}
-                  <tr className="border-b">
-                    <td className="py-3 px-2 text-sm text-gray-900">
-                      {format(new Date(show.show_date), "MM/dd/yy")}
-                    </td>
-                    <td className="py-3 px-2">
-                      <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
-                        Booth Fee
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-2 text-sm font-semibold text-red-600">
-                      ${Number(show.table_cost).toFixed(2)}
-                    </td>
-                    <td className="py-3 px-2 text-sm text-gray-600">
-                      Show table cost
-                    </td>
-                  </tr>
-
-                  {expenses.map((expense) => (
-                    <tr key={expense.id} className="border-b last:border-0">
-                      <td className="py-3 px-2 text-sm text-gray-900">
-                        {format(new Date(expense.expense_date), "MM/dd/yy")}
-                      </td>
-                      <td className="py-3 px-2">
-                        <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
-                          {expense.category}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-2 text-sm font-semibold text-red-600">
-                        ${Number(expense.amount).toFixed(2)}
-                      </td>
-                      <td className="py-3 px-2 text-sm text-gray-600 truncate max-w-xs">
-                        {expense.notes || "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Notes Section */}
-        {show.notes && (
+        {/* Revenue Breakdown - Collapsible */}
+        <Collapsible defaultOpen className="mb-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-gray-900">Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-700 whitespace-pre-wrap">{show.notes}</p>
-            </CardContent>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors">
+              <CardTitle className="text-gray-900">Revenue Breakdown</CardTitle>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [data-state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <ShoppingCart className="h-5 w-5 text-[hsl(var(--navy-base))]" />
+                      <span className="text-gray-900">Show Card Sales</span>
+                    </div>
+                    <span className="font-semibold text-green-600">
+                      ${showCardRevenue.toFixed(2)} ({showCardSales.length} cards)
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-[hsl(var(--navy-base))]" />
+                      <span className="text-gray-900">Bulk Sales</span>
+                    </div>
+                    <span className="font-semibold text-green-600">
+                      ${bulkRevenue.toFixed(2)} ({bulkSales.reduce((sum, t) => sum + (t.quantity || 0), 0)} cards)
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </CollapsibleContent>
           </Card>
+        </Collapsible>
+
+        {/* Transaction History - Collapsible */}
+        <Collapsible className="mb-6">
+          <Card>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors">
+              <CardTitle className="text-gray-900">Transactions ({transactions.length})</CardTitle>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [data-state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                {transactions.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No transactions recorded</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Date</th>
+                          <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Type</th>
+                          <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Amount</th>
+                          <th className="text-left py-2 px-2 text-sm font-semibold text-gray-900">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {transactions.map((tx) => (
+                          <tr key={tx.id} className="border-b last:border-0">
+                            <td className="py-3 px-2 text-sm text-gray-900">
+                              {format(new Date(tx.created_at), "MM/dd/yy")}
+                            </td>
+                            <td className="py-3 px-2">
+                              <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
+                                {tx.transaction_type === "show_card_sale" ? "Premium" : "Bulk"}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-2 text-sm font-semibold text-green-600">
+                              ${Number(tx.revenue).toFixed(2)}
+                            </td>
+                            <td className="py-3 px-2 text-sm text-gray-600 truncate max-w-xs">
+                              {tx.notes || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Expenses - Collapsible */}
+        <Collapsible defaultOpen className="mb-6">
+          <Card>
+            <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors">
+              <CardTitle className="text-gray-900">Expenses ({expenses.length + 1})</CardTitle>
+              <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [data-state=open]:rotate-180" />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                {expenses.length === 0 && show.table_cost === 0 ? (
+                  <p className="text-gray-500 text-center py-8">No expenses recorded</p>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Booth Fee */}
+                    <div className="flex justify-between items-center pb-3 border-b">
+                      <span className="text-gray-900">Booth Fee: ${Number(show.table_cost).toFixed(2)}</span>
+                    </div>
+                    
+                    {/* Other expenses by category */}
+                    {expenses.reduce((acc: { [key: string]: number }, exp) => {
+                      acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
+                      return acc;
+                    }, {} as { [key: string]: number })
+                    && Object.entries(
+                      expenses.reduce((acc: { [key: string]: number }, exp) => {
+                        acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
+                        return acc;
+                      }, {})
+                    ).map(([category, amount]) => (
+                      <div key={category} className="flex justify-between items-center">
+                        <span className="text-gray-900">{category}: ${amount.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        {/* Notes Section - Only if notes exist */}
+        {show.notes && (
+          <Collapsible>
+            <Card>
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors">
+                <CardTitle className="text-gray-900">Notes</CardTitle>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [data-state=open]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="pt-0">
+                  <p className="text-gray-700 whitespace-pre-wrap">{show.notes}</p>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         )}
       </div>
     </div>
