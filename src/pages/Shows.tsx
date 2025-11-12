@@ -97,6 +97,32 @@ export default function Shows() {
     },
   });
 
+  // Status change mutation
+  const statusChangeMutation = useMutation({
+    mutationFn: async ({ showId, newStatus }: { showId: string; newStatus: ShowStatus }) => {
+      const { error } = await supabase
+        .from("shows")
+        .update({ status: newStatus })
+        .eq("id", showId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["shows"] });
+      toast({
+        title: variables.newStatus === "active" ? "Show started!" : "Show closed!",
+        description: `Show status updated to ${variables.newStatus}`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating show status",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Filter shows
   const filteredShows = shows.filter((show) => {
     if (filterTab === "all") return true;
@@ -134,6 +160,10 @@ export default function Shows() {
     if (showToDelete) {
       deleteMutation.mutate(showToDelete.id);
     }
+  };
+
+  const handleStatusChange = (showId: string, newStatus: ShowStatus) => {
+    statusChangeMutation.mutate({ showId, newStatus });
   };
 
   const getStatusBadgeVariant = (status: ShowStatus) => {
@@ -309,24 +339,45 @@ export default function Shows() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex gap-2 pt-4 border-t border-border">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => navigate(`/shows/${show.id}/edit`)}
-                  >
-                    <Edit className="mr-1 h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(show)}
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="flex flex-col gap-2">
+                  {/* Status Transition Buttons */}
+                  {show.status === "planned" && (
+                    <Button
+                      onClick={() => handleStatusChange(show.id, "active")}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                    >
+                      START SHOW
+                    </Button>
+                  )}
+                  {show.status === "active" && (
+                    <Button
+                      onClick={() => handleStatusChange(show.id, "completed")}
+                      className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
+                    >
+                      CLOSE SHOW
+                    </Button>
+                  )}
+                  
+                  {/* Edit/Delete Row */}
+                  <div className="flex gap-2 pt-4 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/shows/${show.id}/edit`)}
+                    >
+                      <Edit className="mr-1 h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(show)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
