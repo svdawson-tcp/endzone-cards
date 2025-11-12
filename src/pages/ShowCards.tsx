@@ -194,7 +194,7 @@ export default function ShowCards() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-h1 text-gray-900 mb-2">SHOW CARDS</h1>
+            <h1 className="text-h1 text-foreground mb-2">SHOW CARDS</h1>
             <p className="text-muted-foreground">Track your premium inventory</p>
           </div>
           <Button
