@@ -173,7 +173,7 @@ export default function TransactionEntry() {
           .from("show_cards")
           .update({
             status: dispositionType === "lost" ? "lost" : dispositionType === "combined" ? "combined" : "available",
-            disposition_type: dispositionType,
+            disposition_type: dispositionType === "combined" ? "combined_into" : dispositionType,
             destination_lot_id: dispositionType === "combined" ? destinationLotId : null,
           })
           .eq("id", selectedCardId);
