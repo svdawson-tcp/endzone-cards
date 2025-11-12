@@ -292,10 +292,10 @@ export default function TransactionHistory() {
                 <TableBody>
                   {sortedTransactions.map((tx) => (
                     <TableRow key={tx.id}>
-                      <TableCell className="whitespace-nowrap">
+                       <TableCell className="whitespace-nowrap">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-gray-500" />
-                          {format(new Date(tx.created_at), "MM/dd/yy")}
+                          <span className="text-gray-900 font-medium">{format(new Date(tx.created_at), "MM/dd/yy")}</span>
                         </div>
                         <div className="text-xs text-gray-500">
                           {format(new Date(tx.created_at), "h:mm a")}

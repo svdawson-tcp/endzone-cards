@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2 } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const BottomTabBar = () => {
     { icon: Plus, label: "Add", route: "/transactions/new", isCenter: true },
     { icon: CreditCard, label: "Cards", route: "/show-cards" },
     { icon: Calendar, label: "Shows", route: "/shows" },
+    { icon: Receipt, label: "History", route: "/transactions" },
   ];
 
   const quickAddItems = [
@@ -58,7 +59,7 @@ const BottomTabBar = () => {
       className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border pb-[env(safe-area-inset-bottom)] pt-2 md:hidden"
       aria-label="Bottom navigation"
     >
-      <div className="grid grid-cols-5 items-end gap-1 max-w-7xl mx-auto px-2">
+      <div className="grid grid-cols-6 items-end gap-1 max-w-7xl mx-auto px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = location.pathname === tab.route;
