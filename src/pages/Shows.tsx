@@ -127,27 +127,59 @@ export default function Shows() {
     },
   });
 
-  // Status change mutation
+  // Status change mutation with validation
   const statusChangeMutation = useMutation({
     mutationFn: async ({ showId, newStatus }: { showId: string; newStatus: ShowStatus }) => {
+      // Step 1: If changing to "planned", validate no linked data
+      if (newStatus === "planned") {
+        // Check for transactions
+        const { data: transactions, error: txError } = await supabase
+          .from("transactions")
+          .select("id", { count: "exact", head: true })
+          .eq("show_id", showId);
+
+        if (txError) throw txError;
+
+        // Check for expenses  
+        const { data: expenses, error: expError } = await supabase
+          .from("expenses")
+          .select("id", { count: "exact", head: true })
+          .eq("show_id", showId);
+
+        if (expError) throw expError;
+
+        // Block if any linked data exists
+        const txCount = transactions?.length || 0;
+        const expCount = expenses?.length || 0;
+        
+        if (txCount > 0 || expCount > 0) {
+          throw new Error(
+            `Cannot revert to Planned - this show has ${txCount} transaction(s) and ${expCount} expense(s) recorded. Shows with financial records cannot be reverted.`
+          );
+        }
+      }
+
+      // Step 2: Update status
       const { error } = await supabase
         .from("shows")
         .update({ status: newStatus })
         .eq("id", showId);
 
       if (error) throw error;
+
+      return { showId, newStatus };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["shows"] });
       toast({
-        title: variables.newStatus === "active" ? "Show started!" : "Show closed!",
-        description: `Show status updated to ${variables.newStatus}`,
+        title: "Status updated",
+        description: `Show status changed to ${data.newStatus}`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Error updating show status",
-        description: error.message || "Please try again",
+        title: "Cannot change status",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -412,27 +444,43 @@ export default function Shows() {
                 )}
 
                 {/* Action Buttons */}
-                <div className="flex flex-col gap-2">
-                  {/* Status Transition Buttons */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  {/* Status Change Buttons */}
                   {show.status === "planned" && (
                     <Button
-                      onClick={() => handleStatusChange(show.id, "active")}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                      size="sm"
+                      className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
+                      onClick={() => statusChangeMutation.mutate({ showId: show.id, newStatus: "active" })}
+                      disabled={statusChangeMutation.isPending}
                     >
                       START SHOW
                     </Button>
                   )}
-                  {show.status === "active" && (
-                    <Button
-                      onClick={() => handleStatusChange(show.id, "completed")}
-                      className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
-                    >
-                      CLOSE SHOW
-                    </Button>
-                  )}
                   
-                  {/* Edit/Delete Row */}
-                  <div className="flex gap-2 pt-4 border-t border-border">
+                  {show.status === "active" && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => statusChangeMutation.mutate({ showId: show.id, newStatus: "planned" })}
+                        disabled={statusChangeMutation.isPending}
+                      >
+                        ← Revert to Planned
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
+                        onClick={() => statusChangeMutation.mutate({ showId: show.id, newStatus: "completed" })}
+                        disabled={statusChangeMutation.isPending}
+                      >
+                        CLOSE SHOW
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Edit and Delete Buttons - always visible */}
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
