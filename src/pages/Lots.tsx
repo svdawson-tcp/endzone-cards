@@ -267,7 +267,8 @@ export default function Lots() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-h1 mb-2">LOTS</h1>
+            {/* Page Title - Uses page-title class for white text on dark background */}
+            <h1 className="page-title mb-2">LOTS</h1>
             <p className="text-muted-foreground">Track your inventory purchases</p>
           </div>
           <Button

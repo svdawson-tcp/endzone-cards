@@ -202,7 +202,8 @@ export default function TransactionEntry() {
   return (
     <div className="min-h-screen bg-background pb-32 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-h1 mb-6">RECORD SALE</h1>
+        {/* Page Title - Uses page-title class for white text on dark background */}
+        <h1 className="page-title mb-6">RECORD SALE</h1>
 
         <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-6">
           {/* Transaction Type Selector */}

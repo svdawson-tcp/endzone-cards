@@ -202,7 +202,8 @@ export default function CreateLot() {
     <div className="min-h-screen bg-background">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-h1 mb-2">{isEditMode ? "EDIT LOT" : "CREATE LOT"}</h1>
+          {/* Page Title - Uses page-title class for white text on dark background */}
+          <h1 className="page-title mb-2">{isEditMode ? "EDIT LOT" : "CREATE LOT"}</h1>
           <p className="text-muted-foreground">Record a new purchase</p>
         </div>
 

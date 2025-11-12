@@ -244,7 +244,8 @@ export default function Shows() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-h1 mb-2">SHOWS</h1>
+            {/* Page Title - Uses page-title class for white text on dark background */}
+            <h1 className="page-title mb-2">SHOWS</h1>
             <p className="text-muted-foreground">Manage your card show events</p>
           </div>
           <Button

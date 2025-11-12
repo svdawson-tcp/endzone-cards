@@ -153,7 +153,8 @@ export default function CreateExpense() {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-h1 mb-2">RECORD EXPENSE</h1>
+          {/* Page Title - Uses page-title class for white text on dark background */}
+          <h1 className="page-title mb-2">RECORD EXPENSE</h1>
           <p className="text-muted-foreground">
             Track business expenses for accounting and tax purposes
           </p>

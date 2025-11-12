@@ -176,7 +176,8 @@ export default function TransactionHistory() {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">TRANSACTION HISTORY</h1>
+              {/* Page Title - Uses page-title class for white text on dark background */}
+              <h1 className="page-title mb-2">TRANSACTION HISTORY</h1>
               <p className="text-gray-600">
                 Complete audit trail of all sales and dispositions
               </p>

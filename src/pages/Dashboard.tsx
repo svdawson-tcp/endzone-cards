@@ -259,7 +259,8 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <section className="mb-12">
-          <h2 className="text-h1 mb-4">RECENT ACTIVITY</h2>
+          {/* Page Title - Uses page-title class for white text on dark background */}
+          <h2 className="page-title mb-4">RECENT ACTIVITY</h2>
           <div className="bg-card shadow-card-shadow rounded-lg p-6 overflow-x-auto">
             {loadingActivity ? (
               <div className="space-y-3">
@@ -310,7 +311,8 @@ export default function Dashboard() {
 
         {/* Upcoming Shows */}
         <section>
-          <h2 className="text-h1 mb-4">UPCOMING SHOWS</h2>
+          {/* Page Title - Uses page-title class for white text on dark background */}
+          <h2 className="page-title mb-4">UPCOMING SHOWS</h2>
           {loadingShows ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
@@ -328,7 +330,7 @@ export default function Dashboard() {
                 {upcomingShows.map((show: any) => (
                   <div key={show.id} className="bg-card shadow-card-shadow rounded-lg p-6">
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-h1 text-sm text-gray-900">{show.name}</h3>
+                      <h3 className="card-title text-sm">{show.name}</h3>
                       {getStatusBadge(show.status)}
                     </div>
                     <p className="text-sm text-gray-900 mb-1">

@@ -278,6 +278,32 @@
     font-family: "Inter", monospace;
   }
 
+  /* === CONTEXT-AWARE TITLE UTILITIES === */
+  
+  /* Page titles on dark backgrounds (stadium/page level) */
+  .page-title {
+    @apply text-3xl font-bold leading-snug text-foreground;
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  
+  /* Card titles on light backgrounds (white cards) */
+  .card-title {
+    @apply text-xl font-bold leading-snug text-card-foreground;
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+  
+  /* Section headings on light backgrounds */
+  .section-heading {
+    @apply text-lg font-bold leading-snug text-card-foreground;
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
   /* === FORM LABEL UTILITY === */
   .form-label {
     @apply text-sm font-medium text-card-foreground mb-1.5;

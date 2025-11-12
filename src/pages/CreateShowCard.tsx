@@ -426,7 +426,8 @@ export default function CreateShowCard() {
     <div className="min-h-screen bg-background pb-32 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-h1 mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
+          {/* Page Title - Uses page-title class for white text on dark background */}
+          <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
           <p className="text-muted-foreground">
             {isEditMode ? "Update card details" : "Add a premium card to your inventory"}
           </p>
