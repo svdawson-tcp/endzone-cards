@@ -15,6 +15,7 @@ import CreateShowCard from "./pages/CreateShowCard";
 import CreateShow from "./pages/CreateShow";
 import CreateLot from "./pages/CreateLot";
 import Shows from "./pages/Shows";
+import ShowDetail from "./pages/ShowDetail";
 import Lots from "./pages/Lots";
 import ShowCards from "./pages/ShowCards";
 import NotFound from "./pages/NotFound";
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/shows/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots" element={<ProtectedRoute><AuthenticatedLayout><Lots /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots/new" element={<ProtectedRoute><AuthenticatedLayout><CreateLot /></AuthenticatedLayout></ProtectedRoute>} />

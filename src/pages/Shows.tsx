@@ -476,8 +476,16 @@ export default function Shows() {
                     </div>
                   )}
 
-                  {/* Edit and Delete Buttons - always visible */}
+                  {/* View Details, Edit and Delete Buttons - always visible */}
                   <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => navigate(`/shows/${show.id}`)}
+                    >
+                      View Details
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"
