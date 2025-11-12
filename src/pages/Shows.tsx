@@ -39,6 +39,8 @@ interface Show {
   status: ShowStatus;
   notes: string | null;
   created_at: string;
+  revenue?: number;
+  expenses?: number;
 }
 
 export default function Shows() {
@@ -51,21 +53,49 @@ export default function Shows() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showToDelete, setShowToDelete] = useState<Show | null>(null);
 
-  // Fetch shows
+  // Fetch shows with revenue and expenses
   const { data: shows = [], isLoading } = useQuery({
     queryKey: ["shows"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase
+      const { data: showsData, error } = await supabase
         .from("shows")
         .select("*")
         .eq("user_id", user.id)
         .order("show_date", { ascending: true });
 
       if (error) throw error;
-      return data as Show[];
+
+      // Fetch revenue and expenses for each show
+      const showsWithMetrics = await Promise.all(
+        showsData.map(async (show) => {
+          // Fetch revenue from transactions
+          const { data: revenueData } = await supabase
+            .from("transactions")
+            .select("revenue")
+            .eq("show_id", show.id);
+
+          const revenue = revenueData?.reduce((sum, t) => sum + (t.revenue || 0), 0) || 0;
+
+          // Fetch expenses
+          const { data: expensesData } = await supabase
+            .from("expenses")
+            .select("amount")
+            .eq("show_id", show.id);
+
+          const expenses = expensesData?.reduce((sum, e) => sum + (e.amount || 0), 0) || 0;
+
+          return {
+            ...show,
+            revenue,
+            expenses,
+          } as Show;
+        })
+      );
+
+      return showsWithMetrics;
     },
   });
 
@@ -336,6 +366,49 @@ export default function Shows() {
                   <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                     {show.notes}
                   </p>
+                )}
+
+                {/* Profitability Section - Only for Active and Completed Shows */}
+                {(show.status === "active" || show.status === "completed") && (
+                  <div className="border-t border-border pt-4 mt-4">
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                      Profitability
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-xs text-muted-foreground">Revenue</div>
+                        <div className="text-sm font-semibold text-green-600">
+                          ${(show.revenue || 0).toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Expenses</div>
+                        <div className="text-sm font-semibold text-destructive">
+                          ${((show.expenses || 0) + show.table_cost).toFixed(2)}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Net</div>
+                        <div className={`text-sm font-semibold ${
+                          ((show.revenue || 0) - (show.expenses || 0) - show.table_cost) >= 0 
+                            ? 'text-green-600' 
+                            : 'text-destructive'
+                        }`}>
+                          ${((show.revenue || 0) - (show.expenses || 0) - show.table_cost).toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* ROI for Completed Shows */}
+                    {show.status === "completed" && (
+                      <div className="text-xs text-center mt-2 text-muted-foreground">
+                        ROI: {(
+                          ((show.revenue || 0) - (show.expenses || 0) - show.table_cost) / 
+                          ((show.expenses || 0) + show.table_cost || 1) * 100
+                        ).toFixed(1)}%
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* Action Buttons */}
