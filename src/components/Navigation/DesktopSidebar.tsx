@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,9 @@ const DesktopSidebar = () => {
     { icon: DollarSign, label: "Show Card Sale", route: "/show-cards", description: "Select card to sell" },
     { icon: Package, label: "Bulk Sale", route: "/transactions/bulk-sale/new" },
     { icon: Trash2, label: "Disposition", route: "/transactions/disposition/new" },
+    { icon: DollarSign, label: "Cash Deposit", route: "/cash/new?type=deposit" },
+    { icon: TrendingDown, label: "Cash Withdrawal", route: "/cash/new?type=withdrawal" },
+    { icon: Settings, label: "Cash Adjustment", route: "/cash/new?type=adjustment" },
   ];
 
   const handleNavClick = (route: string) => {

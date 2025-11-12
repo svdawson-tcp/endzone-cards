@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,24 @@ const BottomTabBar = () => {
       label: "Disposition", 
       description: "Mark cards as lost/discarded",
       route: "/transactions/disposition/new" 
+    },
+    { 
+      icon: DollarSign, 
+      label: "Cash Deposit", 
+      description: "Add cash from external source",
+      route: "/cash/new?type=deposit" 
+    },
+    { 
+      icon: TrendingDown, 
+      label: "Cash Withdrawal", 
+      description: "Remove cash for personal use",
+      route: "/cash/new?type=withdrawal" 
+    },
+    { 
+      icon: Settings, 
+      label: "Cash Adjustment", 
+      description: "Correct balance discrepancies",
+      route: "/cash/new?type=adjustment" 
     },
   ];
 
