@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
-import { Loader2, Info, Upload, X } from "lucide-react";
+import { Loader2, Info, Upload, X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CameraCapture } from "@/components/forms/CameraCapture";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import {
   Select,
@@ -41,6 +42,10 @@ export default function CreateShowCard() {
   const [existingBackUrl, setExistingBackUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
+  const [showFrontCamera, setShowFrontCamera] = useState(false);
+  const [showBackCamera, setShowBackCamera] = useState(false);
+  const frontFileInputRef = useRef<HTMLInputElement>(null);
+  const backFileInputRef = useRef<HTMLInputElement>(null);
 
   const [errors, setErrors] = useState({
     lot: "",
@@ -175,6 +180,20 @@ export default function CreateShowCard() {
     setBackPhoto(null);
     setBackPreview(null);
     setExistingBackUrl(null);
+  };
+
+  const handleFrontCameraCapture = (capturedFile: File) => {
+    setShowFrontCamera(false);
+    // Reuse existing validation and preview logic
+    const mockEvent = { target: { files: [capturedFile] } } as any;
+    handleFrontPhotoSelect(mockEvent);
+  };
+
+  const handleBackCameraCapture = (capturedFile: File) => {
+    setShowBackCamera(false);
+    // Reuse existing validation and preview logic
+    const mockEvent = { target: { files: [capturedFile] } } as any;
+    handleBackPhotoSelect(mockEvent);
   };
 
   const validateForm = () => {
@@ -630,25 +649,41 @@ export default function CreateShowCard() {
             <label className="form-label">Front Photo (Optional)</label>
             <div className="mt-2">
               {!frontPreview ? (
-                <label
-                  htmlFor="front-photo"
-                  className="flex flex-col items-center justify-center border-2 border-dashed border-input hover:border-[hsl(var(--navy-base))] p-8 rounded-lg cursor-pointer transition-colors"
-                >
-                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload front photo
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG, or WebP. Max 10MB. Will be compressed.
-                  </span>
+                <div className="space-y-3">
+                  {/* Take Photo Button */}
+                  <Button
+                    type="button"
+                    onClick={() => setShowFrontCamera(true)}
+                    className="w-full min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+                  >
+                    <Camera className="mr-2 h-5 w-5" />
+                    TAKE PHOTO
+                  </Button>
+
+                  {/* Choose Photo Button */}
+                  <Button
+                    type="button"
+                    onClick={() => frontFileInputRef.current?.click()}
+                    variant="outline"
+                    className="w-full min-h-[44px] font-semibold uppercase"
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    CHOOSE PHOTO
+                  </Button>
+
+                  {/* Hidden file input */}
                   <input
-                    id="front-photo"
+                    ref={frontFileInputRef}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={handleFrontPhotoSelect}
                     className="hidden"
                   />
-                </label>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    JPG, PNG, or WebP. Max 10MB. Will be compressed.
+                  </p>
+                </div>
               ) : (
                 <div className="relative inline-block">
                   <img
@@ -678,25 +713,41 @@ export default function CreateShowCard() {
             <label className="form-label">Back Photo (Optional)</label>
             <div className="mt-2">
               {!backPreview ? (
-                <label
-                  htmlFor="back-photo"
-                  className="flex flex-col items-center justify-center border-2 border-dashed border-input hover:border-[hsl(var(--navy-base))] p-8 rounded-lg cursor-pointer transition-colors"
-                >
-                  <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload back photo
-                  </span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    JPG, PNG, or WebP. Max 10MB. Will be compressed.
-                  </span>
+                <div className="space-y-3">
+                  {/* Take Photo Button */}
+                  <Button
+                    type="button"
+                    onClick={() => setShowBackCamera(true)}
+                    className="w-full min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+                  >
+                    <Camera className="mr-2 h-5 w-5" />
+                    TAKE PHOTO
+                  </Button>
+
+                  {/* Choose Photo Button */}
+                  <Button
+                    type="button"
+                    onClick={() => backFileInputRef.current?.click()}
+                    variant="outline"
+                    className="w-full min-h-[44px] font-semibold uppercase"
+                  >
+                    <Upload className="mr-2 h-5 w-5" />
+                    CHOOSE PHOTO
+                  </Button>
+
+                  {/* Hidden file input */}
                   <input
-                    id="back-photo"
+                    ref={backFileInputRef}
                     type="file"
                     accept="image/jpeg,image/jpg,image/png,image/webp"
                     onChange={handleBackPhotoSelect}
                     className="hidden"
                   />
-                </label>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    JPG, PNG, or WebP. Max 10MB. Will be compressed.
+                  </p>
+                </div>
               ) : (
                 <div className="relative inline-block">
                   <img
@@ -748,6 +799,23 @@ export default function CreateShowCard() {
             </Button>
           </div>
         </form>
+
+        {/* Camera Modals */}
+        {showFrontCamera && (
+          <CameraCapture
+            onCapture={handleFrontCameraCapture}
+            onClose={() => setShowFrontCamera(false)}
+            facingMode="environment"
+          />
+        )}
+
+        {showBackCamera && (
+          <CameraCapture
+            onCapture={handleBackCameraCapture}
+            onClose={() => setShowBackCamera(false)}
+            facingMode="environment"
+          />
+        )}
       </div>
     </div>
   );
