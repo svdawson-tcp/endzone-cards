@@ -136,7 +136,7 @@ export function CameraCapture({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col">
       {/* Video Preview */}
       <div className="flex-1 relative overflow-hidden">
         <video
