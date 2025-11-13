@@ -20,9 +20,13 @@ const ManualCashTransaction = () => {
   const type = searchParams.get("type") as "deposit" | "withdrawal" | "adjustment" || "deposit";
 
   const [amount, setAmount] = useState("");
-  const [transactionDate, setTransactionDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [transactionDate, setTransactionDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  });
   const [notes, setNotes] = useState("");
   const [adjustmentDirection, setAdjustmentDirection] = useState<"add" | "remove">("add");
 
