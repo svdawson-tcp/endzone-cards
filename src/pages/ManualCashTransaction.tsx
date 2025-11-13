@@ -51,6 +51,19 @@ const ManualCashTransaction = () => {
         signedAmount = adjustmentDirection === "remove" ? -signedAmount : signedAmount;
       }
 
+      // Build timestamp: user's selected date + current time
+      const now = new Date();
+      const [year, month, day] = transactionDate.split('-');
+      const userDateTime = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day),
+        now.getHours(),
+        now.getMinutes(),
+        now.getSeconds(),
+        now.getMilliseconds()
+      );
+
       // Insert record first (created_at will default to now())
       const { data: inserted, error: insertError } = await supabase
         .from("cash_transactions")
@@ -68,11 +81,10 @@ const ManualCashTransaction = () => {
 
       if (insertError) throw insertError;
 
-      // Update with user-selected date (overrides the DEFAULT now())
-      // Use noon UTC to prevent timezone shifts - noon UTC is same calendar day everywhere
+      // Update with user-selected date + current time
       const { error: updateError } = await supabase
         .from("cash_transactions")
-        .update({ created_at: `${transactionDate}T12:00:00Z` })
+        .update({ created_at: userDateTime.toISOString() })
         .eq("id", inserted.id);
 
       if (updateError) throw updateError;
