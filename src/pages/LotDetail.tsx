@@ -153,6 +153,17 @@ const LotDetail = () => {
     };
   }, [transactions, lot]);
 
+  // Sale price lookup map
+  const salePriceMap = useMemo(() => {
+    const map = new Map<string, number>();
+    transactions
+      .filter(t => t.transaction_type === "show_card_sale" && t.show_card_id)
+      .forEach(t => {
+        map.set(t.show_card_id, Number(t.revenue || 0));
+      });
+    return map;
+  }, [transactions]);
+
   // Group show cards by status
   const cardsByStatus = useMemo(() => {
     const available = showCards.filter(c => c.status === "available");
@@ -447,7 +458,7 @@ const LotDetail = () => {
                             <div className="text-sm text-muted-foreground">{card.year}</div>
                             <div className="text-sm">
                               {card.asking_price && `Asking: $${Number(card.asking_price).toFixed(2)} | `}
-                              {card.cost_basis && `Sold: $${Number(card.cost_basis).toFixed(2)}`}
+                              {salePriceMap.get(card.id) && `Sold: $${salePriceMap.get(card.id)?.toFixed(2)}`}
                             </div>
                           </div>
                         </div>
