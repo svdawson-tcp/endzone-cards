@@ -521,7 +521,9 @@ export default function CreateShowCard() {
 
           {/* Year */}
           <div>
-            <label htmlFor="year" className="form-label">Year *</label>
+            <label htmlFor="year" className="form-label">
+              Year * <span className="text-xs text-muted-foreground font-normal">(1950-{currentYear + 1})</span>
+            </label>
             <Input
               id="year"
               type="number"
