@@ -95,12 +95,13 @@ const BottomTabBar = () => {
                     </div>
                   </button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="bg-white rounded-t-2xl">
-                  <SheetHeader>
+                <SheetContent side="bottom" className="bg-white rounded-t-2xl max-h-[85vh] flex flex-col">
+                  <SheetHeader className="flex-shrink-0">
                     <SheetTitle className="text-gray-900 text-xl font-bold">Quick Add</SheetTitle>
                   </SheetHeader>
-                  <div className="grid gap-3 py-6">
-                    {quickAddItems.map((item) => {
+                  <div className="overflow-y-auto touch-pan-y flex-1 py-6">
+                    <div className="grid gap-3">
+                      {quickAddItems.map((item) => {
                       const ItemIcon = item.icon;
                       return (
                         <button
@@ -118,6 +119,7 @@ const BottomTabBar = () => {
                         </button>
                       );
                     })}
+                    </div>
                   </div>
                 </SheetContent>
               </Sheet>
