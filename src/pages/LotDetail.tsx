@@ -418,7 +418,11 @@ const LotDetail = () => {
                     <h4 className="font-semibold mb-3">AVAILABLE ({cardsByStatus.available.length} cards)</h4>
                     <div className="space-y-2">
                       {cardsByStatus.available.map((card) => (
-                        <div key={card.id} className="flex items-center gap-3 p-2 border rounded">
+                        <div 
+                          key={card.id} 
+                          className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-accent/50 transition-colors"
+                          onClick={() => navigate(`/show-cards/${card.id}`)}
+                        >
                           {card.photo_front_url ? (
                             <img src={card.photo_front_url} className="w-20 h-20 object-cover rounded" alt={card.player_name} />
                           ) : (
@@ -445,7 +449,11 @@ const LotDetail = () => {
                     <h4 className="font-semibold mb-3">SOLD ({cardsByStatus.sold.length} cards)</h4>
                     <div className="space-y-2">
                       {cardsByStatus.sold.map((card) => (
-                        <div key={card.id} className="flex items-center gap-3 p-2 border rounded">
+                        <div 
+                          key={card.id} 
+                          className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-accent/50 transition-colors"
+                          onClick={() => navigate(`/show-cards/${card.id}`)}
+                        >
                           {card.photo_front_url ? (
                             <img src={card.photo_front_url} className="w-20 h-20 object-cover rounded" alt={card.player_name} />
                           ) : (
@@ -454,9 +462,9 @@ const LotDetail = () => {
                             </div>
                           )}
                           <div className="flex-1">
-                            <div className="font-medium">{card.player_name}</div>
+                            <div className="font-semibold text-gray-900">{card.player_name}</div>
                             <div className="text-sm text-muted-foreground">{card.year}</div>
-                            <div className="text-sm">
+                            <div className="text-xs text-gray-500">
                               {card.asking_price && `Asking: $${Number(card.asking_price).toFixed(2)} | `}
                               {salePriceMap.get(card.id) && `Sold: $${salePriceMap.get(card.id)?.toFixed(2)}`}
                             </div>
@@ -473,7 +481,11 @@ const LotDetail = () => {
                     <h4 className="font-semibold mb-3">COMBINED/LOST ({cardsByStatus.other.length} cards)</h4>
                     <div className="space-y-2">
                       {cardsByStatus.other.map((card) => (
-                        <div key={card.id} className="flex items-center gap-3 p-2 border rounded">
+                        <div 
+                          key={card.id} 
+                          className="flex items-center gap-3 p-3 border rounded cursor-pointer hover:bg-accent/50 transition-colors"
+                          onClick={() => navigate(`/show-cards/${card.id}`)}
+                        >
                           {card.photo_front_url ? (
                             <img src={card.photo_front_url} className="w-20 h-20 object-cover rounded" alt={card.player_name} />
                           ) : (

@@ -21,6 +21,7 @@ import ShowDetail from "./pages/ShowDetail";
 import Lots from "./pages/Lots";
 import LotDetail from "./pages/LotDetail";
 import ShowCards from "./pages/ShowCards";
+import ShowCardDetail from "./pages/ShowCardDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthenticatedLayout from "./components/Layout/AuthenticatedLayout";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/expenses/new" element={<ProtectedRoute><AuthenticatedLayout><CreateExpense /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/cash/new" element={<ProtectedRoute><AuthenticatedLayout><ManualCashTransaction /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/show-cards/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowCardDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowDetail /></AuthenticatedLayout></ProtectedRoute>} />
