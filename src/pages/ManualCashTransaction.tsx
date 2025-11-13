@@ -47,20 +47,30 @@ const ManualCashTransaction = () => {
         signedAmount = adjustmentDirection === "remove" ? -signedAmount : signedAmount;
       }
 
-      const { error } = await supabase
+      // Insert record first (created_at will default to now())
+      const { data: inserted, error: insertError } = await supabase
         .from("cash_transactions")
         .insert({
           transaction_type: type,
           amount: signedAmount,
           notes: notes.trim() || null,
           user_id: user.id,
-          created_at: new Date(transactionDate).toISOString(),
           related_expense_id: null,
           related_lot_id: null,
           related_transaction_id: null,
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (insertError) throw insertError;
+
+      // Update with user-selected date (overrides the DEFAULT now())
+      const { error: updateError } = await supabase
+        .from("cash_transactions")
+        .update({ created_at: new Date(transactionDate).toISOString() })
+        .eq("id", inserted.id);
+
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
