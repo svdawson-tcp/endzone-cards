@@ -19,6 +19,7 @@ import CreateLot from "./pages/CreateLot";
 import Shows from "./pages/Shows";
 import ShowDetail from "./pages/ShowDetail";
 import Lots from "./pages/Lots";
+import LotDetail from "./pages/LotDetail";
 import ShowCards from "./pages/ShowCards";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/shows/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows" element={<ProtectedRoute><AuthenticatedLayout><Shows /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots" element={<ProtectedRoute><AuthenticatedLayout><Lots /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/lots/:id" element={<ProtectedRoute><AuthenticatedLayout><LotDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots/new" element={<ProtectedRoute><AuthenticatedLayout><CreateLot /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/shows/:id/edit" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots/:id/edit" element={<ProtectedRoute><AuthenticatedLayout><CreateLot /></AuthenticatedLayout></ProtectedRoute>} />
