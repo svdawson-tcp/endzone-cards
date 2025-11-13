@@ -442,6 +442,13 @@ export default function Lots() {
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
                   <Button
+                    onClick={() => navigate(`/lots/${lot.id}`)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    VIEW DETAILS
+                  </Button>
+                  <Button
                     onClick={() => navigate(`/show-cards/new?lot_id=${lot.id}`)}
                     className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
                   >
