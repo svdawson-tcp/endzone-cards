@@ -69,9 +69,10 @@ const ManualCashTransaction = () => {
       if (insertError) throw insertError;
 
       // Update with user-selected date (overrides the DEFAULT now())
+      // Use noon UTC to prevent timezone shifts - noon UTC is same calendar day everywhere
       const { error: updateError } = await supabase
         .from("cash_transactions")
-        .update({ created_at: new Date(transactionDate).toISOString() })
+        .update({ created_at: `${transactionDate}T12:00:00Z` })
         .eq("id", inserted.id);
 
       if (updateError) throw updateError;
