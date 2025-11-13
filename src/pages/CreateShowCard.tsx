@@ -689,7 +689,7 @@ export default function CreateShowCard() {
                   <img
                     src={frontPreview}
                     alt="Front preview"
-                    className="max-w-xs rounded-lg"
+                    className="w-full max-w-full rounded-lg object-contain"
                   />
                   <button
                     type="button"
@@ -753,7 +753,7 @@ export default function CreateShowCard() {
                   <img
                     src={backPreview}
                     alt="Back preview"
-                    className="max-w-xs rounded-lg"
+                    className="w-full max-w-full rounded-lg object-contain"
                   />
                   <button
                     type="button"
