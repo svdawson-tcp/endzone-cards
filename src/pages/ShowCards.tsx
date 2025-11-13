@@ -79,7 +79,7 @@ const ShowCards = () => {
           <h1 className="page-title">SHOW CARDS</h1>
           <Button
             onClick={() => navigate("/show-cards/new")}
-            className="min-h-[44px] bg-[hsl(var(--gold-base))] hover:bg-[hsl(var(--gold-dark))] text-[hsl(var(--navy-base))]"
+            className="min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
           >
             ADD SHOW CARD
           </Button>
