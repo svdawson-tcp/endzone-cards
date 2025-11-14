@@ -48,6 +48,7 @@ interface SalesTransaction extends BaseTransaction {
   show_id: string | null;
   lot_id: string | null;
   show_card_id: string | null;
+  transaction_date?: string;
   shows?: { name: string } | null;
   lots?: { source: string } | null;
 }
@@ -79,7 +80,7 @@ export default function TransactionHistory() {
           lots(source)
         `)
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("transaction_date", { ascending: false });
 
       if (salesError) throw salesError;
 
@@ -105,9 +106,11 @@ export default function TransactionHistory() {
           source: "cash" as const,
           transaction_type: t.transaction_type as TransactionType
         }))
-      ].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      ].sort((a, b) => {
+        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
+        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      });
 
       return allTransactions;
     },
@@ -150,10 +153,16 @@ export default function TransactionHistory() {
 
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     switch (sortOption) {
-      case "date-desc":
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      case "date-asc":
-        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      case "date-desc": {
+        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
+        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
+      }
+      case "date-asc": {
+        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
+        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
+        return new Date(aDate).getTime() - new Date(bDate).getTime();
+      }
       case "amount-desc": {
         const aAmount = a.source === "sales" ? (a as SalesTransaction).revenue : Math.abs((a as CashTransaction).amount);
         const bAmount = b.source === "sales" ? (b as SalesTransaction).revenue : Math.abs((b as CashTransaction).amount);
@@ -187,7 +196,7 @@ export default function TransactionHistory() {
       if (tx.source === "sales") {
         const salesTx = tx as SalesTransaction;
         return [
-          format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
+          format(new Date(salesTx.transaction_date || tx.created_at), "yyyy-MM-dd HH:mm"),
           tx.transaction_type,
           "sales",
           salesTx.lots?.source || "-",
@@ -389,10 +398,12 @@ export default function TransactionHistory() {
                         <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-900 font-medium">{format(new Date(tx.created_at), "MM/dd/yy")}</span>
+                            <span className="text-gray-900 font-medium">
+                              {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "MM/dd/yy")}
+                            </span>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {format(new Date(tx.created_at), "h:mm a")}
+                            {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "h:mm a")}
                           </div>
                         </TableCell>
                         <TableCell>
