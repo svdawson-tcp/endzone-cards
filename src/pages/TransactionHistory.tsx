@@ -51,6 +51,7 @@ interface SalesTransaction extends BaseTransaction {
   transaction_date?: string;
   shows?: { name: string } | null;
   lots?: { source: string } | null;
+  show_cards?: { player_name: string; year: string | null } | null;
 }
 
 interface CashTransaction extends BaseTransaction {
@@ -77,7 +78,8 @@ export default function TransactionHistory() {
         .select(`
           *,
           shows(name),
-          lots(source)
+          lots(source),
+          show_cards(player_name, year)
         `)
         .eq("user_id", user.id)
         .order("transaction_date", { ascending: false });
@@ -133,9 +135,10 @@ export default function TransactionHistory() {
         const salesTx = tx as SalesTransaction;
         const matchesLot = salesTx.lots?.source?.toLowerCase().includes(searchLower);
         const matchesShow = salesTx.shows?.name?.toLowerCase().includes(searchLower);
+        const matchesCard = salesTx.show_cards?.player_name?.toLowerCase().includes(searchLower);
         const matchesAmount = salesTx.revenue.toString().includes(searchLower);
         
-        if (!matchesNotes && !matchesLot && !matchesShow && !matchesAmount) {
+        if (!matchesNotes && !matchesLot && !matchesShow && !matchesCard && !matchesAmount) {
           return false;
         }
       } else {
@@ -199,7 +202,9 @@ export default function TransactionHistory() {
           format(new Date(salesTx.transaction_date || tx.created_at), "yyyy-MM-dd HH:mm"),
           tx.transaction_type,
           "sales",
-          salesTx.lots?.source || "-",
+          tx.transaction_type === "show_card_sale" && salesTx.show_cards
+            ? `${salesTx.show_cards.player_name} (${salesTx.show_cards.year || ""})`
+            : salesTx.lots?.source || "-",
           salesTx.shows?.name || "-",
           salesTx.revenue.toFixed(2),
           salesTx.quantity || "-",
@@ -413,7 +418,9 @@ export default function TransactionHistory() {
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-gray-900">
                           {tx.source === "sales" ? (
-                            (tx as SalesTransaction).lots?.source || "-"
+                            tx.transaction_type === "show_card_sale" && (tx as SalesTransaction).show_cards
+                              ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
+                              : (tx as SalesTransaction).lots?.source || "-"
                           ) : (
                             tx.notes || "Manual cash entry"
                           )}
