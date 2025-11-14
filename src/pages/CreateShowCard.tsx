@@ -349,8 +349,8 @@ export default function CreateShowCard() {
         player_name: playerName.trim(),
         year: year,
         card_details: cardDetails,
-        cost_basis: costBasis ? parseFloat(costBasis) : null,
-        asking_price: parseFloat(askingPrice),
+        cost_basis: (costBasis || null) as any,
+        asking_price: askingPrice as any,
         photo_front_url: frontPhotoUrl,
         photo_back_url: backPhotoUrl,
       };

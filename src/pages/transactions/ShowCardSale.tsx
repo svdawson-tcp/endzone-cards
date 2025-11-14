@@ -100,7 +100,7 @@ export default function ShowCardSale() {
     mutationFn: async () => {
       if (!showCard) throw new Error("Show card not found");
 
-      const salePriceNum = parseFloat(salePrice);
+      const salePriceNum = salePrice as any;
 
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();

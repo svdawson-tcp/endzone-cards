@@ -69,7 +69,7 @@ export default function BulkSale() {
   const submitMutation = useMutation({
     mutationFn: async () => {
       const quantityNum = parseInt(quantity);
-      const revenueNum = parseFloat(revenue);
+      const revenueNum = revenue as any;
 
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();

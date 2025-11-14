@@ -125,7 +125,7 @@ export default function TransactionEntry() {
             show_card_id: selectedCardId,
             show_id: selectedShowId || null,
             quantity: 1,
-            revenue: parseFloat(revenue),
+            revenue: revenue as any,
             transaction_date: transactionDate,
             notes: notes || null,
           });
@@ -145,7 +145,7 @@ export default function TransactionEntry() {
             lot_id: selectedLotId,
             show_id: selectedShowId || null,
             quantity: parseInt(quantity),
-            revenue: parseFloat(revenue),
+            revenue: revenue as any,
             transaction_date: transactionDate,
             notes: notes || null,
           });

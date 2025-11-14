@@ -44,11 +44,11 @@ const ManualCashTransaction = () => {
       if (!user) throw new Error("Not authenticated");
 
       // Calculate signed amount
-      let signedAmount = parseFloat(amount);
+      let signedAmount = amount;
       if (type === "withdrawal") {
-        signedAmount = -signedAmount;
+        signedAmount = `-${amount}`;
       } else if (type === "adjustment") {
-        signedAmount = adjustmentDirection === "remove" ? -signedAmount : signedAmount;
+        signedAmount = adjustmentDirection === "remove" ? `-${amount}` : amount;
       }
 
       // Build timestamp: user's selected date + current time
@@ -69,7 +69,7 @@ const ManualCashTransaction = () => {
         .from("cash_transactions")
         .insert({
           transaction_type: type,
-          amount: signedAmount,
+          amount: signedAmount as any,
           notes: notes.trim() || null,
           user_id: user.id,
           related_expense_id: null,

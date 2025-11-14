@@ -120,7 +120,7 @@ export default function CreateExpense() {
       // Insert expense record
       const { error } = await supabase.from("expenses").insert({
         user_id: user.id,
-        amount: parseFloat(amount),
+        amount: amount as any,
         category,
         show_id: selectedShowId || null,
         expense_date: expenseDate,
