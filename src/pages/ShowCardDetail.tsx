@@ -299,6 +299,18 @@ const ShowCardDetail = () => {
           </Card>
         )}
 
+        {/* Record Sale Button - Available Status */}
+        {card.status === 'available' && (
+          <div className="px-4">
+            <Button
+              onClick={() => navigate(`/transactions/show-card-sale/${card.id}`)}
+              className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase min-h-[44px]"
+            >
+              RECORD SALE
+            </Button>
+          </div>
+        )}
+
         {/* Financial Summary - Sold Status */}
         {card.status === "sold" && saleInfo && (
           <Card>

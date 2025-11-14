@@ -118,7 +118,7 @@ export default function ShowCardSale() {
           revenue: salePriceNum,
           quantity: 1,
           notes: notes || null,
-          created_at: new Date(saleDate).toISOString(),
+          transaction_date: saleDate,
         })
         .select()
         .single();
