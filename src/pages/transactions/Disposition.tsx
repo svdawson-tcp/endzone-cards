@@ -101,7 +101,7 @@ export default function Disposition() {
           quantity: quantityNum,
           revenue: 0,
           notes: finalNotes || `Disposition: ${dispositionType}`,
-          transaction_date: `${transactionDate}T00:00:00Z`,
+          transaction_date: new Date(`${transactionDate}T00:00:00`).toISOString(),
         })
         .select()
         .single();
