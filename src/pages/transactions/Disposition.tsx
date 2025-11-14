@@ -29,6 +29,7 @@ export default function Disposition() {
   const [dispositionType, setDispositionType] = useState<DispositionType | "">("");
   const [quantity, setQuantity] = useState<string>("");
   const [destinationLotId, setDestinationLotId] = useState<string>("");
+  const [transactionDate, setTransactionDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
   const [errors, setErrors] = useState<{ 
     lot?: string; 
@@ -100,7 +101,7 @@ export default function Disposition() {
           quantity: quantityNum,
           revenue: 0,
           notes: finalNotes || `Disposition: ${dispositionType}`,
-          created_at: new Date().toISOString(),
+          transaction_date: transactionDate,
         })
         .select()
         .single();
@@ -216,6 +217,22 @@ export default function Disposition() {
             )}
             <p className="text-xs text-muted-foreground mt-1">
               Which lot are these cards from?
+            </p>
+          </div>
+
+          {/* Transaction Date */}
+          <div>
+            <label htmlFor="transaction-date" className="form-label">Transaction Date *</label>
+            <Input
+              id="transaction-date"
+              type="date"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              max={format(new Date(), "yyyy-MM-dd")}
+              className="mt-2 min-h-[44px] bg-white text-card-foreground"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Date when this disposition occurred
             </p>
           </div>
 
