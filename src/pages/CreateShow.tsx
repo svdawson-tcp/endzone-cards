@@ -154,7 +154,7 @@ export default function CreateShow() {
         name: showName.trim(),
         show_date: showDate,
         location: location.trim(),
-        table_cost: parseFloat(tableCost),
+        table_cost: tableCost as any,
         booth_number: boothNumber.trim() || null,
         notes: notes.trim() || null,
       };
