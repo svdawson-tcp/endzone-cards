@@ -86,7 +86,7 @@ const ShowCardDetail = () => {
       salePrice,
       askingPrice,
       profit,
-      saleDate: saleTransaction.created_at,
+      saleDate: (saleTransaction as any).transaction_date || saleTransaction.created_at,
       notes: saleTransaction.notes,
     };
   }, [card, transactions]);
