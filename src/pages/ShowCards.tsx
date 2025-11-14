@@ -21,7 +21,11 @@ const ShowCards = () => {
 
       const { data, error } = await supabase
         .from("show_cards")
-        .select("*, lots!show_cards_lot_id_fkey(source)")
+        .select(`
+          *,
+          lots!show_cards_lot_id_fkey(source),
+          transactions!left(transaction_date)
+        `)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -172,6 +176,16 @@ const ShowCards = () => {
                     </div>
 
                     <p className="text-xs text-gray-500">From: {card.lots?.source}</p>
+
+                    {card.status === "sold" && (card as any).transactions?.[0]?.transaction_date && (
+                      <p className="text-xs text-gray-500">
+                        Sold: {new Date((card as any).transactions[0].transaction_date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </p>
+                    )}
 
                     {card.status === "available" && card.asking_price && (
                       <p className="text-sm font-semibold text-green-600">
