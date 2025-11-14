@@ -35,6 +35,7 @@ export default function TransactionEntry() {
   const [destinationLotId, setDestinationLotId] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [transactionDate, setTransactionDate] = useState(format(new Date(), "yyyy-MM-dd"));
 
   // Fetch available show cards
   const { data: showCards, isLoading: loadingCards } = useQuery({
@@ -125,6 +126,7 @@ export default function TransactionEntry() {
             show_id: selectedShowId || null,
             quantity: 1,
             revenue: parseFloat(revenue),
+            transaction_date: transactionDate,
             notes: notes || null,
           });
 
@@ -144,6 +146,7 @@ export default function TransactionEntry() {
             show_id: selectedShowId || null,
             quantity: parseInt(quantity),
             revenue: parseFloat(revenue),
+            transaction_date: transactionDate,
             notes: notes || null,
           });
 
@@ -163,6 +166,7 @@ export default function TransactionEntry() {
             show_card_id: selectedCardId,
             quantity: 1,
             revenue: 0,
+            transaction_date: transactionDate,
             notes: notes || null,
           });
 
@@ -291,6 +295,18 @@ export default function TransactionEntry() {
               </div>
 
               <div>
+                <label htmlFor="transaction-date-sale" className="form-label">Transaction Date *</label>
+                <Input
+                  id="transaction-date-sale"
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  max={format(new Date(), "yyyy-MM-dd")}
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="show" className="form-label">Show (Optional)</label>
                 <Select value={selectedShowId} onValueChange={setSelectedShowId} disabled={loadingShows}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
@@ -373,6 +389,18 @@ export default function TransactionEntry() {
               </div>
 
               <div>
+                <label htmlFor="transaction-date-bulk" className="form-label">Transaction Date *</label>
+                <Input
+                  id="transaction-date-bulk"
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  max={format(new Date(), "yyyy-MM-dd")}
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+
+              <div>
                 <label htmlFor="bulk-show" className="form-label">Show (Optional)</label>
                 <Select value={selectedShowId} onValueChange={setSelectedShowId} disabled={loadingShows}>
                   <SelectTrigger className="mt-2 min-h-[44px]">
@@ -421,6 +449,18 @@ export default function TransactionEntry() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div>
+                <label htmlFor="transaction-date-disposition" className="form-label">Transaction Date *</label>
+                <Input
+                  id="transaction-date-disposition"
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  max={format(new Date(), "yyyy-MM-dd")}
+                  className="mt-2 min-h-[44px]"
+                />
               </div>
 
               <div>
