@@ -86,7 +86,7 @@ export default function BulkSale() {
           quantity: quantityNum,
           revenue: revenueNum,
           notes: notes || null,
-          transaction_date: new Date(`${saleDate}T00:00:00`).toISOString(),
+          transaction_date: saleDate,
         })
         .select()
         .single();
