@@ -193,6 +193,10 @@ export default function ShowDetail() {
     }
   };
 
+  const getStatusDisplayLabel = (status: ShowStatus) => {
+    return status === "completed" ? "Closed" : status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
   if (showLoading || transactionsLoading || expensesLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -235,7 +239,7 @@ export default function ShowDetail() {
                 {/* Page Title - Uses page-title class for white text on dark background */}
                 <h1 className="page-title mb-2">{show.name}</h1>
                 <Badge variant={getStatusBadgeVariant(show.status)} className="text-gray-900">
-                  {show.status}
+                  {getStatusDisplayLabel(show.status)}
                 </Badge>
               </div>
               

@@ -147,8 +147,9 @@ export default function Dashboard() {
       completed: { variant: "outline", className: "text-gray-900" },
     };
     
+    const displayLabel = status === "completed" ? "Closed" : status.charAt(0).toUpperCase() + status.slice(1);
     const config = variants[status] || { variant: "outline" as const, className: "text-gray-900" };
-    return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
+    return <Badge variant={config.variant} className={config.className}>{displayLabel}</Badge>;
   };
 
   return (
