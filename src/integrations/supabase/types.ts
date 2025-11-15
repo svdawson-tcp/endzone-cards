@@ -17,6 +17,9 @@ export type Database = {
       cash_transactions: {
         Row: {
           amount: number
+          corrected_at: string | null
+          correction_count: number | null
+          correction_note: string | null
           created_at: string
           id: string
           notes: string | null
@@ -28,6 +31,9 @@ export type Database = {
         }
         Insert: {
           amount: number
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -39,6 +45,9 @@ export type Database = {
         }
         Update: {
           amount?: number
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           id?: string
           notes?: string | null
@@ -76,6 +85,9 @@ export type Database = {
         Row: {
           amount: number
           category: string
+          corrected_at: string | null
+          correction_count: number | null
+          correction_note: string | null
           created_at: string
           expense_date: string
           id: string
@@ -87,6 +99,9 @@ export type Database = {
         Insert: {
           amount: number
           category: string
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           expense_date: string
           id?: string
@@ -98,6 +113,9 @@ export type Database = {
         Update: {
           amount?: number
           category?: string
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           expense_date?: string
           id?: string
@@ -271,6 +289,9 @@ export type Database = {
       }
       transactions: {
         Row: {
+          corrected_at: string | null
+          correction_count: number | null
+          correction_note: string | null
           created_at: string
           id: string
           lot_id: string | null
@@ -284,6 +305,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           id?: string
           lot_id?: string | null
@@ -297,6 +321,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          corrected_at?: string | null
+          correction_count?: number | null
+          correction_note?: string | null
           created_at?: string
           id?: string
           lot_id?: string | null
