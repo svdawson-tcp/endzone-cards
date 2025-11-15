@@ -238,6 +238,10 @@ export default function Shows() {
     }
   };
 
+  const getStatusDisplayLabel = (status: ShowStatus) => {
+    return status === "completed" ? "Closed" : status.charAt(0).toUpperCase() + status.slice(1);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -287,7 +291,7 @@ export default function Shows() {
             onClick={() => setFilterTab("completed")}
             className={filterTab === "completed" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
           >
-            Completed ({counts.completed})
+            Closed ({counts.completed})
           </Button>
           </div>
 
@@ -350,7 +354,7 @@ export default function Shows() {
                 {/* Status Badge */}
                 <div className="absolute top-4 right-4">
                   <Badge variant={getStatusBadgeVariant(show.status)}>
-                    {show.status}
+                    {getStatusDisplayLabel(show.status)}
                   </Badge>
                 </div>
 
