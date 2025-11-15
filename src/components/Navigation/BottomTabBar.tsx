@@ -44,6 +44,12 @@ const BottomTabBar = () => {
       route: "/transactions/disposition/new" 
     },
     { 
+      icon: Receipt, 
+      label: "Record Expense", 
+      description: "Track business expenses",
+      route: "/expenses/create" 
+    },
+    { 
       icon: DollarSign, 
       label: "Cash Deposit", 
       description: "Add cash from external source",
