@@ -80,6 +80,7 @@ export type Database = {
           expense_date: string
           id: string
           notes: string | null
+          receipt_photo_url: string | null
           show_id: string | null
           user_id: string
         }
@@ -90,6 +91,7 @@ export type Database = {
           expense_date: string
           id?: string
           notes?: string | null
+          receipt_photo_url?: string | null
           show_id?: string | null
           user_id: string
         }
@@ -100,6 +102,7 @@ export type Database = {
           expense_date?: string
           id?: string
           notes?: string | null
+          receipt_photo_url?: string | null
           show_id?: string | null
           user_id?: string
         }

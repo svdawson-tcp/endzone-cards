@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Receipt } from "lucide-react";
+import { Loader2, Receipt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FormField } from "@/components/forms/FormField";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
+import { CameraCapture } from "@/components/forms/CameraCapture";
+import { compressPhoto } from "@/lib/photoCompression";
 import {
   Select,
   SelectContent,
@@ -41,6 +43,9 @@ export default function CreateExpense() {
   const [expenseDate, setExpenseDate] = useState(defaultDateStr);
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
+  const [receiptPhotoUrl, setReceiptPhotoUrl] = useState<string | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Fetch all shows for dropdown
   const { data: shows = [], isLoading: loadingShows } = useQuery({
@@ -117,6 +122,29 @@ export default function CreateExpense() {
         throw new Error("Not authenticated");
       }
 
+      let photoUrl: string | null = null;
+
+      // Upload receipt photo if provided
+      if (receiptPhoto) {
+        const compressedPhoto = await compressPhoto(receiptPhoto);
+        const fileName = `${user.id}/${Date.now()}_receipt.webp`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("expense_receipts")
+          .upload(fileName, compressedPhoto, {
+            contentType: "image/webp",
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("expense_receipts").getPublicUrl(fileName);
+
+        photoUrl = publicUrl;
+      }
+
       // Insert expense record
       const { error } = await supabase.from("expenses").insert({
         user_id: user.id,
@@ -125,6 +153,7 @@ export default function CreateExpense() {
         show_id: selectedShowId || null,
         expense_date: expenseDate,
         notes: notes.trim() || null,
+        receipt_photo_url: photoUrl,
       });
 
       if (error) throw error;
@@ -267,16 +296,83 @@ export default function CreateExpense() {
             />
           </FormField>
 
-          {/* Receipt Photo Placeholder */}
-          <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-            <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-1 font-medium">
-              Receipt Photo Upload
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Coming soon - Upload receipt photos for your records
-            </p>
-          </div>
+          {/* Receipt Photo Field */}
+          <FormField
+            label="Receipt Photo (Optional)"
+            htmlFor="receipt-photo"
+            helperText="Capture or upload a photo of your receipt for record keeping"
+          >
+            <div className="space-y-3">
+              {/* Camera Capture */}
+              {showCamera ? (
+                <div className="space-y-3">
+                  <CameraCapture
+                    onCapture={(file) => {
+                      setReceiptPhoto(file);
+                      setReceiptPhotoUrl(URL.createObjectURL(file));
+                      setShowCamera(false);
+                    }}
+                    onClose={() => setShowCamera(false)}
+                  />
+                </div>
+              ) : receiptPhotoUrl ? (
+                /* Photo Preview */
+                <div className="relative">
+                  <img
+                    src={receiptPhotoUrl}
+                    alt="Receipt preview"
+                    className="w-full h-48 object-cover rounded-lg border border-border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      setReceiptPhoto(null);
+                      setReceiptPhotoUrl(null);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                /* Upload Options */
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-11"
+                    onClick={() => setShowCamera(true)}
+                  >
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Capture Photo
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 h-11"
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (file) {
+                          setReceiptPhoto(file);
+                          setReceiptPhotoUrl(URL.createObjectURL(file));
+                        }
+                      };
+                      input.click();
+                    }}
+                  >
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Select File
+                  </Button>
+                </div>
+              )}
+            </div>
+          </FormField>
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-4">
