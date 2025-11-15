@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
-import { DollarSign, Calendar, FileText, Loader2, Package, Hash } from "lucide-react";
+import { DollarSign, Calendar, FileText, Loader2, Package, Hash, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function BulkSale() {
   const navigate = useNavigate();
@@ -160,6 +161,14 @@ export default function BulkSale() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">RECORD BULK SALE</h1>
         <p className="text-muted-foreground mb-6">Record sale of common cards from inventory</p>
 
+        {/* Informational Alert */}
+        <Alert className="mb-6">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            Recording bulk sales for multiple lots? Record each lot sale separately to maintain accurate per-lot profit tracking.
+          </AlertDescription>
+        </Alert>
+
         {/* Bulk Sale Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Primary Lot Selection */}
@@ -195,8 +204,8 @@ export default function BulkSale() {
             {errors.lot && (
               <p className="text-destructive text-sm mt-1">{errors.lot}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
-              Which lot are most of these cards from?
+            <p className="text-sm text-muted-foreground mt-2">
+              Select the primary lot for this sale. Cards sold should be deducted from this lot's inventory.
             </p>
           </div>
 
