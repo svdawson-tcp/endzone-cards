@@ -47,7 +47,7 @@ const BottomTabBar = () => {
       icon: Receipt, 
       label: "Record Expense", 
       description: "Track business expenses",
-      route: "/expenses/create" 
+      route: "/expenses/new" 
     },
     { 
       icon: DollarSign, 

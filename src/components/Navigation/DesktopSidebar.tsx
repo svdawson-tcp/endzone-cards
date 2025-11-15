@@ -26,7 +26,7 @@ const DesktopSidebar = () => {
     { icon: DollarSign, label: "Show Card Sale", route: "/show-cards", description: "Select card to sell" },
     { icon: Package, label: "Bulk Sale", route: "/transactions/bulk-sale/new" },
     { icon: Trash2, label: "Disposition", route: "/transactions/disposition/new" },
-    { icon: Receipt, label: "Record Expense", route: "/expenses/create", description: "Track business expenses" },
+    { icon: Receipt, label: "Record Expense", route: "/expenses/new", description: "Track business expenses" },
     { icon: DollarSign, label: "Cash Deposit", route: "/cash/new?type=deposit" },
     { icon: TrendingDown, label: "Cash Withdrawal", route: "/cash/new?type=withdrawal" },
     { icon: Settings, label: "Cash Adjustment", route: "/cash/new?type=adjustment" },
