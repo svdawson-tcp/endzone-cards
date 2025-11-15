@@ -163,8 +163,12 @@ export default function CreateExpense() {
         description: `$${parseFloat(amount).toFixed(2)} for ${category}`,
       });
 
-      // Navigate to dashboard
-      navigate("/dashboard");
+      // Context-aware navigation
+      if (selectedShowId) {
+        navigate(`/shows/${selectedShowId}`);
+      } else {
+        navigate("/dashboard");
+      }
     } catch (error: any) {
       console.error("Error creating expense:", error);
       toast({
