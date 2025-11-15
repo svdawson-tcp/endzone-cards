@@ -276,6 +276,7 @@ export type Database = {
           revenue: number
           show_card_id: string | null
           show_id: string | null
+          transaction_date: string
           transaction_type: string
           user_id: string
         }
@@ -288,6 +289,7 @@ export type Database = {
           revenue?: number
           show_card_id?: string | null
           show_id?: string | null
+          transaction_date?: string
           transaction_type: string
           user_id: string
         }
@@ -300,6 +302,7 @@ export type Database = {
           revenue?: number
           show_card_id?: string | null
           show_id?: string | null
+          transaction_date?: string
           transaction_type?: string
           user_id?: string
         }
