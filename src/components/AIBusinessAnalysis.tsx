@@ -116,7 +116,7 @@ export const AIBusinessAnalysis = ({
   return (
     <div className="space-y-4">
       {/* Stage Overview */}
-      <div className="flex items-start gap-3 p-4 bg-muted rounded-lg">
+      <div className="flex items-start gap-3 p-4 bg-card border border-border rounded-lg">
         <StageIcon className={`w-5 h-5 mt-0.5 ${guidance.color}`} />
         <div className="flex-1">
           <h4 className="font-semibold text-card-foreground mb-1">{guidance.title}</h4>
