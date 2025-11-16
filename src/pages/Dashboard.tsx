@@ -7,11 +7,66 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
 import dashboardBg from "@/assets/backgrounds/dashboard-stadium-bg.jpg";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [dateRange, setDateRange] = useState<string>("alltime");
+
+  // Calculate date range based on selection
+  const getDateRange = (): { startDate: string | null; endDate: string } => {
+    const today = new Date();
+    const endDate = today.toISOString().split('T')[0];
+    
+    switch (dateRange) {
+      case "7days":
+        const last7Days = new Date(today);
+        last7Days.setDate(today.getDate() - 7);
+        return { startDate: last7Days.toISOString().split('T')[0], endDate };
+      
+      case "30days":
+        const last30Days = new Date(today);
+        last30Days.setDate(today.getDate() - 30);
+        return { startDate: last30Days.toISOString().split('T')[0], endDate };
+      
+      case "thismonth":
+        const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        return { startDate: firstDayThisMonth.toISOString().split('T')[0], endDate };
+      
+      case "lastmonth":
+        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        return { 
+          startDate: firstDayLastMonth.toISOString().split('T')[0], 
+          endDate: lastDayLastMonth.toISOString().split('T')[0] 
+        };
+      
+      case "thisyear":
+        const firstDayThisYear = new Date(today.getFullYear(), 0, 1);
+        return { startDate: firstDayThisYear.toISOString().split('T')[0], endDate };
+      
+      case "alltime":
+      default:
+        return { startDate: null, endDate };
+    }
+  };
+
+  const getDateRangeLabel = (): string => {
+    switch (dateRange) {
+      case "7days": return "Last 7 Days";
+      case "30days": return "Last 30 Days";
+      case "thismonth": return "This Month";
+      case "lastmonth": return "Last Month";
+      case "thisyear": return "This Year";
+      case "alltime":
+      default: return "All Time";
+    }
+  };
+
+  const { startDate, endDate } = getDateRange();
 
   // Cash Balance Query
   const { data: cashBalance, isLoading: loadingCash } = useQuery({
@@ -27,16 +82,21 @@ export default function Dashboard() {
     },
   });
 
-  // Total Revenue Query (All Time)
+  // Total Revenue Query
   const { data: totalRevenue, isLoading: loadingRevenue } = useQuery({
-    queryKey: ["totalRevenue"],
+    queryKey: ["totalRevenue", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .in("transaction_type", ["show_card_sale", "bulk_sale"]);
       
+      if (startDate) {
+        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
     },
@@ -44,14 +104,19 @@ export default function Dashboard() {
 
   // Premium Sales Query (show_card_sale)
   const { data: premiumSales, isLoading: loadingPremium } = useQuery({
-    queryKey: ["premiumSales"],
+    queryKey: ["premiumSales", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .eq("transaction_type", "show_card_sale");
       
+      if (startDate) {
+        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
     },
@@ -59,14 +124,19 @@ export default function Dashboard() {
 
   // Bulk Sales Query
   const { data: bulkSales, isLoading: loadingBulk } = useQuery({
-    queryKey: ["bulkSales"],
+    queryKey: ["bulkSales", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .eq("transaction_type", "bulk_sale");
       
+      if (startDate) {
+        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
     },
@@ -74,14 +144,19 @@ export default function Dashboard() {
 
   // Lot Costs Query (exclude 'ordered' status)
   const { data: lotCosts, isLoading: loadingLotCosts } = useQuery({
-    queryKey: ["lotCosts"],
+    queryKey: ["lotCosts", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("lots")
         .select("total_cost")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .neq("status", "ordered");
       
+      if (startDate) {
+        query = query.gte("purchase_date", startDate).lte("purchase_date", endDate);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data?.reduce((sum, l) => sum + Number(l.total_cost), 0) || 0;
     },
@@ -89,13 +164,18 @@ export default function Dashboard() {
 
   // Total Expenses Query
   const { data: totalExpenses, isLoading: loadingExpenses } = useQuery({
-    queryKey: ["totalExpenses"],
+    queryKey: ["totalExpenses", dateRange],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("expenses")
         .select("amount")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
       
+      if (startDate) {
+        query = query.gte("expense_date", startDate).lte("expense_date", endDate);
+      }
+      
+      const { data, error } = await query;
       if (error) throw error;
       return data?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
     },
@@ -232,6 +312,24 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/75" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+        {/* Date Range Selector */}
+        <div className="flex justify-center mb-8">
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-[200px] bg-card">
+              <Calendar className="mr-2 h-4 w-4" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7days">Last 7 Days</SelectItem>
+              <SelectItem value="30days">Last 30 Days</SelectItem>
+              <SelectItem value="thismonth">This Month</SelectItem>
+              <SelectItem value="lastmonth">Last Month</SelectItem>
+              <SelectItem value="thisyear">This Year</SelectItem>
+              <SelectItem value="alltime">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Row 1: Net Profit */}
@@ -249,7 +347,7 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getProfitColor()}`}>
                   ${netProfit.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
@@ -269,7 +367,7 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getMarginColor()}`}>
                   {profitMargin.toFixed(1)}%
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
@@ -289,7 +387,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(totalRevenue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
@@ -326,7 +424,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Lots + Expenses</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
@@ -346,7 +444,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(premiumSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Show Card Sales</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
@@ -366,7 +464,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(bulkSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Bulk Transactions</p>
+                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
               </>
             )}
           </div>
