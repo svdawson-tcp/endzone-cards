@@ -148,7 +148,7 @@ const PersonalGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Life Vision</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   What does your ideal life look like?
                 </p>
               </div>
@@ -171,7 +171,7 @@ const PersonalGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Motivation</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   Why is independence important to you?
                 </p>
               </div>
@@ -194,7 +194,7 @@ const PersonalGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Family Goals</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   How will this impact your family?
                 </p>
               </div>
@@ -217,7 +217,7 @@ const PersonalGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Financial Requirements</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   What income do you need to replace?
                 </p>
               </div>
@@ -233,7 +233,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setAnnualSalary(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Your current total annual compensation
                 </p>
               </div>
@@ -247,7 +247,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setTaxRate(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Estimated combined tax rate (federal + state + self-employment)
                 </p>
               </div>
@@ -261,7 +261,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setHealthInsurance(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Estimated monthly cost for private health insurance
                 </p>
               </div>
@@ -294,7 +294,7 @@ const PersonalGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Timeline</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   When do you want to achieve independence?
                 </p>
               </div>
@@ -309,7 +309,7 @@ const PersonalGoals = () => {
                 onChange={(e) => setIndependenceDate(e.target.value)}
                 className="mt-1"
               />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-gray-600 mt-1">
                 Your target date to leave your current job
               </p>
             </div>

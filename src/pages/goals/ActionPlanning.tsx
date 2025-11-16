@@ -191,7 +191,7 @@ const ActionPlanning = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">This Month's Focus</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {calculateProgress(actionItems.monthly)}% complete
                   </p>
                 </div>
@@ -226,7 +226,7 @@ const ActionPlanning = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">Next Quarter's Goals</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {calculateProgress(actionItems.quarterly)}% complete
                   </p>
                 </div>
@@ -261,7 +261,7 @@ const ActionPlanning = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">Long-Term Initiatives</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-gray-600">
                     {calculateProgress(actionItems.longterm)}% complete
                   </p>
                 </div>

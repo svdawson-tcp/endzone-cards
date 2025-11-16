@@ -185,7 +185,7 @@ const BusinessGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Current Progress</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   Last 30 days revenue vs. target
                 </p>
               </div>
@@ -193,13 +193,13 @@ const BusinessGoals = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-muted-foreground">Current Monthly Revenue</div>
+                <div className="text-sm text-gray-600">Current Monthly Revenue</div>
                 <div className="text-2xl font-bold text-foreground">
                   ${currentMonthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-muted-foreground">Target Monthly Income</div>
+                <div className="text-sm text-gray-600">Target Monthly Income</div>
                 <div className="text-2xl font-bold text-foreground">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
@@ -225,7 +225,7 @@ const BusinessGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Cash Requirements</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   Understanding business vs. personal income
                 </p>
               </div>
@@ -269,7 +269,7 @@ const BusinessGoals = () => {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Milestone Targets</h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-gray-600">
                   Progressive revenue goals to track your journey
                 </p>
               </div>
@@ -285,7 +285,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone3Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Monthly revenue target for month 3
                 </p>
               </div>
@@ -299,7 +299,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone6Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Monthly revenue target for month 6
                 </p>
               </div>
@@ -313,7 +313,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone12Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   Monthly revenue target for month 12
                 </p>
               </div>
