@@ -6,9 +6,17 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, TrendingUp, DollarSign, Calendar, Target } from "lucide-react";
+import { ArrowLeft, TrendingUp, DollarSign, Calendar, Target, BookOpen, Lightbulb, Rocket, CheckSquare } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+interface ActionItem {
+  id: string;
+  description: string;
+  completed: boolean;
+  category: 'monthly' | 'quarterly' | 'longterm';
+}
 
 interface UserGoal {
   id: string;
@@ -20,6 +28,11 @@ interface UserGoal {
   milestone_3_month: number;
   milestone_6_month: number;
   milestone_12_month: number;
+  action_items: {
+    monthly?: ActionItem[];
+    quarterly?: ActionItem[];
+    longterm?: ActionItem[];
+  };
 }
 
 const BusinessIndependence = () => {
@@ -34,6 +47,27 @@ const BusinessIndependence = () => {
   const [milestone3Month, setMilestone3Month] = useState(0);
   const [milestone6Month, setMilestone6Month] = useState(0);
   const [milestone12Month, setMilestone12Month] = useState(0);
+  const [actionItems, setActionItems] = useState<{
+    monthly: ActionItem[];
+    quarterly: ActionItem[];
+    longterm: ActionItem[];
+  }>({
+    monthly: [
+      { id: '1', description: 'Attend 2 additional shows this month', completed: false, category: 'monthly' },
+      { id: '2', description: 'Increase average sale price by 10%', completed: false, category: 'monthly' },
+      { id: '3', description: 'Research new card venues in my area', completed: false, category: 'monthly' },
+    ],
+    quarterly: [
+      { id: '4', description: 'Establish online presence (eBay/Facebook)', completed: false, category: 'quarterly' },
+      { id: '5', description: 'Build customer email list', completed: false, category: 'quarterly' },
+      { id: '6', description: 'Expand to neighboring cities', completed: false, category: 'quarterly' },
+    ],
+    longterm: [
+      { id: '7', description: 'Develop premium card specialization', completed: false, category: 'longterm' },
+      { id: '8', description: 'Create business bank account', completed: false, category: 'longterm' },
+      { id: '9', description: 'Build brand recognition', completed: false, category: 'longterm' },
+    ],
+  });
 
   // Calculate target monthly income
   const targetMonthlyIncome = 
@@ -96,6 +130,16 @@ const BusinessIndependence = () => {
       setMilestone3Month(Number(existingGoal.milestone_3_month) || 0);
       setMilestone6Month(Number(existingGoal.milestone_6_month) || 0);
       setMilestone12Month(Number(existingGoal.milestone_12_month) || 0);
+      
+      // Load action items if they exist
+      if (existingGoal.action_items) {
+        const items = existingGoal.action_items as any;
+        setActionItems({
+          monthly: items.monthly || actionItems.monthly,
+          quarterly: items.quarterly || actionItems.quarterly,
+          longterm: items.longterm || actionItems.longterm,
+        });
+      }
     }
   }, [existingGoal]);
 
@@ -115,6 +159,7 @@ const BusinessIndependence = () => {
         milestone_3_month: milestone3Month,
         milestone_6_month: milestone6Month,
         milestone_12_month: milestone12Month,
+        action_items: actionItems as any,
       };
 
       if (existingGoal) {
@@ -159,6 +204,16 @@ const BusinessIndependence = () => {
   const taxReserve = (currentMonthlyRevenue * 12 * 0.25);
   const emergencyFund = (targetMonthlyIncome * 6);
 
+  // Handle action item toggle
+  const toggleActionItem = (category: 'monthly' | 'quarterly' | 'longterm', itemId: string) => {
+    setActionItems(prev => ({
+      ...prev,
+      [category]: prev[category].map(item =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      ),
+    }));
+  };
+
   if (loadingGoals) {
     return (
       <div className="container mx-auto p-4 md:p-6 space-y-6">
@@ -185,6 +240,93 @@ const BusinessIndependence = () => {
           <p className="text-sm text-muted-foreground mt-1">
             Plan your transition from employee to full-time business owner
           </p>
+        </div>
+      </div>
+
+      {/* Section: Business Model Education */}
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <BookOpen className="h-5 w-5" />
+          Business Model Education
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Revenue Streams Card */}
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <DollarSign className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-white">Revenue Streams</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Show Sales:</strong> Premium individual cards with higher margins</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Bulk Sales:</strong> Multiple cards at once, lower margin but faster turnover</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Online Sales:</strong> Future expansion opportunity for reaching more buyers</span>
+              </li>
+            </ul>
+          </Card>
+
+          {/* Key Success Factors Card */}
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <Lightbulb className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-white">Key Success Factors</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Buy Low, Sell High:</strong> Focus on profit margins per transaction</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Fast Turnover:</strong> Convert inventory to cash quickly</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Market Knowledge:</strong> Know which cards are valuable and in demand</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Efficiency:</strong> Time is money - optimize your operations</span>
+              </li>
+            </ul>
+          </Card>
+
+          {/* Growth Levers Card */}
+          <Card className="p-6 bg-card border-border">
+            <div className="flex items-center gap-2 mb-4">
+              <Rocket className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-white">Growth Levers</h3>
+            </div>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">More Shows:</strong> Increase show frequency and attendance</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Higher Prices:</strong> Improve average sale value through better inventory</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Geographic Expansion:</strong> Travel to new markets and cities</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Online Channels:</strong> Add eBay, Facebook Marketplace, etc.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">•</span>
+                <span><strong className="text-white">Specialization:</strong> Focus on high-value niches (rookies, autographs, etc.)</span>
+              </li>
+            </ul>
+          </Card>
         </div>
       </div>
 
@@ -378,6 +520,81 @@ const BusinessIndependence = () => {
             </p>
           </div>
         </Card>
+      </div>
+
+      {/* Section 5: Action Planning */}
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+          <CheckSquare className="h-5 w-5" />
+          Action Planning
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* This Month's Focus */}
+          <Card className="p-6 bg-card border-border">
+            <h3 className="font-semibold text-white mb-4">This Month's Focus</h3>
+            <div className="space-y-3">
+              {actionItems.monthly.map((action) => (
+                <div key={action.id} className="flex items-start gap-3">
+                  <Checkbox
+                    checked={action.completed}
+                    onCheckedChange={() => toggleActionItem('monthly', action.id)}
+                    className="mt-0.5"
+                  />
+                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {action.description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Next Quarter's Goals */}
+          <Card className="p-6 bg-card border-border">
+            <h3 className="font-semibold text-white mb-4">Next Quarter's Goals</h3>
+            <div className="space-y-3">
+              {actionItems.quarterly.map((action) => (
+                <div key={action.id} className="flex items-start gap-3">
+                  <Checkbox
+                    checked={action.completed}
+                    onCheckedChange={() => toggleActionItem('quarterly', action.id)}
+                    className="mt-0.5"
+                  />
+                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {action.description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Long-Term Initiatives */}
+          <Card className="p-6 bg-card border-border">
+            <h3 className="font-semibold text-white mb-4">Long-Term Initiatives</h3>
+            <div className="space-y-3">
+              {actionItems.longterm.map((action) => (
+                <div key={action.id} className="flex items-start gap-3">
+                  <Checkbox
+                    checked={action.completed}
+                    onCheckedChange={() => toggleActionItem('longterm', action.id)}
+                    className="mt-0.5"
+                  />
+                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {action.description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+        <div className="mt-4">
+          <Button 
+            onClick={() => saveGoalsMutation.mutate()}
+            disabled={saveGoalsMutation.isPending}
+            className="w-full md:w-auto"
+          >
+            {saveGoalsMutation.isPending ? 'Saving...' : 'Save All Progress'}
+          </Button>
+        </div>
       </div>
     </div>
   );
