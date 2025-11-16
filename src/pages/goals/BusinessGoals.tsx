@@ -249,19 +249,19 @@ const BusinessGoals = () => {
             </div>
 
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex justify-between p-3 bg-primary/5 rounded-lg">
                 <span className="text-card-foreground/70">Personal Monthly Need (after-tax)</span>
                 <span className="font-medium card-foreground">
                   ${((existingGoal.annual_salary / 12) + existingGoal.health_insurance).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
-              <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex justify-between p-3 bg-primary/5 rounded-lg">
                 <span className="text-card-foreground/70">Tax Burden ({existingGoal.tax_rate}%)</span>
                 <span className="font-medium card-foreground">
                   ${(((existingGoal.annual_salary / 12) * (existingGoal.tax_rate / 100))).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
-              <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex justify-between p-3 bg-primary/5 rounded-lg">
                 <span className="text-card-foreground/70">Safety Buffer (25%)</span>
                 <span className="font-medium card-foreground">
                   ${(existingGoal.health_insurance * 0.25).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
