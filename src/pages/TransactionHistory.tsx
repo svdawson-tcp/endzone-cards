@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LotReassignmentDialog } from "@/components/LotReassignmentDialog";
 import { ShowReassignmentDialog } from "@/components/ShowReassignmentDialog";
+import { DateNotesEditDialog } from "@/components/DateNotesEditDialog";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
 type FilterCategory = "all" | "sales" | "cash";
@@ -79,6 +80,7 @@ export default function TransactionHistory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [showReassignDialogOpen, setShowReassignDialogOpen] = useState(false);
+  const [dateNotesDialogOpen, setDateNotesDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<{
     id: string;
     lotId: string | null;
@@ -86,6 +88,11 @@ export default function TransactionHistory() {
     showId: string | null;
     showName: string | null;
     revenue: number;
+  } | null>(null);
+  const [selectedDateNotesTransaction, setSelectedDateNotesTransaction] = useState<{
+    id: string;
+    date: string;
+    notes: string | null;
   } | null>(null);
 
   const { data: transactions = [], isLoading } = useQuery({
@@ -483,6 +490,19 @@ export default function TransactionHistory() {
                                 <DropdownMenuItem
                                   onClick={() => {
                                     const salesTx = tx as SalesTransaction;
+                                    setSelectedDateNotesTransaction({
+                                      id: salesTx.id,
+                                      date: salesTx.transaction_date || salesTx.created_at,
+                                      notes: salesTx.notes,
+                                    });
+                                    setDateNotesDialogOpen(true);
+                                  }}
+                                >
+                                  Edit Date/Notes
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const salesTx = tx as SalesTransaction;
                                     setSelectedTransaction({
                                       id: salesTx.id,
                                       lotId: salesTx.lot_id,
@@ -547,6 +567,16 @@ export default function TransactionHistory() {
             revenue={selectedTransaction.revenue}
           />
         </>
+      )}
+
+      {selectedDateNotesTransaction && (
+        <DateNotesEditDialog
+          open={dateNotesDialogOpen}
+          onOpenChange={setDateNotesDialogOpen}
+          transactionId={selectedDateNotesTransaction.id}
+          currentDate={selectedDateNotesTransaction.date}
+          currentNotes={selectedDateNotesTransaction.notes}
+        />
       )}
     </div>
   );
