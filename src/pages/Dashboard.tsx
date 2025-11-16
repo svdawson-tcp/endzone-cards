@@ -232,21 +232,6 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/75" />
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <section className="text-center mb-12">
-          <h2 className="text-sm uppercase tracking-wider text-muted-foreground mb-2">
-            CURRENT CASH BALANCE
-          </h2>
-          {loadingCash ? (
-            <Skeleton className="h-20 w-64 mx-auto mb-2" />
-          ) : (
-            <div className="text-display text-[hsl(var(--star-gold))] mb-2">
-              ${(cashBalance || 0).toFixed(2)}
-            </div>
-          )}
-          <p className="text-muted-foreground">Your Gameplan to Profit</p>
-        </section>
-
         {/* Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {/* Row 1: Net Profit */}
