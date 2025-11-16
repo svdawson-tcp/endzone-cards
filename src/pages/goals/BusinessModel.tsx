@@ -297,7 +297,7 @@ const BusinessModel = () => {
                     learning the business and building inventory.
                   </p>
                   <div className="text-sm text-gray-600 font-semibold">
-                    Target: $500-2,000/month
+                    Target Revenue: $500-2,000/month
                   </div>
                 </div>
               </div>
@@ -315,7 +315,7 @@ const BusinessModel = () => {
                     build reputation, and test full-time viability.
                   </p>
                   <div className="text-sm text-gray-600 font-semibold">
-                    Target: $2,000-5,000/month
+                    Target Revenue: $2,000-5,000/month
                   </div>
                 </div>
               </div>
@@ -333,7 +333,7 @@ const BusinessModel = () => {
                     independence with sustainable income and growth potential.
                   </p>
                   <div className="text-sm text-gray-600 font-semibold">
-                    Target: $5,000-15,000+/month
+                    Target Revenue: $5,000-15,000+/month
                   </div>
                 </div>
               </div>
