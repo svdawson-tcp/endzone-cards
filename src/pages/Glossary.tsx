@@ -190,7 +190,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -213,7 +213,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -236,7 +236,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -259,7 +259,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
