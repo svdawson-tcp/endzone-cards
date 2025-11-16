@@ -70,10 +70,28 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
 
   const switchToMenteeAccount = async (userId: string, email: string) => {
     try {
+      console.log("Starting mentor switch to:", userId, email);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+      console.log("Current user (mentor):", user.id);
+
+      // Verify mentor has access to this mentee
+      const { data: accessCheck, error: accessError } = await supabase
+        .from("mentor_access")
+        .select("*")
+        .eq("mentor_user_id", user.id)
+        .eq("mentee_user_id", userId)
+        .eq("is_active", true)
+        .single();
+
+      console.log("Access check result:", accessCheck, accessError);
+      
+      if (accessError || !accessCheck) {
+        throw new Error("No active mentor access found for this account");
+      }
 
       // Create a new mentor session
+      console.log("Creating mentor session...");
       const { data: session, error: sessionError } = await supabase
         .from("mentor_sessions")
         .insert({
@@ -84,7 +102,12 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      if (sessionError) throw sessionError;
+      console.log("Session creation result:", session, sessionError);
+      
+      if (sessionError) {
+        console.error("Session creation error details:", sessionError);
+        throw new Error(`Failed to create session: ${sessionError.message}`);
+      }
 
       setIsViewingAsMentor(true);
       setViewingUserId(userId);
@@ -95,11 +118,11 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         title: "Switched to Mentor View",
         description: `Now viewing ${email}'s account (read-only)`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error switching to mentee account:", error);
       toast({
         title: "Error",
-        description: "Failed to switch to mentee account",
+        description: error?.message || "Failed to switch to mentee account",
         variant: "destructive",
       });
     }

@@ -19,16 +19,29 @@ export function AccountSwitcher() {
     switchToOwnAccount,
   } = useMentorAccess();
 
-  // Hardcoded mentee account for Colton since we granted access in the migration
+  // Hardcoded mentee account for Colton - using correct user ID from database
   const menteeAccount = {
-    userId: "9e3c1fbc-19cb-4cf7-a43b-a859a1e1e3e0", // Colton's user ID from auth
+    userId: "440df399-17c0-46c7-b5ff-d9f3a2d87858", // Colton's actual user ID
     email: "denvernuggets0697@gmail.com"
   };
 
-  // Only show switcher if currently in mentor mode or if account exists
-  if (!isViewingAsMentor && availableMenteeAccounts.length === 0) {
+  // Only show switcher if currently in mentor mode or if account access exists
+  // Simplified: always show for now since we hardcoded the mentee account
+  const hasAccess = availableMenteeAccounts.length > 0 || isViewingAsMentor;
+  
+  if (!hasAccess) {
+    console.log("AccountSwitcher hidden - no access", { 
+      availableMenteeAccounts: availableMenteeAccounts.length,
+      isViewingAsMentor 
+    });
     return null;
   }
+
+  console.log("AccountSwitcher visible", { 
+    availableMenteeAccounts: availableMenteeAccounts.length,
+    isViewingAsMentor,
+    menteeAccount 
+  });
 
   return (
     <DropdownMenu>
