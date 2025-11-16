@@ -371,6 +371,7 @@ export type Database = {
       }
       user_goals: {
         Row: {
+          action_items: Json | null
           annual_salary: number | null
           created_at: string
           health_insurance: number | null
@@ -385,6 +386,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_items?: Json | null
           annual_salary?: number | null
           created_at?: string
           health_insurance?: number | null
@@ -399,6 +401,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_items?: Json | null
           annual_salary?: number | null
           created_at?: string
           health_insurance?: number | null
