@@ -38,6 +38,7 @@ import {
 import { LotReassignmentDialog } from "@/components/LotReassignmentDialog";
 import { ShowReassignmentDialog } from "@/components/ShowReassignmentDialog";
 import { DateNotesEditDialog } from "@/components/DateNotesEditDialog";
+import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
 type FilterCategory = "all" | "sales" | "cash";
@@ -94,6 +95,13 @@ export default function TransactionHistory() {
     date: string;
     notes: string | null;
   } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDeleteTransaction, setSelectedDeleteTransaction] = useState<{
+    id: string;
+    transactionType: string;
+    revenue: number;
+    showCardId?: string | null;
+  } | null>(null);
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["all-transactions"],
@@ -101,7 +109,7 @@ export default function TransactionHistory() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Fetch sales transactions
+      // Fetch sales transactions (exclude deleted)
       const { data: salesData, error: salesError } = await supabase
         .from("transactions")
         .select(`
@@ -111,6 +119,7 @@ export default function TransactionHistory() {
           show_cards(player_name, year)
         `)
         .eq("user_id", user.id)
+        .or("deleted.is.null,deleted.eq.false")
         .order("transaction_date", { ascending: false });
 
       if (salesError) throw salesError;
@@ -534,6 +543,21 @@ export default function TransactionHistory() {
                                     Reassign to Different Show
                                   </DropdownMenuItem>
                                 )}
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const salesTx = tx as SalesTransaction;
+                                    setSelectedDeleteTransaction({
+                                      id: salesTx.id,
+                                      transactionType: salesTx.transaction_type,
+                                      revenue: salesTx.revenue,
+                                      showCardId: salesTx.show_card_id,
+                                    });
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  Delete Transaction
+                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           )}
@@ -576,6 +600,17 @@ export default function TransactionHistory() {
           transactionId={selectedDateNotesTransaction.id}
           currentDate={selectedDateNotesTransaction.date}
           currentNotes={selectedDateNotesTransaction.notes}
+        />
+      )}
+
+      {selectedDeleteTransaction && (
+        <DeleteTransactionDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          transactionId={selectedDeleteTransaction.id}
+          transactionType={selectedDeleteTransaction.transactionType}
+          revenue={selectedDeleteTransaction.revenue}
+          showCardId={selectedDeleteTransaction.showCardId}
         />
       )}
     </div>
