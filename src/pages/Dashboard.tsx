@@ -27,24 +27,96 @@ export default function Dashboard() {
     },
   });
 
-  // Monthly Revenue Query
-  const { data: monthlyRevenue, isLoading: loadingRevenue } = useQuery({
-    queryKey: ["monthlyRevenue"],
+  // Total Revenue Query (All Time)
+  const { data: totalRevenue, isLoading: loadingRevenue } = useQuery({
+    queryKey: ["totalRevenue"],
     queryFn: async () => {
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
       const { data, error } = await supabase
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .gte("created_at", startOfMonth.toISOString());
+        .in("transaction_type", ["show_card_sale", "bulk_sale"]);
       
       if (error) throw error;
       return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
     },
   });
+
+  // Premium Sales Query (show_card_sale)
+  const { data: premiumSales, isLoading: loadingPremium } = useQuery({
+    queryKey: ["premiumSales"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("revenue")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("transaction_type", "show_card_sale");
+      
+      if (error) throw error;
+      return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
+    },
+  });
+
+  // Bulk Sales Query
+  const { data: bulkSales, isLoading: loadingBulk } = useQuery({
+    queryKey: ["bulkSales"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("revenue")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("transaction_type", "bulk_sale");
+      
+      if (error) throw error;
+      return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
+    },
+  });
+
+  // Lot Costs Query (exclude 'ordered' status)
+  const { data: lotCosts, isLoading: loadingLotCosts } = useQuery({
+    queryKey: ["lotCosts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lots")
+        .select("total_cost")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .neq("status", "ordered");
+      
+      if (error) throw error;
+      return data?.reduce((sum, l) => sum + Number(l.total_cost), 0) || 0;
+    },
+  });
+
+  // Total Expenses Query
+  const { data: totalExpenses, isLoading: loadingExpenses } = useQuery({
+    queryKey: ["totalExpenses"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("expenses")
+        .select("amount")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+      
+      if (error) throw error;
+      return data?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
+    },
+  });
+
+  // Calculate derived metrics
+  const totalCosts = (lotCosts || 0) + (totalExpenses || 0);
+  const netProfit = (totalRevenue || 0) - totalCosts;
+  const profitMargin = totalRevenue && totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+  const getProfitColor = () => {
+    if (netProfit > 0) return "text-green-500";
+    if (netProfit < 0) return "text-red-500";
+    return "text-card-foreground";
+  };
+
+  const getMarginColor = () => {
+    if (profitMargin >= 15) return "text-green-500";
+    if (profitMargin >= 5) return "text-yellow-500";
+    return "text-red-500";
+  };
 
   // Active Lots Query
   const { data: activeLots, isLoading: loadingLots } = useQuery({
@@ -177,61 +249,158 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* Row 1: Net Profit */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-              TOTAL REVENUE (THIS MONTH)
+              NET PROFIT
+            </p>
+            {loadingRevenue || loadingLotCosts || loadingExpenses ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className={`text-3xl font-bold ${getProfitColor()}`}>
+                  ${netProfit.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 1: Profit Margin */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              PROFIT MARGIN
+            </p>
+            {loadingRevenue || loadingLotCosts || loadingExpenses ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className={`text-3xl font-bold ${getMarginColor()}`}>
+                  {profitMargin.toFixed(1)}%
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 1: Total Revenue */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              TOTAL REVENUE
             </p>
             {loadingRevenue ? (
               <Skeleton className="h-8 w-32" />
             ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(totalRevenue || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">All Time</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 1: Cash on Hand */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              CASH ON HAND
+            </p>
+            {loadingCash ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
               <p className="text-3xl font-bold text-card-foreground">
-                ${(monthlyRevenue || 0).toFixed(2)}
+                ${(cashBalance || 0).toFixed(2)}
               </p>
             )}
           </div>
 
+          {/* Row 2: Total Costs */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-              ACTIVE LOTS
+              TOTAL COSTS
             </p>
-            {loadingLots ? (
-              <Skeleton className="h-8 w-16" />
+            {loadingLotCosts || loadingExpenses ? (
+              <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-3xl font-bold text-card-foreground">{activeLots}</p>
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${totalCosts.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Lots + Expenses</p>
+              </>
             )}
           </div>
 
+          {/* Row 2: Premium Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
             <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-              SHOW CARDS AVAILABLE
+              PREMIUM SALES
+            </p>
+            {loadingPremium ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(premiumSales || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Show Card Sales</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 2: Bulk Sales */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              BULK SALES
+            </p>
+            {loadingBulk ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(bulkSales || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Bulk Transactions</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 2: Show Card Inventory */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              SHOW CARD INVENTORY
             </p>
             {loadingCards ? (
               <Skeleton className="h-8 w-16" />
             ) : (
-              <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
-            )}
-          </div>
-
-          <div className="bg-card shadow-card-shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <Calendar className="h-8 w-8 text-[hsl(var(--star-gold))]" />
-            </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-              UPCOMING SHOWS
-            </p>
-            {loadingShowsCount ? (
-              <Skeleton className="h-8 w-16" />
-            ) : (
-              <p className="text-3xl font-bold text-card-foreground">{upcomingShowsCount}</p>
+              <>
+                <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
+                <p className="text-xs text-muted-foreground mt-1">Available Cards</p>
+              </>
             )}
           </div>
         </section>
