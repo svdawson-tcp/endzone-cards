@@ -147,8 +147,8 @@ const PersonalGoals = () => {
                 <Heart className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Life Vision</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Life Vision</h2>
+                <p className="text-sm text-card-foreground/70">
                   What does your ideal life look like?
                 </p>
               </div>
@@ -170,8 +170,8 @@ const PersonalGoals = () => {
                 <Target className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Motivation</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Motivation</h2>
+                <p className="text-sm text-card-foreground/70">
                   Why is independence important to you?
                 </p>
               </div>
@@ -193,8 +193,8 @@ const PersonalGoals = () => {
                 <Heart className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Family Goals</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Family Goals</h2>
+                <p className="text-sm text-card-foreground/70">
                   How will this impact your family?
                 </p>
               </div>
@@ -216,8 +216,8 @@ const PersonalGoals = () => {
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Financial Requirements</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Financial Requirements</h2>
+                <p className="text-sm text-card-foreground/70">
                   What income do you need to replace?
                 </p>
               </div>
@@ -233,7 +233,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setAnnualSalary(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Your current total annual compensation
                 </p>
               </div>
@@ -247,7 +247,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setTaxRate(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Estimated combined tax rate (federal + state + self-employment)
                 </p>
               </div>
@@ -261,7 +261,7 @@ const PersonalGoals = () => {
                   onChange={(e) => setHealthInsurance(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Estimated monthly cost for private health insurance
                 </p>
               </div>
@@ -270,14 +270,14 @@ const PersonalGoals = () => {
               <Card className="p-4 bg-primary/5 border-primary/20">
                 <div className="flex justify-between items-center">
                   <div>
-                    <div className="text-sm text-gray-600">Target Personal Income</div>
-                    <div className="text-2xl font-bold text-gray-900">
+                    <div className="text-sm text-card-foreground/70">Target Personal Income</div>
+                    <div className="text-2xl font-bold card-foreground">
                       ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </div>
                   </div>
                   <DollarSign className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-xs text-card-foreground/60 mt-2">
                   Monthly personal income needed to replace your job (after taxes and insurance)
                 </p>
               </Card>
@@ -293,8 +293,8 @@ const PersonalGoals = () => {
                 <Calendar className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Timeline</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Timeline</h2>
+                <p className="text-sm text-card-foreground/70">
                   When do you want to achieve independence?
                 </p>
               </div>
@@ -309,7 +309,7 @@ const PersonalGoals = () => {
                 onChange={(e) => setIndependenceDate(e.target.value)}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-xs text-card-foreground/60 mt-1">
                 Your target date to leave your current job
               </p>
             </div>
