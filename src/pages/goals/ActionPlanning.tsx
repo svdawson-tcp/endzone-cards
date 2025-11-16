@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, CheckSquare, Calendar, Target, Rocket } from "lucide-react";
+import { ArrowLeft, CheckSquare, Calendar, Target, Rocket, Lightbulb } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AIActionSuggestions } from "@/components/AIActionSuggestions";
 
 interface ActionItem {
   id: string;
@@ -22,6 +23,7 @@ interface UserGoal {
     quarterly?: ActionItem[];
     longterm?: ActionItem[];
   };
+  target_monthly_income?: number;
 }
 
 const defaultActions = {
@@ -83,6 +85,30 @@ const ActionPlanning = () => {
       });
     }
   }, [existingGoal]);
+
+  // Fetch current monthly revenue for AI suggestions
+  const { data: revenueData } = useQuery({
+    queryKey: ['current-monthly-revenue'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('revenue')
+        .eq('user_id', user.id)
+        .gte('transaction_date', thirtyDaysAgo.toISOString())
+        .eq('deleted', false);
+
+      if (error) throw error;
+
+      const totalRevenue = data?.reduce((sum, t) => sum + (t.revenue || 0), 0) || 0;
+      return totalRevenue;
+    },
+  });
 
   // Save mutation
   const saveMutation = useMutation({
@@ -180,6 +206,24 @@ const ActionPlanning = () => {
             </p>
           </div>
         </div>
+
+        {/* AI Action Suggestions */}
+        <Card className="bg-card border-border shadow-sm">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Lightbulb className="w-6 h-6 text-primary" />
+              <h3 className="text-lg font-semibold card-foreground">AI Action Suggestions</h3>
+            </div>
+            
+            <AIActionSuggestions 
+              currentProgress={actionItems}
+              businessMetrics={{
+                revenue: revenueData || 0,
+                target: existingGoal?.target_monthly_income || 0
+              }}
+            />
+          </div>
+        </Card>
 
         {/* This Month's Focus */}
         <Card className="p-6 bg-card border-border">
