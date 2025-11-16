@@ -186,20 +186,20 @@ const BusinessGoals = () => {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">Current Progress</h2>
                 <p className="text-sm text-gray-600">
-                  Last 30 days revenue vs. target
+                  Last 30 days business revenue vs. target personal income
                 </p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-gray-600">Current Monthly Revenue</div>
+                <div className="text-sm text-gray-600">Current Business Revenue</div>
                 <div className="text-2xl font-bold text-foreground">
                   ${currentMonthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Target Monthly Income</div>
+                <div className="text-sm text-gray-600">Target Personal Income</div>
                 <div className="text-2xl font-bold text-foreground">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
@@ -251,7 +251,7 @@ const BusinessGoals = () => {
                 </span>
               </div>
               <div className="flex justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <span className="font-semibold text-gray-900">Required Monthly Revenue</span>
+                <span className="font-semibold text-gray-900">Required Business Revenue</span>
                 <span className="font-bold text-xl text-gray-900">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
@@ -286,7 +286,7 @@ const BusinessGoals = () => {
                   className="mt-1"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Monthly revenue target for month 3
+                  Monthly business revenue target for month 3
                 </p>
               </div>
 
@@ -300,7 +300,7 @@ const BusinessGoals = () => {
                   className="mt-1"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Monthly revenue target for month 6
+                  Monthly business revenue target for month 6
                 </p>
               </div>
 
@@ -314,7 +314,7 @@ const BusinessGoals = () => {
                   className="mt-1"
                 />
                 <p className="text-xs text-gray-600 mt-1">
-                  Monthly revenue target for month 12
+                  Monthly business revenue target for month 12
                 </p>
               </div>
             </div>
