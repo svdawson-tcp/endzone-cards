@@ -172,7 +172,7 @@ const ActionPlanning = () => {
                 <div key={action.id} className="flex items-start gap-3 p-3 bg-background/50 rounded-lg border group">
                   <Checkbox checked={action.completed} onCheckedChange={() => handleToggle(action.id, cat)} disabled={isViewingAsMentor} />
                   <div className="flex-1"><p className={action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>{action.description}</p></div>
-                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100" onClick={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })} disabled={isViewingAsMentor}><Trash2 className="h-3 w-3" /></Button>
+                  <Button size="sm" variant="outline" className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:border-destructive" onClick={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })} disabled={isViewingAsMentor}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               ))}
             </div>
