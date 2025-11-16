@@ -246,19 +246,36 @@ export default function Dashboard() {
     },
   });
 
-  // Total Inventory Value Query
+  // Total Inventory Value Query (Cost Basis)
   const { data: inventoryValue, isLoading: loadingInventory } = useQuery({
     queryKey: ["inventoryValue"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("show_cards")
-        .select("asking_price")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .eq("status", "available")
-        .not("asking_price", "is", null);
+      const userId = (await supabase.auth.getUser()).data.user?.id;
       
-      if (error) throw error;
-      return data?.reduce((sum, card) => sum + Number(card.asking_price), 0) || 0;
+      // Get total cost of all lots
+      const { data: lotsData, error: lotsError } = await supabase
+        .from("lots")
+        .select("id, total_cost")
+        .eq("user_id", userId);
+      
+      if (lotsError) throw lotsError;
+      
+      const totalLotCost = lotsData?.reduce((sum, lot) => sum + Number(lot.total_cost), 0) || 0;
+      
+      // Get total revenue from sold cards
+      const { data: revenueData, error: revenueError } = await supabase
+        .from("transactions")
+        .select("revenue")
+        .eq("user_id", userId)
+        .in("transaction_type", ["show_card_sale", "bulk_sale"])
+        .or("deleted.is.null,deleted.eq.false");
+      
+      if (revenueError) throw revenueError;
+      
+      const totalRevenue = revenueData?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
+      
+      // Inventory value = lot costs - sold revenue
+      return Math.max(0, totalLotCost - totalRevenue);
     },
   });
 
@@ -524,7 +541,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(inventoryValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Available Cards</p>
+                <p className="text-xs text-muted-foreground mt-1">Cost Basis</p>
               </>
             )}
           </div>
