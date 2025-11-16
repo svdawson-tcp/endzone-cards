@@ -386,7 +386,12 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getProfitColor()}`}>
                   ${netProfit.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Money earned after all costs"
+                    : `${getDateRangeLabel()} - Money earned after all costs`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -406,7 +411,12 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getMarginColor()}`}>
                   {profitMargin.toFixed(1)}%
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Percentage of revenue kept as profit"
+                    : `${getDateRangeLabel()} - Percentage kept as profit`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -426,7 +436,12 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(totalRevenue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Total money from card sales"
+                    : `${getDateRangeLabel()} - Total from card sales`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -442,9 +457,12 @@ export default function Dashboard() {
             {loadingCash ? (
               <Skeleton className="h-8 w-32" />
             ) : (
-              <p className="text-3xl font-bold text-card-foreground">
-                ${(cashBalance || 0).toFixed(2)}
-              </p>
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(cashBalance || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Money available to spend</p>
+              </>
             )}
           </div>
 
@@ -463,7 +481,12 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Cost of inventory + business expenses"
+                    : `${getDateRangeLabel()} - Inventory + expenses`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -483,7 +506,12 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(premiumSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Revenue from individual card sales"
+                    : `${getDateRangeLabel()} - Individual card sales`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -503,7 +531,12 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(bulkSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">{getDateRangeLabel()}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Revenue from multi-card sales"
+                    : `${getDateRangeLabel()} - Multi-card sales`
+                  }
+                </p>
               </>
             )}
           </div>
@@ -521,7 +554,7 @@ export default function Dashboard() {
             ) : (
               <>
                 <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
-                <p className="text-xs text-muted-foreground mt-1">Available Cards</p>
+                <p className="text-xs text-muted-foreground mt-1">High-value cards ready to sell</p>
               </>
             )}
           </div>
@@ -541,7 +574,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(inventoryValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Cost Basis</p>
+                <p className="text-xs text-muted-foreground mt-1">Money tied up in unsold cards</p>
               </>
             )}
           </div>
@@ -561,7 +594,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalBusinessValue.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Cash + Inventory</p>
+                <p className="text-xs text-muted-foreground mt-1">Total worth if liquidated today</p>
               </>
             )}
           </div>
