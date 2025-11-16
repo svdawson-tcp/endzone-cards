@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { ArrowLeft, Target, TrendingUp, DollarSign } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, DollarSign, Bot } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AIBusinessAnalysis } from "@/components/AIBusinessAnalysis";
 
 interface UserGoal {
   id: string;
@@ -213,6 +214,22 @@ const BusinessGoals = () => {
               </div>
               <Progress value={progressToTarget} className="h-2" />
             </div>
+          </div>
+        </Card>
+
+        {/* AI Business Coach */}
+        <Card className="bg-card border-border shadow-sm">
+          <div className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Bot className="w-6 h-6 text-primary" />
+              <h3 className="text-lg font-semibold card-foreground">AI Business Coach</h3>
+            </div>
+            
+            <AIBusinessAnalysis 
+              currentRevenue={currentMonthlyRevenue}
+              targetIncome={targetMonthlyIncome}
+              progressPercent={progressToTarget}
+            />
           </div>
         </Card>
 
