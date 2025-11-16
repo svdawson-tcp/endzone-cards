@@ -30,6 +30,7 @@ import BusinessModel from "./pages/goals/BusinessModel";
 import PersonalGoals from "./pages/goals/PersonalGoals";
 import BusinessGoals from "./pages/goals/BusinessGoals";
 import ActionPlanning from "./pages/goals/ActionPlanning";
+import Glossary from "./pages/Glossary";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/goals/personal" element={<ProtectedRoute><AuthenticatedLayout><PersonalGoals /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/goals/business" element={<ProtectedRoute><AuthenticatedLayout><BusinessGoals /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/goals/actions" element={<ProtectedRoute><AuthenticatedLayout><ActionPlanning /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/glossary" element={<ProtectedRoute><AuthenticatedLayout><Glossary /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
