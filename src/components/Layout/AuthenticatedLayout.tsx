@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import TopBar from "@/components/Navigation/TopBar";
 import BottomTabBar from "@/components/Navigation/BottomTabBar";
 import DesktopSidebar from "@/components/Navigation/DesktopSidebar";
+import { MentorAccessProvider } from "@/contexts/MentorAccessContext";
+import { MentorModeBanner } from "@/components/MentorModeBanner";
+import { MentorAccessNotification } from "@/components/MentorAccessNotification";
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
@@ -9,14 +12,18 @@ interface AuthenticatedLayoutProps {
 
 const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <TopBar />
-      <DesktopSidebar />
-      <main className="flex-1 pb-20 pt-16 md:ml-60 md:pb-8">
-        {children}
-      </main>
-      <BottomTabBar />
-    </div>
+    <MentorAccessProvider>
+      <div className="flex flex-col min-h-screen">
+        <TopBar />
+        <MentorModeBanner />
+        <DesktopSidebar />
+        <main className="flex-1 pb-20 pt-16 md:ml-60 md:pb-8">
+          {children}
+        </main>
+        <BottomTabBar />
+        <MentorAccessNotification />
+      </div>
+    </MentorAccessProvider>
   );
 };
 

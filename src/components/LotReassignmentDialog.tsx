@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 interface LotReassignmentDialogProps {
   open: boolean;
@@ -43,6 +44,7 @@ export function LotReassignmentDialog({
   const [selectedLotId, setSelectedLotId] = useState<string>("");
   const [correctionNote, setCorrectionNote] = useState("");
   const queryClient = useQueryClient();
+  const { isViewingAsMentor } = useMentorAccess();
 
   // Fetch all lots for current user
   const { data: lots, isLoading: lotsLoading } = useQuery({
@@ -242,7 +244,7 @@ export function LotReassignmentDialog({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={!isValid || reassignMutation.isPending}
+            disabled={!isValid || reassignMutation.isPending || isViewingAsMentor}
             className="min-h-[44px]"
           >
             {reassignMutation.isPending ? "Reassigning..." : "Confirm Reassignment"}

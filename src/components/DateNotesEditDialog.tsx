@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateInput } from "@/components/forms/DateInput";
 import { toast } from "@/hooks/use-toast";
 import { Calendar, FileText } from "lucide-react";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 interface DateNotesEditDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function DateNotesEditDialog({
   const [notes, setNotes] = useState(currentNotes || "");
   const [correctionNote, setCorrectionNote] = useState("");
   const queryClient = useQueryClient();
+  const { isViewingAsMentor } = useMentorAccess();
 
   const updateMutation = useMutation({
     mutationFn: async () => {
@@ -227,7 +229,7 @@ export function DateNotesEditDialog({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={updateMutation.isPending}
+            disabled={updateMutation.isPending || isViewingAsMentor}
             className="min-h-[44px]"
           >
             {updateMutation.isPending ? "Updating..." : "Confirm Update"}
