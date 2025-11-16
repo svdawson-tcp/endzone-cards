@@ -36,16 +36,20 @@ interface UserGoal {
   target_monthly_income?: number;
 }
 
-const defaultActions = {
+const defaultActions: {
+  monthly: ActionItem[];
+  quarterly: ActionItem[];
+  longterm: ActionItem[];
+} = {
   monthly: [
-    { id: '1', description: 'Attend 2 additional shows this month', completed: false, category: 'monthly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
-    { id: '2', description: 'Increase average sale price by 10%', completed: false, category: 'monthly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
+    { id: '1', description: 'Attend 2 additional shows this month', completed: false, category: 'monthly', createdAt: new Date().toISOString(), archived: false, aiSuggested: false, completedAt: undefined, archivedAt: undefined },
+    { id: '2', description: 'Increase average sale price by 10%', completed: false, category: 'monthly', createdAt: new Date().toISOString(), archived: false, aiSuggested: false, completedAt: undefined, archivedAt: undefined },
   ],
   quarterly: [
-    { id: '4', description: 'Establish online presence (eBay/Facebook)', completed: false, category: 'quarterly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
+    { id: '4', description: 'Establish online presence (eBay/Facebook)', completed: false, category: 'quarterly', createdAt: new Date().toISOString(), archived: false, aiSuggested: false, completedAt: undefined, archivedAt: undefined },
   ],
   longterm: [
-    { id: '7', description: 'Develop premium card specialization', completed: false, category: 'longterm' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
+    { id: '7', description: 'Develop premium card specialization', completed: false, category: 'longterm', createdAt: new Date().toISOString(), archived: false, aiSuggested: false, completedAt: undefined, archivedAt: undefined },
   ],
 };
 
@@ -96,10 +100,15 @@ const ActionPlanning = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       if (!existingGoal) {
-        const { error } = await supabase.from('user_goals').insert({ user_id: user.id, action_items: items });
+        const { error } = await supabase.from('user_goals').insert({ 
+          user_id: user.id, 
+          action_items: items as any 
+        });
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('user_goals').update({ action_items: items }).eq('id', existingGoal.id);
+        const { error } = await supabase.from('user_goals').update({ 
+          action_items: items as any 
+        }).eq('id', existingGoal.id);
         if (error) throw error;
       }
     },
