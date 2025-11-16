@@ -51,8 +51,8 @@ const BusinessModel = () => {
 
         {/* Revenue Streams */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-white" />
             Revenue Streams
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -120,10 +120,10 @@ const BusinessModel = () => {
                   <Globe className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Online Sales (Future)</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Online Sales</h3>
                   <p className="text-sm text-gray-700 mb-3">
                     eBay, Facebook Marketplace, COMC, and specialized card platforms. 
-                    Expands reach beyond local market but requires shipping and platform fees.
+                    Expands reach beyond local market but requires shipping and platform management.
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
@@ -151,8 +151,8 @@ const BusinessModel = () => {
 
         {/* Key Success Factors */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5 text-white" />
             Key Success Factors
           </h2>
           <div className="grid gap-4">
@@ -196,8 +196,8 @@ const BusinessModel = () => {
 
         {/* Growth Levers */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-white" />
             Growth Levers
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -280,8 +280,8 @@ const BusinessModel = () => {
 
         {/* Business Phases */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
+          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5 text-white" />
             Typical Growth Phases
           </h2>
           <div className="space-y-4">
