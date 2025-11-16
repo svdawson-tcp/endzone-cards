@@ -1,0 +1,3 @@
+-- No schema changes needed - action_items is stored as JSONB in user_goals table
+-- The enhanced ActionItem structure will be handled at the application level
+-- This comment confirms no database migration is required for this feature
