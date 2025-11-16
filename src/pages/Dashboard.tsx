@@ -10,11 +10,13 @@ import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import dashboardBg from "@/assets/backgrounds/dashboard-stadium-bg.jpg";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<string>("alltime");
+  const { getEffectiveUserId, isViewingAsMentor, viewingUserId } = useMentorAccess();
 
   // Calculate date range based on selection
   const getDateRange = (): { startDate: string | null; endDate: string } => {
@@ -70,12 +72,13 @@ export default function Dashboard() {
 
   // Cash Balance Query
   const { data: cashBalance, isLoading: loadingCash } = useQuery({
-    queryKey: ["cashBalance"],
+    queryKey: ["cashBalance", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { data, error } = await supabase
         .from("cash_transactions")
         .select("amount")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("user_id", userId);
       
       if (error) throw error;
       return data?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
@@ -84,12 +87,13 @@ export default function Dashboard() {
 
   // Total Revenue Query
   const { data: totalRevenue, isLoading: loadingRevenue } = useQuery({
-    queryKey: ["totalRevenue", dateRange],
+    queryKey: ["totalRevenue", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("transactions")
         .select("revenue")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .in("transaction_type", ["show_card_sale", "bulk_sale"])
         .or("deleted.is.null,deleted.eq.false");
       
@@ -105,12 +109,13 @@ export default function Dashboard() {
 
   // Premium Sales Query (show_card_sale)
   const { data: premiumSales, isLoading: loadingPremium } = useQuery({
-    queryKey: ["premiumSales", dateRange],
+    queryKey: ["premiumSales", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("transactions")
         .select("revenue")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .eq("transaction_type", "show_card_sale")
         .or("deleted.is.null,deleted.eq.false");
       
@@ -126,12 +131,13 @@ export default function Dashboard() {
 
   // Bulk Sales Query
   const { data: bulkSales, isLoading: loadingBulk } = useQuery({
-    queryKey: ["bulkSales", dateRange],
+    queryKey: ["bulkSales", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("transactions")
         .select("revenue")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .eq("transaction_type", "bulk_sale")
         .or("deleted.is.null,deleted.eq.false");
       
@@ -147,12 +153,13 @@ export default function Dashboard() {
 
   // Average Sale Value Query
   const { data: averageSaleData, isLoading: loadingAverage } = useQuery({
-    queryKey: ["averageSale", dateRange],
+    queryKey: ["averageSale", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("transactions")
         .select("revenue")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .in("transaction_type", ["show_card_sale", "bulk_sale"])
         .or("deleted.is.null,deleted.eq.false");
       
@@ -173,12 +180,13 @@ export default function Dashboard() {
 
   // Lot Costs Query (exclude 'ordered' status)
   const { data: lotCosts, isLoading: loadingLotCosts } = useQuery({
-    queryKey: ["lotCosts", dateRange],
+    queryKey: ["lotCosts", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("lots")
         .select("total_cost")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .neq("status", "ordered");
       
       if (startDate) {
@@ -193,12 +201,13 @@ export default function Dashboard() {
 
   // Total Expenses Query
   const { data: totalExpenses, isLoading: loadingExpenses } = useQuery({
-    queryKey: ["totalExpenses", dateRange],
+    queryKey: ["totalExpenses", dateRange, viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       let query = supabase
         .from("expenses")
         .select("amount")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id);
+        .eq("user_id", userId);
       
       if (startDate) {
         query = query.gte("expense_date", startDate).lte("expense_date", endDate);
@@ -229,12 +238,13 @@ export default function Dashboard() {
 
   // Active Lots Query
   const { data: activeLots, isLoading: loadingLots } = useQuery({
-    queryKey: ["activeLots"],
+    queryKey: ["activeLots", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { count, error } = await supabase
         .from("lots")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .eq("status", "active");
       
       if (error) throw error;
@@ -244,12 +254,13 @@ export default function Dashboard() {
 
   // Available Show Cards Query
   const { data: availableCards, isLoading: loadingCards } = useQuery({
-    queryKey: ["availableCards"],
+    queryKey: ["availableCards", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { count, error } = await supabase
         .from("show_cards")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .eq("status", "available");
       
       if (error) throw error;
@@ -259,12 +270,13 @@ export default function Dashboard() {
 
   // Upcoming Shows Query
   const { data: upcomingShowsCount, isLoading: loadingShowsCount } = useQuery({
-    queryKey: ["upcomingShowsCount"],
+    queryKey: ["upcomingShowsCount", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { count, error } = await supabase
         .from("shows")
         .select("*", { count: "exact", head: true })
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .in("status", ["planned", "active"]);
       
       if (error) throw error;
@@ -274,9 +286,9 @@ export default function Dashboard() {
 
   // Total Inventory Value Query (Cost Basis)
   const { data: inventoryValue, isLoading: loadingInventory } = useQuery({
-    queryKey: ["inventoryValue"],
+    queryKey: ["inventoryValue", viewingUserId],
     queryFn: async () => {
-      const userId = (await supabase.auth.getUser()).data.user?.id;
+      const userId = await getEffectiveUserId();
       
       // Get total cost of all lots
       const { data: lotsData, error: lotsError } = await supabase

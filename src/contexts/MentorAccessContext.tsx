@@ -16,6 +16,7 @@ interface MentorAccessContextType {
   switchToMenteeAccount: (userId: string, email: string) => Promise<void>;
   switchToOwnAccount: () => void;
   logActivity: (action: string, pagePath: string) => Promise<void>;
+  getEffectiveUserId: () => Promise<string>;
   isLoading: boolean;
 }
 
@@ -185,6 +186,19 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
     }
   }, [isViewingAsMentor, window.location.pathname]);
 
+  // Helper to get effective user ID for queries
+  const getEffectiveUserId = async (): Promise<string> => {
+    if (isViewingAsMentor && viewingUserId) {
+      console.log("Using mentor view user ID:", viewingUserId);
+      return viewingUserId;
+    }
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    console.log("Using own user ID:", user.id);
+    return user.id;
+  };
+
   return (
     <MentorAccessContext.Provider
       value={{
@@ -195,6 +209,7 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         switchToMenteeAccount,
         switchToOwnAccount,
         logActivity,
+        getEffectiveUserId,
         isLoading,
       }}
     >
