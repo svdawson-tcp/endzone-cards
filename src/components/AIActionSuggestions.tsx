@@ -140,7 +140,7 @@ export const AIActionSuggestions = ({
   return (
     <div className="space-y-4">
       {/* Priority Status */}
-      <div className="flex items-start gap-3 p-4 bg-muted rounded-lg">
+      <div className="flex items-start gap-3 p-4 bg-card border border-border rounded-lg">
         <PriorityIcon className={`w-5 h-5 mt-0.5 ${priority.color}`} />
         <div className="flex-1">
           <h4 className="font-semibold text-card-foreground mb-1">{priority.title}</h4>
@@ -187,7 +187,7 @@ export const AIActionSuggestions = ({
             
             <ul className="space-y-2.5">
               {suggestions.map((suggestion, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 p-3 bg-muted/50 rounded-lg">
+                <li key={idx} className="flex items-start gap-2.5 p-3 bg-card border border-border rounded-lg">
                   <CheckCircle2 className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-card-foreground/80">{suggestion}</span>
                 </li>
