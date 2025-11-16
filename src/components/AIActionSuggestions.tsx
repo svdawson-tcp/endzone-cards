@@ -158,7 +158,7 @@ export const AIActionSuggestions = ({
             <Lightbulb className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">AI Action Suggestions</h3>
+            <h3 className="text-lg font-semibold text-card-foreground">AI Action Suggestions</h3>
             <p className="text-sm text-muted-foreground">
               Get personalized recommendations for each timeframe
             </p>
@@ -194,7 +194,7 @@ export const AIActionSuggestions = ({
         <div className="space-y-6">
           {suggestions.monthly.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
                 Monthly Actions
                 <span className="text-xs text-muted-foreground font-normal">
                   ({calculateCompletionRate('monthly').toFixed(0)}% complete)
@@ -206,7 +206,7 @@ export const AIActionSuggestions = ({
                     key={idx}
                     className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
                   >
-                    <div className="flex-1 text-sm text-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -224,7 +224,7 @@ export const AIActionSuggestions = ({
 
           {suggestions.quarterly.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
                 Quarterly Goals
                 <span className="text-xs text-muted-foreground font-normal">
                   ({calculateCompletionRate('quarterly').toFixed(0)}% complete)
@@ -236,7 +236,7 @@ export const AIActionSuggestions = ({
                     key={idx}
                     className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
                   >
-                    <div className="flex-1 text-sm text-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="ghost"
@@ -254,7 +254,7 @@ export const AIActionSuggestions = ({
 
           {suggestions.longterm.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
                 Long-term Initiatives
                 <span className="text-xs text-muted-foreground font-normal">
                   ({calculateCompletionRate('longterm').toFixed(0)}% complete)
@@ -266,7 +266,7 @@ export const AIActionSuggestions = ({
                     key={idx}
                     className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
                   >
-                    <div className="flex-1 text-sm text-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="ghost"
