@@ -184,8 +184,8 @@ const BusinessGoals = () => {
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Current Progress</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Current Progress</h2>
+                <p className="text-sm text-card-foreground/70">
                   Last 30 days business revenue vs. target personal income
                 </p>
               </div>
@@ -193,14 +193,14 @@ const BusinessGoals = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="text-sm text-gray-600">Current Business Revenue</div>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-sm text-card-foreground/70">Current Business Revenue</div>
+                <div className="text-2xl font-bold card-foreground">
                   ${currentMonthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600">Target Personal Income</div>
-                <div className="text-2xl font-bold text-foreground">
+                <div className="text-sm text-card-foreground/70">Target Personal Income</div>
+                <div className="text-2xl font-bold card-foreground">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </div>
               </div>
@@ -208,8 +208,8 @@ const BusinessGoals = () => {
 
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-700">Progress to Target</span>
-                <span className="font-medium text-foreground">{progressToTarget.toFixed(1)}%</span>
+                <span className="text-card-foreground/70">Progress to Target</span>
+                <span className="font-medium card-foreground">{progressToTarget.toFixed(1)}%</span>
               </div>
               <Progress value={progressToTarget} className="h-2" />
             </div>
@@ -224,8 +224,8 @@ const BusinessGoals = () => {
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Cash Requirements</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Cash Requirements</h2>
+                <p className="text-sm text-card-foreground/70">
                   Understanding business vs. personal income
                 </p>
               </div>
@@ -233,26 +233,26 @@ const BusinessGoals = () => {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-gray-700">Personal Monthly Need (after-tax)</span>
-                <span className="font-medium text-foreground">
+                <span className="text-card-foreground/70">Personal Monthly Need (after-tax)</span>
+                <span className="font-medium card-foreground">
                   ${((existingGoal.annual_salary / 12) + existingGoal.health_insurance).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-gray-700">Tax Burden ({existingGoal.tax_rate}%)</span>
-                <span className="font-medium text-foreground">
+                <span className="text-card-foreground/70">Tax Burden ({existingGoal.tax_rate}%)</span>
+                <span className="font-medium card-foreground">
                   ${(((existingGoal.annual_salary / 12) * (existingGoal.tax_rate / 100))).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-gray-700">Safety Buffer (25%)</span>
-                <span className="font-medium text-foreground">
+                <span className="text-card-foreground/70">Safety Buffer (25%)</span>
+                <span className="font-medium card-foreground">
                   ${(existingGoal.health_insurance * 0.25).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
               <div className="flex justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <span className="font-semibold text-gray-900">Required Business Revenue</span>
-                <span className="font-bold text-xl text-gray-900">
+                <span className="font-semibold card-foreground">Required Personal Income</span>
+                <span className="font-bold text-xl card-foreground">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
@@ -268,8 +268,8 @@ const BusinessGoals = () => {
                 <Target className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Milestone Targets</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-lg font-semibold card-foreground">Milestone Targets</h2>
+                <p className="text-sm text-card-foreground/70">
                   Progressive revenue goals to track your journey
                 </p>
               </div>
@@ -285,7 +285,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone3Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 3
                 </p>
               </div>
@@ -299,7 +299,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone6Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 6
                 </p>
               </div>
@@ -313,7 +313,7 @@ const BusinessGoals = () => {
                   onChange={(e) => setMilestone12Month(Number(e.target.value))}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 12
                 </p>
               </div>
