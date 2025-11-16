@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,10 @@ const DesktopSidebar = () => {
     { icon: DollarSign, label: "Cash Deposit", route: "/cash/new?type=deposit" },
     { icon: TrendingDown, label: "Cash Withdrawal", route: "/cash/new?type=withdrawal" },
     { icon: Settings, label: "Cash Adjustment", route: "/cash/new?type=adjustment" },
+  ];
+
+  const goalItems = [
+    { icon: TrendingUp, label: "Business Independence", route: "/goals/independence" },
   ];
 
   const handleNavClick = (route: string) => {
@@ -110,6 +114,37 @@ const DesktopSidebar = () => {
               </div>
             </CollapsibleContent>
           </Collapsible>
+
+          {/* Goals Section */}
+          <div className="mt-6">
+            <div className="px-4 mb-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Goals
+              </div>
+            </div>
+            {goalItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.route;
+              return (
+                <button
+                  key={item.route}
+                  onClick={() => handleNavClick(item.route)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all w-full",
+                    isActive
+                      ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
+                      : "text-card-foreground hover:bg-muted/50"
+                  )}
+                >
+                  <Icon
+                    size={24}
+                    className={isActive ? "text-white" : "text-muted-foreground"}
+                  />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </aside>

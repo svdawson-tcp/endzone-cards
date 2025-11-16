@@ -369,6 +369,51 @@ export type Database = {
           },
         ]
       }
+      user_goals: {
+        Row: {
+          annual_salary: number | null
+          created_at: string
+          health_insurance: number | null
+          id: string
+          independence_target_date: string | null
+          milestone_12_month: number | null
+          milestone_3_month: number | null
+          milestone_6_month: number | null
+          target_monthly_income: number | null
+          tax_rate: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_salary?: number | null
+          created_at?: string
+          health_insurance?: number | null
+          id?: string
+          independence_target_date?: string | null
+          milestone_12_month?: number | null
+          milestone_3_month?: number | null
+          milestone_6_month?: number | null
+          target_monthly_income?: number | null
+          tax_rate?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_salary?: number | null
+          created_at?: string
+          health_insurance?: number | null
+          id?: string
+          independence_target_date?: string | null
+          milestone_12_month?: number | null
+          milestone_3_month?: number | null
+          milestone_6_month?: number | null
+          target_monthly_income?: number | null
+          tax_rate?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
