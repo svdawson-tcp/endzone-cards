@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const DesktopSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [transactionsOpen, setTransactionsOpen] = useState(true);
+  const [goalsOpen, setGoalsOpen] = useState(true);
 
   const navItems = [
     { icon: Home, label: "Dashboard", route: "/dashboard" },
@@ -37,7 +38,6 @@ const DesktopSidebar = () => {
     { icon: Heart, label: "Personal Goals", route: "/goals/personal" },
     { icon: TrendingUp, label: "Business Goals", route: "/goals/business" },
     { icon: CheckSquare, label: "Action Planning", route: "/goals/actions" },
-    { icon: BookText, label: "Business Glossary", route: "/glossary" },
   ];
 
   const handleNavClick = (route: string) => {
@@ -121,36 +121,63 @@ const DesktopSidebar = () => {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Goals Section */}
-          <div className="mt-6">
-            <div className="px-4 mb-2">
-              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Goals
+          {/* Goals Section - Collapsible */}
+          <Collapsible open={goalsOpen} onOpenChange={setGoalsOpen} className="mt-4">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-muted/50 transition-all group">
+              <div className="flex items-center gap-3">
+                <Target size={24} className="text-muted-foreground" />
+                <span className="text-sm font-semibold text-card-foreground">Goals</span>
               </div>
-            </div>
-            {goalItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.route;
-              return (
-                <button
-                  key={item.route}
-                  onClick={() => handleNavClick(item.route)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all w-full",
-                    isActive
-                      ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
-                      : "text-card-foreground hover:bg-muted/50"
-                  )}
-                >
-                  <Icon
-                    size={24}
-                    className={isActive ? "text-white" : "text-muted-foreground"}
-                  />
-                  <span className="text-sm font-medium">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
+              <ChevronDown 
+                size={16} 
+                className={cn(
+                  "text-muted-foreground transition-transform",
+                  goalsOpen && "rotate-180"
+                )}
+              />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-1">
+              <div className="flex flex-col gap-1 pl-4">
+                {goalItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = location.pathname === item.route;
+
+                  return (
+                    <button
+                      key={item.route}
+                      onClick={() => handleNavClick(item.route)}
+                      className={cn(
+                        "flex items-center gap-3 px-4 py-2.5 rounded-lg cursor-pointer transition-all text-sm",
+                        isActive
+                          ? "bg-[hsl(var(--navy-base))]/10 text-[hsl(var(--navy-base))] font-medium"
+                          : "text-muted-foreground hover:bg-muted/50 hover:text-card-foreground"
+                      )}
+                    >
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* Business Glossary - Separate Item */}
+          <button
+            onClick={() => handleNavClick("/glossary")}
+            className={cn(
+              "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all w-full mt-4",
+              location.pathname === "/glossary"
+                ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
+                : "text-card-foreground hover:bg-muted/50"
+            )}
+          >
+            <BookText
+              size={24}
+              className={location.pathname === "/glossary" ? "text-white" : "text-muted-foreground"}
+            />
+            <span className="text-sm font-medium">Business Glossary</span>
+          </button>
         </div>
       </nav>
         </div>
