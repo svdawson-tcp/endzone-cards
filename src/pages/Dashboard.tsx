@@ -145,6 +145,32 @@ export default function Dashboard() {
     },
   });
 
+  // Average Sale Value Query
+  const { data: averageSaleData, isLoading: loadingAverage } = useQuery({
+    queryKey: ["averageSale", dateRange],
+    queryFn: async () => {
+      let query = supabase
+        .from("transactions")
+        .select("revenue")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .in("transaction_type", ["show_card_sale", "bulk_sale"])
+        .or("deleted.is.null,deleted.eq.false");
+      
+      if (startDate) {
+        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      
+      const totalRevenue = data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
+      const transactionCount = data?.length || 0;
+      const averageValue = transactionCount > 0 ? totalRevenue / transactionCount : 0;
+      
+      return { averageValue, transactionCount };
+    },
+  });
+
   // Lot Costs Query (exclude 'ordered' status)
   const { data: lotCosts, isLoading: loadingLotCosts } = useQuery({
     queryKey: ["lotCosts", dateRange],
@@ -282,6 +308,11 @@ export default function Dashboard() {
   // Calculate Total Business Value
   const totalBusinessValue = (cashBalance || 0) + (inventoryValue || 0);
 
+  // Calculate Inventory Turnover
+  const inventoryTurnover = (inventoryValue && inventoryValue > 0) 
+    ? (totalRevenue || 0) / inventoryValue 
+    : (totalRevenue || 0) > 0 ? Infinity : 0;
+
   // Recent Activity Query
   const { data: recentActivity, isLoading: loadingActivity } = useQuery({
     queryKey: ["recentActivity"],
@@ -369,9 +400,13 @@ export default function Dashboard() {
           </Select>
         </div>
 
-        {/* Stats Grid */}
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          {/* Row 1: Net Profit */}
+        {/* Section 1: Am I profitable? */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-3">
+            Am I profitable?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Net Profit */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -396,7 +431,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 1: Profit Margin */}
+          {/* Profit Margin */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -421,7 +456,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 1: Total Revenue */}
+          {/* Total Revenue */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -446,7 +481,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 1: Cash on Hand */}
+          {/* Cash on Hand */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -466,7 +501,16 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 2: Total Costs */}
+          </div>
+        </section>
+
+        {/* Section 2: How am I selling? */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-3">
+            How am I selling?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Premium Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -491,7 +535,6 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 2: Premium Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -516,7 +559,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 2: Bulk Sales */}
+          {/* Bulk Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -541,7 +584,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 2: Show Card Inventory */}
+          {/* Show Card Inventory */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
@@ -559,7 +602,65 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 3: Total Inventory Value */}
+          {/* Average Sale Value */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              AVERAGE SALE VALUE
+            </p>
+            {loadingAverage ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(averageSaleData?.averageValue || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Average money earned per transaction"
+                    : `${getDateRangeLabel()} - Avg per transaction`
+                  }
+                </p>
+              </>
+            )}
+          </div>
+          </div>
+        </section>
+
+        {/* Section 3: What's my investment? */}
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-3">
+            What's my investment?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Costs */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              TOTAL COSTS
+            </p>
+            {loadingLotCosts || loadingExpenses ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${totalCosts.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "Cost of inventory + business expenses"
+                    : `${getDateRangeLabel()} - Inventory + expenses`
+                  }
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Total Inventory Value */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-blue-600" />
@@ -579,7 +680,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Row 3: Total Business Value */}
+          {/* Total Business Value */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Wallet className="h-8 w-8 text-purple-600" />
@@ -597,6 +698,32 @@ export default function Dashboard() {
                 <p className="text-xs text-muted-foreground mt-1">Total worth if liquidated today</p>
               </>
             )}
+          </div>
+
+          {/* Inventory Turnover */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              INVENTORY TURNOVER
+            </p>
+            {loadingRevenue || loadingInventory ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  {inventoryTurnover === Infinity ? "∞" : inventoryTurnover.toFixed(1)}x
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {getDateRangeLabel() === "All Time" 
+                    ? "How quickly inventory converts to cash"
+                    : `${getDateRangeLabel()} - Inventory to cash speed`
+                  }
+                </p>
+              </>
+            )}
+          </div>
           </div>
         </section>
 
