@@ -251,8 +251,8 @@ const BusinessGoals = () => {
                 </span>
               </div>
               <div className="flex justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                <span className="font-semibold text-foreground">Required Monthly Revenue</span>
-                <span className="font-bold text-xl text-foreground">
+                <span className="font-semibold text-gray-900">Required Monthly Revenue</span>
+                <span className="font-bold text-xl text-gray-900">
                   ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
