@@ -270,14 +270,14 @@ const PersonalGoals = () => {
               <Card className="p-4 bg-primary/5 border-primary/20">
                 <div className="flex justify-between items-center">
                   <div>
-                    <div className="text-sm text-muted-foreground">Target Monthly Income</div>
-                    <div className="text-2xl font-bold text-foreground">
+                    <div className="text-sm text-gray-600">Target Monthly Income</div>
+                    <div className="text-2xl font-bold text-gray-900">
                       ${targetMonthlyIncome.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                     </div>
                   </div>
                   <DollarSign className="h-8 w-8 text-primary" />
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
+                <p className="text-xs text-gray-600 mt-2">
                   Monthly business income needed after taxes and insurance
                 </p>
               </Card>
