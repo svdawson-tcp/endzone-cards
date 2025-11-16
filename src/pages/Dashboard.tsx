@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Package, CreditCard, Calendar } from "lucide-react";
+import { TrendingUp, Package, CreditCard, Calendar, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -243,6 +243,25 @@ export default function Dashboard() {
     },
   });
 
+  // Total Inventory Value Query
+  const { data: inventoryValue, isLoading: loadingInventory } = useQuery({
+    queryKey: ["inventoryValue"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("show_cards")
+        .select("asking_price")
+        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("status", "available")
+        .not("asking_price", "is", null);
+      
+      if (error) throw error;
+      return data?.reduce((sum, card) => sum + Number(card.asking_price), 0) || 0;
+    },
+  });
+
+  // Calculate Total Business Value
+  const totalBusinessValue = (cashBalance || 0) + (inventoryValue || 0);
+
   // Recent Activity Query
   const { data: recentActivity, isLoading: loadingActivity } = useQuery({
     queryKey: ["recentActivity"],
@@ -483,6 +502,46 @@ export default function Dashboard() {
               <>
                 <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
                 <p className="text-xs text-muted-foreground mt-1">Available Cards</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 3: Total Inventory Value */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Package className="h-8 w-8 text-blue-600" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              TOTAL INVENTORY VALUE
+            </p>
+            {loadingInventory ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${(inventoryValue || 0).toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Available Cards</p>
+              </>
+            )}
+          </div>
+
+          {/* Row 3: Total Business Value */}
+          <div className="bg-card shadow-card-shadow rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Wallet className="h-8 w-8 text-purple-600" />
+            </div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+              TOTAL BUSINESS VALUE
+            </p>
+            {loadingCash || loadingInventory ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-card-foreground">
+                  ${totalBusinessValue.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">Cash + Inventory</p>
               </>
             )}
           </div>
