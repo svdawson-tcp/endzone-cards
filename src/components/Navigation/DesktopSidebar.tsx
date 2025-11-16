@@ -45,13 +45,15 @@ const DesktopSidebar = () => {
 
   return (
     <aside className="hidden md:block fixed left-0 top-0 h-screen w-60 bg-card border-r border-border z-30">
-      {/* Logo Section */}
-      <div className="py-6 px-4">
-        <img src={logo} alt="EndZone Logo" className="h-12" />
-      </div>
+      <div className="flex flex-col h-full">
+        {/* Logo Section - Fixed */}
+        <div className="shrink-0 py-6 px-4">
+          <img src={logo} alt="EndZone Logo" className="h-12" />
+        </div>
 
-      {/* Navigation Section */}
-      <nav className="flex-1 px-3 py-4">
+        {/* Scrollable Navigation Content */}
+        <div className="flex-1 overflow-y-auto">
+          <nav className="px-3 py-4">
         <div className="flex flex-col gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -150,6 +152,8 @@ const DesktopSidebar = () => {
           </div>
         </div>
       </nav>
+        </div>
+      </div>
     </aside>
   );
 };
