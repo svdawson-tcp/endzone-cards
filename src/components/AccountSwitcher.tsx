@@ -25,8 +25,8 @@ export function AccountSwitcher() {
     email: "denvernuggets0697@gmail.com"
   };
 
-  // Only show switcher if user has mentor access
-  if (availableMenteeAccounts.length === 0) {
+  // Only show switcher if currently in mentor mode or if account exists
+  if (!isViewingAsMentor && availableMenteeAccounts.length === 0) {
     return null;
   }
 
@@ -34,7 +34,7 @@ export function AccountSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant={isViewingAsMentor ? "secondary" : "ghost"}
+          variant={isViewingAsMentor ? "secondary" : "outline"}
           size="icon"
           className="h-9 w-9"
         >
@@ -45,32 +45,33 @@ export function AccountSwitcher() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56 bg-card border-border">
+        <DropdownMenuLabel className="text-card-foreground">
           {isViewingAsMentor ? "Mentor View Mode" : "Account Switcher"}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         {isViewingAsMentor && (
           <>
-            <div className="px-2 py-1.5 text-sm text-muted-foreground">
+            <div className="px-2 py-1.5 text-sm text-card-foreground">
               Viewing: {viewingUserEmail}
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={switchToOwnAccount}>
+            <DropdownMenuItem onClick={switchToOwnAccount} className="text-card-foreground">
               <User className="mr-2 h-4 w-4" />
               Return to My Account
             </DropdownMenuItem>
           </>
         )}
 
-        {!isViewingAsMentor && availableMenteeAccounts.length > 0 && (
+        {!isViewingAsMentor && (
           <>
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
+            <DropdownMenuLabel className="text-xs text-card-foreground/70">
               Switch to Mentee Account
             </DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => switchToMenteeAccount(menteeAccount.userId, menteeAccount.email)}
+              className="text-card-foreground"
             >
               <Eye className="mr-2 h-4 w-4" />
               {menteeAccount.email}
