@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LotReassignmentDialog } from "@/components/LotReassignmentDialog";
+import { ShowReassignmentDialog } from "@/components/ShowReassignmentDialog";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
 type FilterCategory = "all" | "sales" | "cash";
@@ -77,10 +78,13 @@ export default function TransactionHistory() {
   const [sortOption, setSortOption] = useState<SortOption>("date-desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [showReassignDialogOpen, setShowReassignDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<{
     id: string;
     lotId: string | null;
     lotName: string | null;
+    showId: string | null;
+    showName: string | null;
     revenue: number;
   } | null>(null);
 
@@ -483,6 +487,8 @@ export default function TransactionHistory() {
                                       id: salesTx.id,
                                       lotId: salesTx.lot_id,
                                       lotName: salesTx.lots?.source || null,
+                                      showId: salesTx.show_id,
+                                      showName: salesTx.shows?.name || null,
                                       revenue: salesTx.revenue,
                                     });
                                     setReassignDialogOpen(true);
@@ -490,6 +496,24 @@ export default function TransactionHistory() {
                                 >
                                   Reassign to Different Lot
                                 </DropdownMenuItem>
+                                {tx.transaction_type === "show_card_sale" && (
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const salesTx = tx as SalesTransaction;
+                                      setSelectedTransaction({
+                                        id: salesTx.id,
+                                        lotId: salesTx.lot_id,
+                                        lotName: salesTx.lots?.source || null,
+                                        showId: salesTx.show_id,
+                                        showName: salesTx.shows?.name || null,
+                                        revenue: salesTx.revenue,
+                                      });
+                                      setShowReassignDialogOpen(true);
+                                    }}
+                                  >
+                                    Reassign to Different Show
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           )}
@@ -505,14 +529,24 @@ export default function TransactionHistory() {
       </div>
 
       {selectedTransaction && (
-        <LotReassignmentDialog
-          open={reassignDialogOpen}
-          onOpenChange={setReassignDialogOpen}
-          transactionId={selectedTransaction.id}
-          currentLotId={selectedTransaction.lotId}
-          currentLotName={selectedTransaction.lotName}
-          revenue={selectedTransaction.revenue}
-        />
+        <>
+          <LotReassignmentDialog
+            open={reassignDialogOpen}
+            onOpenChange={setReassignDialogOpen}
+            transactionId={selectedTransaction.id}
+            currentLotId={selectedTransaction.lotId}
+            currentLotName={selectedTransaction.lotName}
+            revenue={selectedTransaction.revenue}
+          />
+          <ShowReassignmentDialog
+            open={showReassignDialogOpen}
+            onOpenChange={setShowReassignDialogOpen}
+            transactionId={selectedTransaction.id}
+            currentShowId={selectedTransaction.showId}
+            currentShowName={selectedTransaction.showName}
+            revenue={selectedTransaction.revenue}
+          />
+        </>
       )}
     </div>
   );
