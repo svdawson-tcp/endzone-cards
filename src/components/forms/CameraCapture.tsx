@@ -166,7 +166,7 @@ export function CameraCapture({
       )}
 
       {/* Controls */}
-      <div className="p-6 bg-black/80 flex items-center justify-between gap-4">
+      <div className="p-6 pb-8 sm:pb-6 bg-black/80 flex items-center justify-between gap-4" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         {/* Close Button */}
         <Button
           onClick={handleClose}
