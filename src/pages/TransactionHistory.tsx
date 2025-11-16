@@ -8,7 +8,8 @@ import {
   Filter,
   Search,
   Calendar,
-  DollarSign
+  DollarSign,
+  MoreVertical
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LotReassignmentDialog } from "@/components/LotReassignmentDialog";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
 type FilterCategory = "all" | "sales" | "cash";
@@ -52,6 +60,9 @@ interface SalesTransaction extends BaseTransaction {
   shows?: { name: string } | null;
   lots?: { source: string } | null;
   show_cards?: { player_name: string; year: string | null } | null;
+  correction_count: number | null;
+  correction_note: string | null;
+  corrected_at: string | null;
 }
 
 interface CashTransaction extends BaseTransaction {
@@ -65,6 +76,13 @@ export default function TransactionHistory() {
   const [filterCategory, setFilterCategory] = useState<FilterCategory>("all");
   const [sortOption, setSortOption] = useState<SortOption>("date-desc");
   const [searchTerm, setSearchTerm] = useState("");
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<{
+    id: string;
+    lotId: string | null;
+    lotName: string | null;
+    revenue: number;
+  } | null>(null);
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ["all-transactions"],
@@ -393,6 +411,7 @@ export default function TransactionHistory() {
                     <TableHead>Show</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Notes</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -412,9 +431,16 @@ export default function TransactionHistory() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={badge.className}>
-                            {badge.label}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className={badge.className}>
+                              {badge.label}
+                            </Badge>
+                            {tx.source === "sales" && (tx as SalesTransaction).correction_count && (tx as SalesTransaction).correction_count! > 0 && (
+                              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                                Corrected
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate text-gray-900">
                           {tx.source === "sales" ? (
@@ -441,6 +467,33 @@ export default function TransactionHistory() {
                         <TableCell className="max-w-[200px] truncate text-gray-600 text-sm">
                           {tx.notes || "-"}
                         </TableCell>
+                        <TableCell className="text-right">
+                          {tx.source === "sales" && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    const salesTx = tx as SalesTransaction;
+                                    setSelectedTransaction({
+                                      id: salesTx.id,
+                                      lotId: salesTx.lot_id,
+                                      lotName: salesTx.lots?.source || null,
+                                      revenue: salesTx.revenue,
+                                    });
+                                    setReassignDialogOpen(true);
+                                  }}
+                                >
+                                  Reassign to Different Lot
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -450,6 +503,17 @@ export default function TransactionHistory() {
           </div>
         )}
       </div>
+
+      {selectedTransaction && (
+        <LotReassignmentDialog
+          open={reassignDialogOpen}
+          onOpenChange={setReassignDialogOpen}
+          transactionId={selectedTransaction.id}
+          currentLotId={selectedTransaction.lotId}
+          currentLotName={selectedTransaction.lotName}
+          revenue={selectedTransaction.revenue}
+        />
+      )}
     </div>
   );
 }
