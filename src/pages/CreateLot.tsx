@@ -252,7 +252,7 @@ export default function CreateLot() {
               maxLength={100}
               className="mt-2 min-h-[44px]"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               Where did you buy this lot?
             </p>
             {errors.source && (

@@ -493,7 +493,7 @@ export default function CreateShowCard() {
                 )}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               {isEditMode ? "Lot cannot be changed in edit mode" : "Which purchase did this card come from?"}
             </p>
             {errors.lot && <p className="text-destructive text-sm mt-1">{errors.lot}</p>}
@@ -522,7 +522,7 @@ export default function CreateShowCard() {
           {/* Year */}
           <div>
             <label htmlFor="year" className="form-label">
-              Year * <span className="text-xs text-muted-foreground font-normal">(1950-{currentYear + 1})</span>
+              Year * <span className="text-xs text-gray-600 font-normal">(1950-{currentYear + 1})</span>
             </label>
             <Input
               id="year"
@@ -618,7 +618,7 @@ export default function CreateShowCard() {
               step={0.01}
               className="mt-2"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               Card's cost from lot. Leave blank to calculate later.
             </p>
           </div>
@@ -638,7 +638,7 @@ export default function CreateShowCard() {
               step={0.01}
               className="mt-2"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-600 mt-1">
               What price will you list this card at?
             </p>
             {errors.askingPrice && (
@@ -682,7 +682,7 @@ export default function CreateShowCard() {
                     className="hidden"
                   />
 
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-gray-600 text-center">
                     JPG, PNG, or WebP. Max 10MB. Will be compressed.
                   </p>
                 </div>
@@ -701,7 +701,7 @@ export default function CreateShowCard() {
                     <X size={16} />
                   </button>
                   {frontPhoto && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-gray-600 mt-1">
                       {frontPhoto.name} ({(frontPhoto.size / 1024 / 1024).toFixed(2)} MB)
                     </p>
                   )}
@@ -746,7 +746,7 @@ export default function CreateShowCard() {
                     className="hidden"
                   />
 
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-gray-600 text-center">
                     JPG, PNG, or WebP. Max 10MB. Will be compressed.
                   </p>
                 </div>
@@ -765,7 +765,7 @@ export default function CreateShowCard() {
                     <X size={16} />
                   </button>
                   {backPhoto && (
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-gray-600 mt-1">
                       {backPhoto.name} ({(backPhoto.size / 1024 / 1024).toFixed(2)} MB)
                     </p>
                   )}
