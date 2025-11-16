@@ -190,8 +190,8 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted/50 p-3 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm text-card-foreground/70">
+                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
                   </p>
@@ -213,8 +213,8 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted/50 p-3 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm text-card-foreground/70">
+                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
                   </p>
@@ -236,8 +236,8 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted/50 p-3 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm text-card-foreground/70">
+                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
                   </p>
@@ -259,8 +259,8 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-muted/50 p-3 rounded-lg border-l-4 border-primary">
-                  <p className="text-sm text-card-foreground/70">
+                <div className="bg-muted p-3 rounded-lg border-l-4 border-primary">
+                  <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
                   </p>
