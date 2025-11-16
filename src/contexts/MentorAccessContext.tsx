@@ -42,36 +42,19 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
 
         const { data: mentorAccess, error } = await supabase
           .from("mentor_access")
-          .select(`
-            mentee_user_id,
-            access_level
-          `)
+          .select("mentee_user_id, access_level")
           .eq("mentor_user_id", user.id)
           .eq("is_active", true);
 
         if (error) throw error;
 
         if (mentorAccess && mentorAccess.length > 0) {
-          // Fetch user emails from auth.users (this requires a service role key or edge function)
-          // For now, we'll just store the IDs and fetch emails when needed
-          const accounts: MenteeAccount[] = [];
-          
-          for (const access of mentorAccess) {
-            // Query to get user email - this will work if we have proper RLS
-            const { data: userData } = await supabase
-              .from("mentor_access")
-              .select("mentee_user_id")
-              .eq("mentee_user_id", access.mentee_user_id)
-              .single();
-
-            if (userData) {
-              accounts.push({
-                userId: access.mentee_user_id,
-                email: "", // We'll need to store this differently or use a query
-                accessLevel: access.access_level,
-              });
-            }
-          }
+          // Map to accounts (email will be hardcoded in component)
+          const accounts: MenteeAccount[] = mentorAccess.map(access => ({
+            userId: access.mentee_user_id,
+            email: "", // Email is hardcoded in AccountSwitcher
+            accessLevel: access.access_level,
+          }));
 
           setAvailableMenteeAccounts(accounts);
         }

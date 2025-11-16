@@ -51,23 +51,23 @@ const TopBar = () => {
             <button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
               <Avatar className="h-10 w-10 cursor-pointer">
                 <AvatarImage src="" />
-                <AvatarFallback className="bg-[hsl(var(--navy-base))] text-white">
+                <AvatarFallback className="bg-primary text-primary-foreground">
                   <User size={20} />
                 </AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem disabled className="cursor-not-allowed opacity-50">
+          <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+            <DropdownMenuItem disabled className="cursor-not-allowed opacity-50 text-card-foreground">
               <User className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </DropdownMenuItem>
-            <DropdownMenuItem disabled className="cursor-not-allowed opacity-50">
+            <DropdownMenuItem disabled className="cursor-not-allowed opacity-50 text-card-foreground">
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+            <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-card-foreground">
               <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
             </DropdownMenuItem>
