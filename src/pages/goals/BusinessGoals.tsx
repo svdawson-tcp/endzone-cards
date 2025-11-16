@@ -208,7 +208,7 @@ const BusinessGoals = () => {
 
             <div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Progress to Target</span>
+                <span className="text-gray-700">Progress to Target</span>
                 <span className="font-medium text-foreground">{progressToTarget.toFixed(1)}%</span>
               </div>
               <Progress value={progressToTarget} className="h-2" />
@@ -233,19 +233,19 @@ const BusinessGoals = () => {
 
             <div className="space-y-3 text-sm">
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">Personal Monthly Need (after-tax)</span>
+                <span className="text-gray-700">Personal Monthly Need (after-tax)</span>
                 <span className="font-medium text-foreground">
                   ${((existingGoal.annual_salary / 12) + existingGoal.health_insurance).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">Tax Burden ({existingGoal.tax_rate}%)</span>
+                <span className="text-gray-700">Tax Burden ({existingGoal.tax_rate}%)</span>
                 <span className="font-medium text-foreground">
                   ${(((existingGoal.annual_salary / 12) * (existingGoal.tax_rate / 100))).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>
               </div>
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">Safety Buffer (25%)</span>
+                <span className="text-gray-700">Safety Buffer (25%)</span>
                 <span className="font-medium text-foreground">
                   ${(existingGoal.health_insurance * 0.25).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                 </span>

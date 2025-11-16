@@ -411,7 +411,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               NET PROFIT
             </p>
             {loadingRevenue || loadingLotCosts || loadingExpenses ? (
@@ -421,7 +421,7 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getProfitColor()}`}>
                   ${netProfit.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Money earned after all costs"
                     : `${getDateRangeLabel()} - Money earned after all costs`
@@ -436,7 +436,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               PROFIT MARGIN
             </p>
             {loadingRevenue || loadingLotCosts || loadingExpenses ? (
@@ -446,7 +446,7 @@ export default function Dashboard() {
                 <p className={`text-3xl font-bold ${getMarginColor()}`}>
                   {profitMargin.toFixed(1)}%
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Percentage of revenue kept as profit"
                     : `${getDateRangeLabel()} - Percentage kept as profit`
@@ -461,7 +461,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL REVENUE
             </p>
             {loadingRevenue ? (
@@ -471,7 +471,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(totalRevenue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Total money from card sales"
                     : `${getDateRangeLabel()} - Total from card sales`
@@ -486,7 +486,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               CASH ON HAND
             </p>
             {loadingCash ? (
@@ -496,7 +496,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(cashBalance || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Money available to spend</p>
+                <p className="text-xs text-gray-600 mt-1">Money available to spend</p>
               </>
             )}
           </div>
@@ -515,7 +515,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL COSTS
             </p>
             {loadingLotCosts || loadingExpenses ? (
@@ -525,7 +525,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Cost of inventory + business expenses"
                     : `${getDateRangeLabel()} - Inventory + expenses`
@@ -539,7 +539,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               PREMIUM SALES
             </p>
             {loadingPremium ? (
@@ -549,7 +549,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(premiumSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from individual card sales"
                     : `${getDateRangeLabel()} - Individual card sales`
@@ -564,7 +564,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               BULK SALES
             </p>
             {loadingBulk ? (
@@ -574,7 +574,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(bulkSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from multi-card sales"
                     : `${getDateRangeLabel()} - Multi-card sales`
@@ -589,7 +589,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               SHOW CARD INVENTORY
             </p>
             {loadingCards ? (
@@ -597,7 +597,7 @@ export default function Dashboard() {
             ) : (
               <>
                 <p className="text-3xl font-bold text-card-foreground">{availableCards}</p>
-                <p className="text-xs text-muted-foreground mt-1">High-value cards ready to sell</p>
+                <p className="text-xs text-gray-600 mt-1">High-value cards ready to sell</p>
               </>
             )}
           </div>
@@ -607,7 +607,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               AVERAGE SALE VALUE
             </p>
             {loadingAverage ? (
@@ -617,7 +617,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(averageSaleData?.averageValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Average money earned per transaction"
                     : `${getDateRangeLabel()} - Avg per transaction`
@@ -640,7 +640,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL COSTS
             </p>
             {loadingLotCosts || loadingExpenses ? (
@@ -650,7 +650,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "Cost of inventory + business expenses"
                     : `${getDateRangeLabel()} - Inventory + expenses`
@@ -665,7 +665,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-blue-600" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL INVENTORY VALUE
             </p>
             {loadingInventory ? (
@@ -675,7 +675,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${(inventoryValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Money tied up in unsold cards</p>
+                <p className="text-xs text-gray-600 mt-1">Money tied up in unsold cards</p>
               </>
             )}
           </div>
@@ -685,7 +685,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <Wallet className="h-8 w-8 text-purple-600" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL BUSINESS VALUE
             </p>
             {loadingCash || loadingInventory ? (
@@ -695,7 +695,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   ${totalBusinessValue.toFixed(2)}
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">Total worth if liquidated today</p>
+                <p className="text-xs text-gray-600 mt-1">Total worth if liquidated today</p>
               </>
             )}
           </div>
@@ -705,7 +705,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
             </div>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+            <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               INVENTORY TURNOVER
             </p>
             {loadingRevenue || loadingInventory ? (
@@ -715,7 +715,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold text-card-foreground">
                   {inventoryTurnover === Infinity ? "∞" : inventoryTurnover.toFixed(1)}x
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-1">
                   {getDateRangeLabel() === "All Time" 
                     ? "How quickly inventory converts to cash"
                     : `${getDateRangeLabel()} - Inventory to cash speed`
@@ -761,18 +761,18 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : !recentActivity || recentActivity.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-gray-600 py-8">
                 No transactions yet. Record your first sale!
               </p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Date</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Type</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Description</th>
-                    <th className="text-right py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Amount</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold text-muted-foreground uppercase">Show</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 uppercase">Date</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 uppercase">Type</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 uppercase">Description</th>
+                    <th className="text-right py-3 px-2 text-sm font-semibold text-gray-700 uppercase">Amount</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 uppercase">Show</th>
                   </tr>
                 </thead>
                 <tbody>

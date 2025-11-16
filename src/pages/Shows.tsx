@@ -405,24 +405,24 @@ export default function Shows() {
                 {/* Profitability Section - Only for Active and Completed Shows */}
                 {(show.status === "active" || show.status === "completed") && (
                   <div className="border-t border-border pt-4 mt-4">
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                    <div className="text-xs uppercase tracking-wider text-gray-600 mb-2">
                       Profitability
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <div className="text-xs text-muted-foreground">Revenue</div>
+                        <div className="text-xs text-gray-600">Revenue</div>
                         <div className="text-sm font-semibold text-green-600">
                           ${(show.revenue || 0).toFixed(2)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Expenses</div>
+                        <div className="text-xs text-gray-600">Expenses</div>
                         <div className="text-sm font-semibold text-destructive">
                           ${((show.expenses || 0) + show.table_cost).toFixed(2)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs text-muted-foreground">Net</div>
+                        <div className="text-xs text-gray-600">Net</div>
                         <div className={`text-sm font-semibold ${
                           ((show.revenue || 0) - (show.expenses || 0) - show.table_cost) >= 0 
                             ? 'text-green-600' 
@@ -435,7 +435,7 @@ export default function Shows() {
                     
                     {/* ROI for Completed Shows */}
                     {show.status === "completed" && (
-                      <div className="text-xs text-center mt-2 text-muted-foreground">
+                      <div className="text-xs text-center mt-2 text-gray-600">
                         ROI: {(
                           ((show.revenue || 0) - (show.expenses || 0) - show.table_cost) / 
                           ((show.expenses || 0) + show.table_cost || 1) * 100
