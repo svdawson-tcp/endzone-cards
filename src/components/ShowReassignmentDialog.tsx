@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 interface ShowReassignmentDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function ShowReassignmentDialog({
   const [selectedShowId, setSelectedShowId] = useState<string>("");
   const [correctionNote, setCorrectionNote] = useState("");
   const queryClient = useQueryClient();
+  const { isViewingAsMentor } = useMentorAccess();
 
   // Fetch all shows excluding the current one
   const { data: shows = [] } = useQuery({
@@ -216,7 +218,8 @@ export function ShowReassignmentDialog({
             disabled={
               !selectedShowId ||
               correctionNote.trim().length < 10 ||
-              reassignMutation.isPending
+              reassignMutation.isPending ||
+              isViewingAsMentor
             }
             className="min-h-[44px]"
           >

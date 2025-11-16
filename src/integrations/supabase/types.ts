@@ -176,6 +176,93 @@ export type Database = {
         }
         Relationships: []
       }
+      mentor_access: {
+        Row: {
+          access_level: string | null
+          created_at: string
+          expires_at: string | null
+          granted_at: string
+          id: string
+          is_active: boolean
+          mentee_user_id: string
+          mentor_user_id: string
+        }
+        Insert: {
+          access_level?: string | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          is_active?: boolean
+          mentee_user_id: string
+          mentor_user_id: string
+        }
+        Update: {
+          access_level?: string | null
+          created_at?: string
+          expires_at?: string | null
+          granted_at?: string
+          id?: string
+          is_active?: boolean
+          mentee_user_id?: string
+          mentor_user_id?: string
+        }
+        Relationships: []
+      }
+      mentor_activity_log: {
+        Row: {
+          accessed_at: string
+          action: string
+          id: string
+          mentee_user_id: string
+          mentor_user_id: string
+          page_path: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          action: string
+          id?: string
+          mentee_user_id: string
+          mentor_user_id: string
+          page_path?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          action?: string
+          id?: string
+          mentee_user_id?: string
+          mentor_user_id?: string
+          page_path?: string | null
+        }
+        Relationships: []
+      }
+      mentor_sessions: {
+        Row: {
+          id: string
+          is_active: boolean
+          last_activity: string
+          mentee_user_id: string
+          mentor_user_id: string
+          started_at: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean
+          last_activity?: string
+          mentee_user_id: string
+          mentor_user_id: string
+          started_at?: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean
+          last_activity?: string
+          mentee_user_id?: string
+          mentor_user_id?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
       show_cards: {
         Row: {
           asking_price: number | null
@@ -422,6 +509,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       reassign_show_card_sale_to_show: {
         Args: {
           p_correction_note: string

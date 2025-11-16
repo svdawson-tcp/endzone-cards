@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import logo from "@/assets/endzone-logo-main.png";
+import { AccountSwitcher } from "@/components/AccountSwitcher";
 
 const TopBar = () => {
   const navigate = useNavigate();
@@ -43,7 +44,9 @@ const TopBar = () => {
           <img src={logo} alt="EndZone Logo" className="h-14 cursor-pointer" />
         </button>
         
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <AccountSwitcher />
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-full">
               <Avatar className="h-10 w-10 cursor-pointer">
@@ -70,6 +73,7 @@ const TopBar = () => {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
     </header>
   );

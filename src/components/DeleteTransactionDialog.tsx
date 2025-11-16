@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 interface DeleteTransactionDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function DeleteTransactionDialog({
   const [deletionReason, setDeletionReason] = useState("");
   const [error, setError] = useState("");
   const queryClient = useQueryClient();
+  const { isViewingAsMentor } = useMentorAccess();
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
@@ -179,7 +181,7 @@ export function DeleteTransactionDialog({
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={deleteMutation.isPending || deletionReason.trim().length < 10}
+            disabled={deleteMutation.isPending || deletionReason.trim().length < 10 || isViewingAsMentor}
           >
             {deleteMutation.isPending ? "Deleting..." : "Confirm Delete"}
           </Button>
