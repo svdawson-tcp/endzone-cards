@@ -252,7 +252,7 @@ const BusinessModel = () => {
                   <Globe className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Add Online Channels</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Expand Online Channels</h3>
                   <p className="text-sm text-gray-700">
                     Online sales expand your market to nationwide (or worldwide). Start simple 
                     with Facebook Marketplace, then add eBay.
