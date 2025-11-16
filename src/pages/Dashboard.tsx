@@ -90,7 +90,8 @@ export default function Dashboard() {
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .in("transaction_type", ["show_card_sale", "bulk_sale"]);
+        .in("transaction_type", ["show_card_sale", "bulk_sale"])
+        .or("deleted.is.null,deleted.eq.false");
       
       if (startDate) {
         query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
@@ -110,7 +111,8 @@ export default function Dashboard() {
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .eq("transaction_type", "show_card_sale");
+        .eq("transaction_type", "show_card_sale")
+        .or("deleted.is.null,deleted.eq.false");
       
       if (startDate) {
         query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
@@ -130,7 +132,8 @@ export default function Dashboard() {
         .from("transactions")
         .select("revenue")
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
-        .eq("transaction_type", "bulk_sale");
+        .eq("transaction_type", "bulk_sale")
+        .or("deleted.is.null,deleted.eq.false");
       
       if (startDate) {
         query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);

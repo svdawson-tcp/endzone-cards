@@ -293,6 +293,9 @@ export type Database = {
           correction_count: number | null
           correction_note: string | null
           created_at: string
+          deleted: boolean | null
+          deleted_at: string | null
+          deletion_reason: string | null
           id: string
           lot_id: string | null
           notes: string | null
@@ -309,6 +312,9 @@ export type Database = {
           correction_count?: number | null
           correction_note?: string | null
           created_at?: string
+          deleted?: boolean | null
+          deleted_at?: string | null
+          deletion_reason?: string | null
           id?: string
           lot_id?: string | null
           notes?: string | null
@@ -325,6 +331,9 @@ export type Database = {
           correction_count?: number | null
           correction_note?: string | null
           created_at?: string
+          deleted?: boolean | null
+          deleted_at?: string | null
+          deletion_reason?: string | null
           id?: string
           lot_id?: string | null
           notes?: string | null
