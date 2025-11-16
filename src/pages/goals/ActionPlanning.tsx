@@ -152,7 +152,7 @@ const ActionPlanning = () => {
   const getActiveActions = (category: 'monthly' | 'quarterly' | 'longterm') => actionItems[category].filter(a => !a.archived);
 
   if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
-  if (!existingGoal) return <div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-primary/5 mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
+  if (!existingGoal) return <div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-primary/5 mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-card-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
 
   const currentProgress = { monthly: getActiveActions('monthly'), quarterly: getActiveActions('quarterly'), longterm: getActiveActions('longterm') };
 
@@ -171,7 +171,7 @@ const ActionPlanning = () => {
               {currentProgress[cat].map((action) => (
                 <div key={action.id} className="flex items-start gap-3 p-3 bg-background/50 rounded-lg border group">
                   <Checkbox checked={action.completed} onCheckedChange={() => handleToggle(action.id, cat)} disabled={isViewingAsMentor} />
-                  <div className="flex-1"><p className={action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>{action.description}</p></div>
+                  <div className="flex-1"><p className={action.completed ? 'line-through text-muted-foreground' : 'text-card-foreground'}>{action.description}</p></div>
                   <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100" onClick={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })} disabled={isViewingAsMentor}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               ))}
