@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings, TrendingUp } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -17,11 +17,18 @@ const BottomTabBar = () => {
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
-    { icon: TrendingUp, label: "Goals", route: "/goals/independence" },
+    { icon: TrendingUp, label: "Goals", route: "/goals/business-model" },
     { icon: Plus, label: "Add", route: "/transactions/new", isCenter: true },
     { icon: Package, label: "Lots", route: "/lots" },
     { icon: CreditCard, label: "Cards", route: "/show-cards" },
     { icon: Calendar, label: "Shows", route: "/shows" },
+  ];
+
+  const goalMenuItems = [
+    { icon: BookOpen, label: "Business Model", route: "/goals/business-model" },
+    { icon: Heart, label: "Personal Goals", route: "/goals/personal" },
+    { icon: TrendingUp, label: "Business Goals", route: "/goals/business" },
+    { icon: CheckSquare, label: "Action Planning", route: "/goals/actions" },
   ];
 
   const quickAddItems = [

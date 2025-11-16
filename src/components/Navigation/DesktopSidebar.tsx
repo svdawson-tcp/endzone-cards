@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,10 @@ const DesktopSidebar = () => {
   ];
 
   const goalItems = [
-    { icon: TrendingUp, label: "Business Independence", route: "/goals/independence" },
+    { icon: BookOpen, label: "Business Model", route: "/goals/business-model" },
+    { icon: Heart, label: "Personal Goals", route: "/goals/personal" },
+    { icon: TrendingUp, label: "Business Goals", route: "/goals/business" },
+    { icon: CheckSquare, label: "Action Planning", route: "/goals/actions" },
   ];
 
   const handleNavClick = (route: string) => {
