@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run lint-staged to check design system compliance
+npx lint-staged
+
+# If lint-staged fails, the commit is blocked
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ COMMIT BLOCKED: Design system violations detected"
+  echo "   Fix the errors above before committing"
+  echo "   See DESIGN_SYSTEM.md for guidance"
+  exit 1
+fi

@@ -1,5 +1,37 @@
 # EndZone Design System
 
+## 🚨 ACTIVE ENFORCEMENT
+
+This design system is **automatically enforced** by ESLint. Violations will:
+- Show **red squiggles** in your editor
+- **Block commits** via pre-commit hooks
+- **Fail CI/CD** builds
+
+### Testing Enforcement
+
+Run `npm run lint` to check for violations:
+```bash
+npm run lint
+```
+
+Test with intentional violations:
+```bash
+npm run lint test-design-violations.tsx
+# Should show 7 errors
+```
+
+### Bypassing (NOT RECOMMENDED)
+
+Only bypass if absolutely necessary:
+```bash
+# Skip pre-commit hooks (emergency only)
+git commit --no-verify -m "message"
+
+# Disable ESLint for one line (document why)
+// eslint-disable-next-line no-restricted-syntax
+<div className="text-gray-900">Documented exception</div>
+```
+
 ## Overview
 This document defines the design system standards for the EndZone card trading application. All components and pages must follow these guidelines to ensure consistent, accessible, and maintainable UI across the application.
 
