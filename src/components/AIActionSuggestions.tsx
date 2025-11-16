@@ -209,8 +209,8 @@ export const AIActionSuggestions = ({
                     <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="shrink-0 h-8 px-2 gap-1 hover:bg-primary/10"
+                      variant="outline"
+                      className="shrink-0 h-8 px-2 gap-1"
                       onClick={() => handleAddSuggestion(suggestion, 'monthly')}
                     >
                       <Plus className="h-3 w-3" />
@@ -239,8 +239,8 @@ export const AIActionSuggestions = ({
                     <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="shrink-0 h-8 px-2 gap-1 hover:bg-primary/10"
+                      variant="outline"
+                      className="shrink-0 h-8 px-2 gap-1"
                       onClick={() => handleAddSuggestion(suggestion, 'quarterly')}
                     >
                       <Plus className="h-3 w-3" />
@@ -269,8 +269,8 @@ export const AIActionSuggestions = ({
                     <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
                     <Button
                       size="sm"
-                      variant="ghost"
-                      className="shrink-0 h-8 px-2 gap-1 hover:bg-primary/10"
+                      variant="outline"
+                      className="shrink-0 h-8 px-2 gap-1"
                       onClick={() => handleAddSuggestion(suggestion, 'longterm')}
                     >
                       <Plus className="h-3 w-3" />
