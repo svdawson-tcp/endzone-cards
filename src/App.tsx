@@ -25,7 +25,10 @@ import ShowCardDetail from "./pages/ShowCardDetail";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthenticatedLayout from "./components/Layout/AuthenticatedLayout";
-import BusinessIndependence from "./pages/BusinessIndependence";
+import BusinessModel from "./pages/goals/BusinessModel";
+import PersonalGoals from "./pages/goals/PersonalGoals";
+import BusinessGoals from "./pages/goals/BusinessGoals";
+import ActionPlanning from "./pages/goals/ActionPlanning";
 
 const queryClient = new QueryClient();
 
@@ -58,7 +61,10 @@ const App = () => (
           <Route path="/shows/:id/edit" element={<ProtectedRoute><AuthenticatedLayout><CreateShow /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/lots/:id/edit" element={<ProtectedRoute><AuthenticatedLayout><CreateLot /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/:id/edit" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
-          <Route path="/goals/independence" element={<ProtectedRoute><AuthenticatedLayout><BusinessIndependence /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/goals/business-model" element={<ProtectedRoute><AuthenticatedLayout><BusinessModel /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/goals/personal" element={<ProtectedRoute><AuthenticatedLayout><PersonalGoals /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/goals/business" element={<ProtectedRoute><AuthenticatedLayout><BusinessGoals /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/goals/actions" element={<ProtectedRoute><AuthenticatedLayout><ActionPlanning /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
