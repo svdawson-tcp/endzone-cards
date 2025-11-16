@@ -5,15 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, CheckSquare, Calendar, Target, Rocket, Lightbulb } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Trash2, Calendar, Target, Rocket } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AIActionSuggestions } from "@/components/AIActionSuggestions";
+import { ActionEditDialog } from "@/components/ActionEditDialog";
+import { ArchiveManager } from "@/components/ArchiveManager";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useMentorModeGuard } from "@/hooks/useMentorModeGuard";
 
 interface ActionItem {
   id: string;
   description: string;
   completed: boolean;
   category: 'monthly' | 'quarterly' | 'longterm';
+  completedAt?: string;
+  createdAt: string;
+  archived: boolean;
+  archivedAt?: string;
+  aiSuggested: boolean;
 }
 
 interface UserGoal {
@@ -28,316 +38,140 @@ interface UserGoal {
 
 const defaultActions = {
   monthly: [
-    { id: '1', description: 'Attend 2 additional shows this month', completed: false, category: 'monthly' as const },
-    { id: '2', description: 'Increase average sale price by 10%', completed: false, category: 'monthly' as const },
-    { id: '3', description: 'Research new card venues in my area', completed: false, category: 'monthly' as const },
+    { id: '1', description: 'Attend 2 additional shows this month', completed: false, category: 'monthly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
+    { id: '2', description: 'Increase average sale price by 10%', completed: false, category: 'monthly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
   ],
   quarterly: [
-    { id: '4', description: 'Establish online presence (eBay/Facebook)', completed: false, category: 'quarterly' as const },
-    { id: '5', description: 'Build customer email list', completed: false, category: 'quarterly' as const },
-    { id: '6', description: 'Expand to neighboring cities', completed: false, category: 'quarterly' as const },
+    { id: '4', description: 'Establish online presence (eBay/Facebook)', completed: false, category: 'quarterly' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
   ],
   longterm: [
-    { id: '7', description: 'Develop premium card specialization', completed: false, category: 'longterm' as const },
-    { id: '8', description: 'Create business bank account', completed: false, category: 'longterm' as const },
-    { id: '9', description: 'Build brand recognition', completed: false, category: 'longterm' as const },
+    { id: '7', description: 'Develop premium card specialization', completed: false, category: 'longterm' as const, createdAt: new Date().toISOString(), archived: false, aiSuggested: false },
   ],
 };
 
 const ActionPlanning = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { isViewingAsMentor, preventMutation } = useMentorModeGuard();
+  const [actionItems, setActionItems] = useState(defaultActions);
+  const [addDialog, setAddDialog] = useState<{ open: boolean; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; actionId?: string; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
 
-  const [actionItems, setActionItems] = useState<{
-    monthly: ActionItem[];
-    quarterly: ActionItem[];
-    longterm: ActionItem[];
-  }>(defaultActions);
-
-  // Fetch existing goals
   const { data: existingGoal, isLoading } = useQuery({
     queryKey: ['user-goals'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('user_goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
+      const { data, error } = await supabase.from('user_goals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
       if (error) throw error;
       return data as UserGoal | null;
     },
   });
 
-  // Load existing action items
   useEffect(() => {
     if (existingGoal?.action_items) {
-      const items = existingGoal.action_items;
       setActionItems({
-        monthly: items.monthly || defaultActions.monthly,
-        quarterly: items.quarterly || defaultActions.quarterly,
-        longterm: items.longterm || defaultActions.longterm,
+        monthly: existingGoal.action_items.monthly || defaultActions.monthly,
+        quarterly: existingGoal.action_items.quarterly || defaultActions.quarterly,
+        longterm: existingGoal.action_items.longterm || defaultActions.longterm,
       });
     }
   }, [existingGoal]);
 
-  // Fetch current monthly revenue for AI suggestions
   const { data: revenueData } = useQuery({
     queryKey: ['current-monthly-revenue'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('revenue')
-        .eq('user_id', user.id)
-        .gte('transaction_date', thirtyDaysAgo.toISOString())
-        .eq('deleted', false);
-
+      const { data, error } = await supabase.from('transactions').select('revenue').eq('user_id', user.id).gte('transaction_date', thirtyDaysAgo.toISOString()).eq('deleted', false);
       if (error) throw error;
-
-      const totalRevenue = data?.reduce((sum, t) => sum + (t.revenue || 0), 0) || 0;
-      return totalRevenue;
+      return data?.reduce((sum, t) => sum + (t.revenue || 0), 0) || 0;
     },
   });
 
-  // Save mutation
   const saveMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (items: typeof actionItems) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
-
       if (!existingGoal) {
-        toast.error("Please set your goals first");
-        navigate("/goals/personal");
-        return;
+        const { error } = await supabase.from('user_goals').insert({ user_id: user.id, action_items: items });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('user_goals').update({ action_items: items }).eq('id', existingGoal.id);
+        if (error) throw error;
       }
-
-      const { error } = await supabase
-        .from('user_goals')
-        .update({
-          action_items: actionItems as any,
-        })
-        .eq('id', existingGoal.id);
-
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-goals'] });
-      toast.success("Action plan saved successfully!");
-    },
-    onError: (error) => {
-      console.error('Error saving action plan:', error);
-      toast.error("Failed to save action plan. Please try again.");
+      toast.success('Saved!');
     },
   });
 
-  const handleToggle = (category: 'monthly' | 'quarterly' | 'longterm', actionId: string) => {
-    setActionItems(prev => ({
-      ...prev,
-      [category]: prev[category].map(item =>
-        item.id === actionId ? { ...item, completed: !item.completed } : item
-      ),
-    }));
+  const handleToggle = (id: string, category: 'monthly' | 'quarterly' | 'longterm') => {
+    preventMutation(() => {
+      const updated = { ...actionItems };
+      const action = updated[category].find(a => a.id === id);
+      if (action) {
+        action.completed = !action.completed;
+        action.completedAt = action.completed ? new Date().toISOString() : undefined;
+      }
+      setActionItems(updated);
+      saveMutation.mutate(updated);
+    });
   };
 
-  const handleSave = () => {
-    saveMutation.mutate();
+  const handleAddAction = (description: string, category: 'monthly' | 'quarterly' | 'longterm') => {
+    preventMutation(() => {
+      const newAction: ActionItem = { id: Date.now().toString(), description, completed: false, category, createdAt: new Date().toISOString(), archived: false, aiSuggested: false };
+      const updated = { ...actionItems, [category]: [...actionItems[category], newAction] };
+      setActionItems(updated);
+      saveMutation.mutate(updated);
+    });
   };
 
-  const calculateProgress = (items: ActionItem[]) => {
-    if (items.length === 0) return 0;
-    const completed = items.filter(item => item.completed).length;
-    return Math.round((completed / items.length) * 100);
+  const handleAddAISuggestion = (description: string, category: 'monthly' | 'quarterly' | 'longterm') => {
+    preventMutation(() => {
+      const newAction: ActionItem = { id: Date.now().toString(), description, completed: false, category, createdAt: new Date().toISOString(), archived: false, aiSuggested: true };
+      const updated = { ...actionItems, [category]: [...actionItems[category], newAction] };
+      setActionItems(updated);
+      saveMutation.mutate(updated);
+    });
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
+  const getActiveActions = (category: 'monthly' | 'quarterly' | 'longterm') => actionItems[category].filter(a => !a.archived);
 
-  if (!existingGoal) {
-    return (
-      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <Card className="p-6 max-w-md">
-          <h2 className="text-xl font-bold text-foreground mb-4">Goals Required</h2>
-          <p className="text-muted-foreground mb-4">
-            Please set your personal and business goals first.
-          </p>
-          <Button onClick={() => navigate("/goals/personal")}>
-            Set Personal Goals
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
+  if (!existingGoal) return <div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-primary/5 mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
+
+  const currentProgress = { monthly: getActiveActions('monthly'), quarterly: getActiveActions('quarterly'), longterm: getActiveActions('longterm') };
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24 md:pb-8">
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/dashboard")}
-            className="shrink-0"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Action Planning
-            </h1>
-            <p className="text-muted-foreground">
-              Track your progress with actionable goals
-            </p>
-          </div>
-        </div>
-
-        {/* AI Action Suggestions */}
-        <Card className="bg-card border-border shadow-sm">
-          <div className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Lightbulb className="w-6 h-6 text-primary" />
-              <h3 className="text-lg font-semibold card-foreground">AI Action Suggestions</h3>
-            </div>
-            
-            <AIActionSuggestions 
-              currentProgress={actionItems}
-              businessMetrics={{
-                revenue: revenueData || 0,
-                target: existingGoal?.target_monthly_income || 0
-              }}
-            />
-          </div>
-        </Card>
-
-        {/* This Month's Focus */}
-        <Card className="p-6 bg-card border-border">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Calendar className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold card-foreground">This Month's Focus</h2>
-                  <p className="text-sm text-card-foreground/70">
-                    {calculateProgress(actionItems.monthly)}% complete
-                  </p>
-                </div>
-              </div>
-              <CheckSquare className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <div className="space-y-3">
-              {actionItems.monthly.map(action => (
-                <div key={action.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    checked={action.completed}
-                    onCheckedChange={() => handleToggle('monthly', action.id)}
-                    className="mt-0.5"
-                  />
-                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'card-foreground'}`}>
-                    {action.description}
-                  </span>
+    <div className="min-h-screen bg-background pb-20 md:pb-6">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
+        <div><h1 className="text-3xl font-bold text-foreground">Action Planning</h1></div>
+        
+        <AIActionSuggestions currentProgress={currentProgress} businessMetrics={{ revenue: revenueData || 0, target: existingGoal?.target_monthly_income || 0 }} onAddSuggestion={handleAddAISuggestion} />
+        
+        {(['monthly', 'quarterly', 'longterm'] as const).map((cat) => (
+          <Card key={cat} className="p-6 bg-primary/5">
+            <SectionHeading title={cat === 'monthly' ? "This Month" : cat === 'quarterly' ? "Next Quarter" : "Long-term"} icon={cat === 'monthly' ? Calendar : cat === 'quarterly' ? Target : Rocket} action={<Button size="sm" variant="outline" onClick={() => setAddDialog({ open: true, category: cat })} disabled={isViewingAsMentor}><Plus className="h-4 w-4" />Add</Button>} />
+            <div className="space-y-3 mt-4">
+              {currentProgress[cat].map((action) => (
+                <div key={action.id} className="flex items-start gap-3 p-3 bg-background/50 rounded-lg border group">
+                  <Checkbox checked={action.completed} onCheckedChange={() => handleToggle(action.id, cat)} disabled={isViewingAsMentor} />
+                  <div className="flex-1"><p className={action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>{action.description}</p></div>
+                  <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100" onClick={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })} disabled={isViewingAsMentor}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               ))}
             </div>
-          </div>
-        </Card>
+          </Card>
+        ))}
 
-        {/* Next Quarter's Goals */}
-        <Card className="p-6 bg-card border-border">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-secondary/10 p-2 rounded-lg">
-                  <Target className="h-5 w-5 text-secondary-foreground" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold card-foreground">Next Quarter's Goals</h2>
-                  <p className="text-sm text-card-foreground/70">
-                    {calculateProgress(actionItems.quarterly)}% complete
-                  </p>
-                </div>
-              </div>
-              <Target className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <div className="space-y-3">
-              {actionItems.quarterly.map(action => (
-                <div key={action.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    checked={action.completed}
-                    onCheckedChange={() => handleToggle('quarterly', action.id)}
-                    className="mt-0.5"
-                  />
-                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'card-foreground'}`}>
-                    {action.description}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Long-Term Initiatives */}
-        <Card className="p-6 bg-card border-border">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-accent/10 p-2 rounded-lg">
-                  <Rocket className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold card-foreground">Long-Term Initiatives</h2>
-                  <p className="text-sm text-card-foreground/70">
-                    {calculateProgress(actionItems.longterm)}% complete
-                  </p>
-                </div>
-              </div>
-              <Rocket className="h-5 w-5 text-muted-foreground" />
-            </div>
-
-            <div className="space-y-3">
-              {actionItems.longterm.map(action => (
-                <div key={action.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                  <Checkbox
-                    checked={action.completed}
-                    onCheckedChange={() => handleToggle('longterm', action.id)}
-                    className="mt-0.5"
-                  />
-                  <span className={`text-sm ${action.completed ? 'line-through text-muted-foreground' : 'card-foreground'}`}>
-                    {action.description}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Card>
-
-        {/* Save Button */}
-        <Button
-          onClick={handleSave}
-          disabled={saveMutation.isPending}
-          className="w-full"
-        >
-          {saveMutation.isPending ? "Saving..." : "Save Action Plan"}
-        </Button>
+        <ActionEditDialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ open })} onSave={(desc) => addDialog.category && handleAddAction(desc, addDialog.category)} title="Add Action" />
+        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open })}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteDialog.actionId && deleteDialog.category) { const updated = { ...actionItems, [deleteDialog.category]: actionItems[deleteDialog.category].filter(a => a.id !== deleteDialog.actionId) }; setActionItems(updated); saveMutation.mutate(updated); setDeleteDialog({ open: false }); }}}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       </div>
     </div>
   );
