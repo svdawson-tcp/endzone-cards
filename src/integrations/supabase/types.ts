@@ -365,7 +365,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reassign_show_card_sale_to_show: {
+        Args: {
+          p_correction_note: string
+          p_new_show_id: string
+          p_transaction_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
