@@ -2,7 +2,7 @@ import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronD
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/endzone-logo-light.png";
+import logo from "@/assets/endzone-logo-main.png";
 import {
   Collapsible,
   CollapsibleContent,
@@ -48,8 +48,8 @@ const DesktopSidebar = () => {
     <aside className="hidden md:block fixed left-0 top-0 h-screen w-60 bg-card border-r border-border z-30">
       <div className="flex flex-col h-full">
         {/* Logo Section - Fixed */}
-        <div className="shrink-0 py-6 px-4">
-          <img src={logo} alt="EndZone Logo" className="h-12" />
+        <div className="shrink-0 py-4 px-4">
+          <img src={logo} alt="EndZone - Your Gameplan to Profit" className="h-16 w-auto" />
         </div>
 
         {/* Scrollable Navigation Content */}

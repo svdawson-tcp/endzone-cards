@@ -3,6 +3,7 @@ import { LogOut, User, Settings, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import endzoneLogo from "@/assets/endzone-logo-main.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,15 +59,13 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
           
           <button 
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded py-1"
           >
-            <div className="w-8 h-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">EZ</span>
-            </div>
-            <div className="hidden sm:block">
-              <h1 className="font-bold text-lg text-foreground">EndZone</h1>
-              <p className="text-xs text-muted-foreground -mt-1">Your Gameplan to Profit</p>
-            </div>
+            <img 
+              src={endzoneLogo} 
+              alt="EndZone - Your Gameplan to Profit" 
+              className="h-10 w-auto sm:h-12"
+            />
           </button>
         </div>
 
