@@ -1,0 +1,23 @@
+/* EndZone Professional Color System - Concept #2 */
+:root {
+  /* Page Backgrounds */
+  --bg-page: #F9FAFB;              /* Light gray page background */
+  --card-bg: #FFFFFF;              /* White card background */
+  
+  /* Text Colors */
+  --text-primary: #102A43;         /* Navy-800 for headings */
+  --text-secondary: #334E68;       /* Navy-600 for body text */
+  --text-tertiary: #486581;        /* Navy-500 for labels */
+  
+  /* Borders & Shadows */
+  --border-default: #E5E7EB;       /* Light gray borders */
+  --shadow-base: 0 1px 3px rgba(16, 42, 67, 0.08);
+  
+  /* Financial Colors */
+  --metric-positive: #059669;      /* Green for profits */
+  --metric-negative: #DC2626;      /* Red for losses */
+  
+  /* Brand Colors */
+  --color-navy-900: #041E42;       /* Cowboys Navy */
+  --color-gold-500: #FFC72C;       /* Cowboys Gold */
+}
