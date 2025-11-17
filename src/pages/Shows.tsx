@@ -486,7 +486,7 @@ export default function Shows() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 !text-gray-900 border-gray-300 hover:bg-gray-50"
+                      className="flex-1"
                       onClick={() => navigate(`/shows/${show.id}`)}
                     >
                       <Eye className="mr-1 h-4 w-4" />
@@ -495,7 +495,7 @@ export default function Shows() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 !text-gray-900 border-gray-300 hover:bg-gray-50"
+                      className="flex-1"
                       onClick={() => navigate(`/shows/${show.id}/edit`)}
                     >
                       <Edit className="mr-1 h-4 w-4" />
@@ -505,7 +505,7 @@ export default function Shows() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteClick(show)}
-                      className="!text-red-600 border-gray-300 hover:bg-red-600 hover:!text-white"
+                      className="!text-red-600 hover:!bg-red-600 hover:!text-white"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

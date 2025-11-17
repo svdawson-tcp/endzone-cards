@@ -23,7 +23,7 @@ const buttonVariants = cva(
         success: "bg-success text-success-foreground shadow-md hover:bg-success/90 active:shadow-sm",
         
         /* Outline button - High contrast border */
-        outline: "border border-border bg-surface text-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
+        outline: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100",
         
         /* Ghost button - Minimal but visible */
         ghost: "text-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
