@@ -224,15 +224,15 @@ export default function Dashboard() {
   const profitMargin = totalRevenue && totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
   const getProfitColor = () => {
-    if (netProfit > 0) return { color: 'var(--metric-positive)' };
-    if (netProfit < 0) return { color: 'var(--metric-negative)' };
-    return { color: 'var(--text-primary)' };
+    if (netProfit > 0) return "metric-positive";
+    if (netProfit < 0) return "metric-negative";
+    return "text-primary";
   };
 
   const getMarginColor = () => {
-    if (profitMargin >= 15) return { color: 'var(--metric-positive)' };
-    if (profitMargin >= 5) return { color: '#F59E0B' };
-    return { color: 'var(--metric-negative)' };
+    if (profitMargin >= 15) return "metric-positive";
+    if (profitMargin >= 5) return "text-yellow-500";
+    return "metric-negative";
   };
 
   // Active Lots Query
@@ -386,7 +386,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-page)' }}>
+    <div className="min-h-screen page-background">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Date Range Selector */}
         <div className="flex justify-center mb-8">
@@ -408,33 +408,26 @@ export default function Dashboard() {
 
         {/* Section 1: Am I profitable? */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-semibold mb-3 text-primary">
             AM I PROFITABLE?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Net Profit */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               NET PROFIT
             </p>
             {loadingRevenue || loadingLotCosts || loadingExpenses ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={getProfitColor()}>
+                <p className={`text-3xl font-bold ${getProfitColor()}`}>
                   ${netProfit.toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Money earned after all costs"
                     : `${getDateRangeLabel()} - Money earned after all costs`
@@ -445,28 +438,21 @@ export default function Dashboard() {
           </div>
 
           {/* Profit Margin */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               PROFIT MARGIN
             </p>
             {loadingRevenue || loadingLotCosts || loadingExpenses ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={getMarginColor()}>
+                <p className={`text-3xl font-bold ${getMarginColor()}`}>
                   {profitMargin.toFixed(1)}%
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Percentage of revenue kept as profit"
                     : `${getDateRangeLabel()} - Percentage kept as profit`
@@ -477,28 +463,21 @@ export default function Dashboard() {
           </div>
 
           {/* Total Revenue */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               TOTAL REVENUE
             </p>
             {loadingRevenue ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(totalRevenue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Total money from card sales"
                     : `${getDateRangeLabel()} - Total from card sales`
@@ -509,28 +488,21 @@ export default function Dashboard() {
           </div>
 
           {/* Cash on Hand */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               CASH ON HAND
             </p>
             {loadingCash ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(cashBalance || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Money available to spend</p>
+                <p className="text-xs mt-1 text-tertiary">Money available to spend</p>
               </>
             )}
           </div>
@@ -540,33 +512,26 @@ export default function Dashboard() {
 
         {/* Section 2: How am I selling? */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-semibold mb-3 text-primary">
             HOW AM I SELLING?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Premium Sales */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               TOTAL COSTS
             </p>
             {loadingLotCosts || loadingExpenses ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Cost of inventory + business expenses"
                     : `${getDateRangeLabel()} - Inventory + expenses`
@@ -576,28 +541,21 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               PREMIUM SALES
             </p>
             {loadingPremium ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(premiumSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from individual card sales"
                     : `${getDateRangeLabel()} - Individual card sales`
@@ -608,28 +566,21 @@ export default function Dashboard() {
           </div>
 
           {/* Bulk Sales */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               BULK SALES
             </p>
             {loadingBulk ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(bulkSales || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from multi-card sales"
                     : `${getDateRangeLabel()} - Multi-card sales`
@@ -640,53 +591,39 @@ export default function Dashboard() {
           </div>
 
           {/* Show Card Inventory */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               SHOW CARD INVENTORY
             </p>
             {loadingCards ? (
               <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{availableCards}</p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>High-value cards ready to sell</p>
+                <p className="text-3xl font-bold text-primary">{availableCards}</p>
+                <p className="text-xs mt-1 text-tertiary">High-value cards ready to sell</p>
               </>
             )}
           </div>
 
           {/* Average Sale Value */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               AVERAGE SALE VALUE
             </p>
             {loadingAverage ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(averageSaleData?.averageValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Average money earned per transaction"
                     : `${getDateRangeLabel()} - Avg per transaction`
@@ -700,23 +637,16 @@ export default function Dashboard() {
 
         {/* Section 3: What's my investment? */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-lg font-semibold mb-3 text-primary">
             WHAT'S MY INVESTMENT?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Costs */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               TOTAL COSTS
             </p>
             {loadingLotCosts || loadingExpenses ? (
@@ -726,7 +656,7 @@ export default function Dashboard() {
                 <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
                   ${totalCosts.toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "Cost of inventory + business expenses"
                     : `${getDateRangeLabel()} - Inventory + expenses`
@@ -737,82 +667,61 @@ export default function Dashboard() {
           </div>
 
           {/* Total Inventory Value */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-blue-600" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               TOTAL INVENTORY VALUE
             </p>
             {loadingInventory ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${(inventoryValue || 0).toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Money tied up in unsold cards</p>
+                <p className="text-xs mt-1 text-tertiary">Money tied up in unsold cards</p>
               </>
             )}
           </div>
 
           {/* Total Business Value */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <Wallet className="h-8 w-8 text-purple-600" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               TOTAL BUSINESS VALUE
             </p>
             {loadingCash || loadingInventory ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   ${totalBusinessValue.toFixed(2)}
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>Total worth if liquidated today</p>
+                <p className="text-xs mt-1 text-tertiary">Total worth if liquidated today</p>
               </>
             )}
           </div>
 
           {/* Inventory Turnover */}
-          <div 
-            className="rounded-lg p-6" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <div className="card-style rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2" style={{ color: 'var(--text-tertiary)' }}>
+            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
               INVENTORY TURNOVER
             </p>
             {loadingRevenue || loadingInventory ? (
               <Skeleton className="h-8 w-32" />
             ) : (
               <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                <p className="text-3xl font-bold text-primary">
                   {inventoryTurnover === Infinity ? "∞" : inventoryTurnover.toFixed(1)}x
                 </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                <p className="text-xs mt-1 text-tertiary">
                   {getDateRangeLabel() === "All Time" 
                     ? "How quickly inventory converts to cash"
                     : `${getDateRangeLabel()} - Inventory to cash speed`
@@ -848,15 +757,8 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <section className="mb-12">
-          <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>RECENT ACTIVITY</h2>
-          <div 
-            className="rounded-lg p-6 overflow-x-auto" 
-            style={{ 
-              backgroundColor: 'var(--card-bg)', 
-              border: '1px solid var(--border-default)', 
-              boxShadow: 'var(--shadow-base)' 
-            }}
-          >
+          <h2 className="text-lg font-semibold mb-4 text-primary">RECENT ACTIVITY</h2>
+          <div className="card-style rounded-lg p-6 overflow-x-auto">
             {loadingActivity ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
@@ -864,36 +766,36 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : !recentActivity || recentActivity.length === 0 ? (
-              <p className="text-center py-8" style={{ color: 'var(--text-tertiary)' }}>
+              <p className="text-center py-8 text-tertiary">
                 No transactions yet. Record your first sale!
               </p>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Date</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Type</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Description</th>
-                    <th className="text-right py-3 px-2 text-sm font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Amount</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase" style={{ color: 'var(--text-secondary)' }}>Show</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Date</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Type</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Description</th>
+                    <th className="text-right py-3 px-2 text-sm font-semibold uppercase text-secondary">Amount</th>
+                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Show</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentActivity.map((transaction: any) => (
                     <tr key={transaction.id} className="border-b border-border/50">
-                      <td className="py-3 px-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+                      <td className="py-3 px-2 text-sm text-primary">
                         {format(new Date(transaction.created_at), "MM/dd/yy")}
                       </td>
                       <td className="py-3 px-2">
                         {getTransactionTypeBadge(transaction.transaction_type)}
                       </td>
-                      <td className="py-3 px-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+                      <td className="py-3 px-2 text-sm text-primary">
                         {transaction.show_cards?.player_name || transaction.lots?.source || "—"}
                       </td>
-                      <td className="py-3 px-2 text-sm text-right" style={{ color: 'var(--metric-positive)' }}>
+                      <td className="py-3 px-2 text-sm text-right metric-positive">
                         ${Number(transaction.revenue).toFixed(2)}
                       </td>
-                      <td className="py-3 px-2 text-sm" style={{ color: 'var(--text-primary)' }}>
+                      <td className="py-3 px-2 text-sm text-primary">
                         {transaction.shows?.name || "—"}
                       </td>
                     </tr>
@@ -906,7 +808,7 @@ export default function Dashboard() {
 
         {/* Upcoming Shows */}
         <section>
-          <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>UPCOMING SHOWS</h2>
+          <h2 className="text-lg font-semibold mb-4 text-primary">UPCOMING SHOWS</h2>
           {loadingShows ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(3)].map((_, i) => (
@@ -914,41 +816,26 @@ export default function Dashboard() {
               ))}
             </div>
           ) : !upcomingShows || upcomingShows.length === 0 ? (
-            <div 
-              className="rounded-lg p-6 text-center" 
-              style={{ 
-                backgroundColor: 'var(--card-bg)', 
-                border: '1px solid var(--border-default)', 
-                boxShadow: 'var(--shadow-base)' 
-              }}
-            >
-              <p className="mb-4" style={{ color: 'var(--text-tertiary)' }}>No upcoming shows. Create your first show!</p>
+            <div className="card-style rounded-lg p-6 text-center">
+              <p className="mb-4 text-tertiary">No upcoming shows. Create your first show!</p>
               <Button onClick={() => navigate("/shows/new")}>Create Show</Button>
             </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {upcomingShows.map((show: any) => (
-                  <div 
-                    key={show.id} 
-                    className="rounded-lg p-6" 
-                    style={{ 
-                      backgroundColor: 'var(--card-bg)', 
-                      border: '1px solid var(--border-default)', 
-                      boxShadow: 'var(--shadow-base)' 
-                    }}
-                  >
+                  <div key={show.id} className="card-style rounded-lg p-6">
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{show.name}</h3>
+                      <h3 className="text-sm font-semibold text-primary">{show.name}</h3>
                       {getStatusBadge(show.status)}
                     </div>
-                    <p className="text-sm mb-1" style={{ color: 'var(--text-primary)' }}>
+                    <p className="text-sm mb-1 text-primary">
                       {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </p>
-                    <p className="text-sm mb-3" style={{ color: 'var(--text-tertiary)' }}>
+                    <p className="text-sm mb-3 text-tertiary">
                       {show.location || "Location TBD"}
                     </p>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    <p className="text-sm font-semibold text-primary">
                       Table Cost: ${Number(show.table_cost).toFixed(2)}
                     </p>
                   </div>
