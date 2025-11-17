@@ -168,7 +168,7 @@ const DesktopSidebar = () => {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all w-full mt-4",
               location.pathname === "/glossary"
-                ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
+                ? "bg-primary text-primary-foreground border-l-4 border-accent"
                 : "text-card-foreground hover:bg-muted/50"
             )}
           >

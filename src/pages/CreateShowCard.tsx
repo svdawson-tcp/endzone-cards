@@ -431,7 +431,7 @@ export default function CreateShowCard() {
           <div className="mt-6">
             <Button
               onClick={() => navigate("/lots/new")}
-              className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Create a Lot
             </Button>
@@ -656,7 +656,7 @@ export default function CreateShowCard() {
                   <Button
                     type="button"
                     onClick={() => setShowFrontCamera(true)}
-                    className="w-full min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+                    className="w-full min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase"
                   >
                     <Camera className="mr-2 h-5 w-5" />
                     TAKE PHOTO
@@ -720,7 +720,7 @@ export default function CreateShowCard() {
                   <Button
                     type="button"
                     onClick={() => setShowBackCamera(true)}
-                    className="w-full min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+                    className="w-full min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase"
                   >
                     <Camera className="mr-2 h-5 w-5" />
                     TAKE PHOTO
@@ -788,7 +788,7 @@ export default function CreateShowCard() {
             <Button
               type="submit"
               disabled={!isFormValid() || isSubmitting}
-              className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase min-h-[44px]"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
             >
               {isSubmitting ? (
                 <>

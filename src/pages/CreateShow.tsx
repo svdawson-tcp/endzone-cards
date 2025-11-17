@@ -350,7 +350,7 @@ export default function CreateShow() {
             <Button
               type="submit"
               disabled={!isFormValid() || isSubmitting}
-              className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase min-h-[44px]"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
             >
               {isSubmitting ? (
                 <>

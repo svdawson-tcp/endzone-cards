@@ -260,7 +260,7 @@ export default function Auth() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="mr-2 accent-[hsl(var(--navy-base))]"
+                  className="mr-2 accent-primary"
                 />
                 <label htmlFor="rememberMe" className="text-sm text-muted-foreground">
                   Remember me on this device
@@ -273,7 +273,7 @@ export default function Auth() {
               <div className="text-right">
                 <button
                   type="button"
-                  className="text-sm text-[hsl(var(--star-gold))] hover:underline"
+                  className="text-sm text-accent hover:underline"
                 >
                   Forgot Password?
                 </button>
@@ -284,7 +284,7 @@ export default function Auth() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white px-6 py-3 rounded-lg font-semibold uppercase transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Processing..." : isLogin ? "Login" : "Create Account"}
             </button>
@@ -297,7 +297,7 @@ export default function Auth() {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-[hsl(var(--star-gold))] hover:underline font-semibold"
+                className="text-accent hover:underline font-semibold"
               >
                 {isLogin ? "Sign Up" : "Login"}
               </button>
