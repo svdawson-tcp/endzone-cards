@@ -273,7 +273,7 @@ export default function Lots() {
           </div>
           <Button
             onClick={() => navigate("/lots/new")}
-            className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase self-start md:self-auto"
+            className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
           >
             <Plus className="mr-2 h-5 w-5" />
             CREATE LOT
@@ -282,33 +282,28 @@ export default function Lots() {
 
         {/* Filter Tabs and Sort */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2 flex-1">
             <Button
               variant={filterTab === "all" ? "default" : "outline"}
               onClick={() => setFilterTab("all")}
-              className={filterTab === "all" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
             >
               All ({counts.all})
             </Button>
             <Button
               variant={filterTab === "active" ? "default" : "outline"}
               onClick={() => setFilterTab("active")}
-              className={filterTab === "active" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
             >
               Active ({counts.active})
             </Button>
             <Button
               variant={filterTab === "closed" ? "default" : "outline"}
               onClick={() => setFilterTab("closed")}
-              className={filterTab === "closed" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
             >
               Closed ({counts.closed})
             </Button>
             <Button
               variant={filterTab === "archived" ? "default" : "outline"}
               onClick={() => setFilterTab("archived")}
-              className={filterTab === "archived" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
             >
               Archived ({counts.archived})
             </Button>
@@ -347,7 +342,7 @@ export default function Lots() {
             <p className="text-muted-foreground mb-6">Create your first lot to start tracking purchases</p>
             <Button
               onClick={() => navigate("/lots/new")}
-              className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+              className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
             >
               <Plus className="mr-2 h-5 w-5" />
               CREATE LOT
@@ -450,7 +445,7 @@ export default function Lots() {
                   </Button>
                   <Button
                     onClick={() => navigate(`/show-cards/new?lot_id=${lot.id}`)}
-                    className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+                    className="w-full bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     ADD SHOW CARD
@@ -545,7 +540,7 @@ export default function Lots() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCloseConfirm}
-              className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]"
+              className="bg-[#041E42] hover:bg-[#0A2E63] text-white"
             >
               Close Lot
             </AlertDialogAction>
