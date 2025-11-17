@@ -42,8 +42,8 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
   };
 
   return (
-    <Card variant="elevated" padding="sm" className="rounded-none border-x-0 border-t-0">
-      <div className="flex items-center justify-between gap-4">
+    <Card variant="elevated" padding="sm" className="rounded-none border-x-0 border-t-0 fixed top-0 left-0 right-0 z-40 bg-white">
+      <div className="flex items-center justify-between gap-4 h-16 px-4">
         {/* Left: Logo and mobile menu */}
         <div className="flex items-center gap-3">
           {showMobileMenu && (
@@ -59,13 +59,12 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
           
           <button 
             onClick={() => navigate("/dashboard")}
-            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-2 py-1"
+            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#041E42] rounded px-2"
           >
             <img 
               src={endzoneLogo} 
               alt="EndZone - Your Gameplan to Profit" 
-              className="h-12 w-auto"
-              style={{ maxHeight: '48px', height: 'auto', width: 'auto' }}
+              className="h-10 w-auto object-contain"
             />
           </button>
         </div>
