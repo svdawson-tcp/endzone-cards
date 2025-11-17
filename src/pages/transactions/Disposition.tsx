@@ -174,11 +174,12 @@ export default function Disposition() {
   };
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+    <div className="min-h-screen bg-[#F5F7FA]">
+      <div className="container max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 md:p-8">
         {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">RECORD DISPOSITION</h1>
-        <p className="text-muted-foreground mb-6">Mark cards as discarded, lost, or combined</p>
+        <h1 className="text-h1 mb-2">RECORD DISPOSITION</h1>
+        <p className="text-gray-600 mb-6">Mark cards as discarded, lost, or combined</p>
 
         {/* Disposition Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -247,7 +248,7 @@ export default function Disposition() {
               }}
               className="mt-3 space-y-3"
             >
-              <div className="flex items-start space-x-3 p-4 border-2 border-border rounded-lg hover:border-[hsl(var(--navy-base))] transition-colors cursor-pointer has-[:checked]:border-[hsl(var(--navy-base))] has-[:checked]:bg-[hsl(var(--navy-base))]/5">
+              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="discarded" id="discarded" className="mt-1" />
                 <Label htmlFor="discarded" className="flex-1 cursor-pointer">
                   <div className="font-semibold text-gray-900">Discarded</div>
@@ -255,7 +256,7 @@ export default function Disposition() {
                 </Label>
               </div>
 
-              <div className="flex items-start space-x-3 p-4 border-2 border-border rounded-lg hover:border-[hsl(var(--navy-base))] transition-colors cursor-pointer has-[:checked]:border-[hsl(var(--navy-base))] has-[:checked]:bg-[hsl(var(--navy-base))]/5">
+              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="lost" id="lost" className="mt-1" />
                 <Label htmlFor="lost" className="flex-1 cursor-pointer">
                   <div className="font-semibold text-gray-900">Lost</div>
@@ -263,7 +264,7 @@ export default function Disposition() {
                 </Label>
               </div>
 
-              <div className="flex items-start space-x-3 p-4 border-2 border-border rounded-lg hover:border-[hsl(var(--navy-base))] transition-colors cursor-pointer has-[:checked]:border-[hsl(var(--navy-base))] has-[:checked]:bg-[hsl(var(--navy-base))]/5">
+              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="combined" id="combined" className="mt-1" />
                 <Label htmlFor="combined" className="flex-1 cursor-pointer">
                   <div className="font-semibold text-gray-900">Combined</div>
@@ -385,7 +386,7 @@ export default function Disposition() {
             <Button
               type="submit"
               disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white"
+              className="flex-1 min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white"
             >
               {submitMutation.isPending ? (
                 <>
@@ -401,6 +402,7 @@ export default function Disposition() {
             </Button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );

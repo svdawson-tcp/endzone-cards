@@ -155,11 +155,12 @@ export default function BulkSale() {
   };
 
   return (
-    <div className="container max-w-2xl mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
+    <div className="min-h-screen bg-[#F5F7FA]">
+      <div className="container max-w-2xl mx-auto px-4 py-8">
+        <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 md:p-8">
         {/* Header */}
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">RECORD BULK SALE</h1>
-        <p className="text-muted-foreground mb-6">Record sale of common cards from inventory</p>
+        <h1 className="text-h1 mb-2">RECORD BULK SALE</h1>
+        <p className="text-gray-600 mb-6">Record sale of common cards from inventory</p>
 
         {/* Informational Alert */}
         <Alert className="mb-6">
@@ -350,7 +351,7 @@ export default function BulkSale() {
             <Button
               type="submit"
               disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px] bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white"
+              className="flex-1 min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white"
             >
               {submitMutation.isPending ? (
                 <>
@@ -366,6 +367,7 @@ export default function BulkSale() {
             </Button>
           </div>
         </form>
+      </div>
       </div>
     </div>
   );
