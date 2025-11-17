@@ -1,0 +1,104 @@
+/* ENDZONE DESIGN SYSTEM v2.0 - COMPREHENSIVE OVERHAUL */
+/* Mobile-first, high-contrast, themeable design system */
+
+:root {
+  /* === CORE NEUTRAL PALETTE === */
+  /* High contrast for bright environments */
+  --background: 248 250 252;           /* Bright white background */
+  --foreground: 15 23 42;              /* Deep slate for text */
+  --surface: 255 255 255;              /* Clean white cards */
+  --surface-elevated: 255 255 255;     /* Elevated cards */
+  --border: 226 232 240;               /* Subtle borders */
+  --muted: 241 245 249;                /* Muted backgrounds */
+  --muted-foreground: 100 116 139;     /* Secondary text */
+
+  /* === THEMEABLE TEAM COLORS === */
+  /* Cowboys theme - easily replaceable */
+  --primary: 25 42 86;                 /* Cowboys navy */
+  --primary-foreground: 255 255 255;   /* White on navy */
+  --accent: 255 184 28;                /* Cowboys gold */
+  --accent-foreground: 25 42 86;       /* Navy on gold */
+  
+  /* === SEMANTIC COLORS === */
+  /* Universal across all themes */
+  --success: 22 163 74;                /* Profit green */
+  --success-foreground: 255 255 255;
+  --warning: 245 158 11;               /* Warning amber */
+  --warning-foreground: 255 255 255;
+  --destructive: 220 38 38;            /* Error red */
+  --destructive-foreground: 255 255 255;
+  
+  /* === MOBILE-OPTIMIZED SIZING === */
+  /* Minimum 44px touch targets */
+  --touch-target: 44px;
+  --touch-target-lg: 56px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  
+  /* === TYPOGRAPHY SCALE === */
+  /* Readable in bright environments */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  
+  /* === SHADOWS === */
+  /* Subtle but visible outdoors */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  
+  /* === BORDER RADIUS === */
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+/* Dark mode support for future */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 15 23 42;
+    --foreground: 248 250 252;
+    --surface: 30 41 59;
+    --surface-elevated: 51 65 85;
+    --border: 51 65 85;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+  }
+}
+
+/* Base application styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* High contrast focus indicators */
+*:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
