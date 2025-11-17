@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
-import dashboardBg from "@/assets/backgrounds/dashboard-stadium-bg.jpg";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 export default function Dashboard() {
@@ -387,13 +386,8 @@ export default function Dashboard() {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-fixed relative"
-      style={{ backgroundImage: `url(${dashboardBg})` }}
-    >
-      <div className="absolute inset-0 bg-black/75" />
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-muted">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Date Range Selector */}
         <div className="flex justify-center mb-8">
           <Select value={dateRange} onValueChange={setDateRange}>
