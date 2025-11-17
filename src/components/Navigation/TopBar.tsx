@@ -59,12 +59,13 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
           
           <button 
             onClick={() => navigate("/dashboard")}
-            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
+            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded px-2 py-1"
           >
             <img 
               src={endzoneLogo} 
               alt="EndZone - Your Gameplan to Profit" 
-              className="h-14 w-auto"
+              className="h-12 w-auto"
+              style={{ maxHeight: '48px', height: 'auto', width: 'auto' }}
             />
           </button>
         </div>
