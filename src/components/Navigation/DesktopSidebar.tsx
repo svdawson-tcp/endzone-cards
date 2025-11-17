@@ -67,13 +67,13 @@ const DesktopSidebar = () => {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all",
                   isActive
-                    ? "bg-[hsl(var(--navy-base))] text-white border-l-4 border-[hsl(var(--star-gold))]"
+                    ? "bg-primary text-primary-foreground border-l-4 border-accent"
                     : "text-card-foreground hover:bg-muted/50"
                 )}
               >
                 <Icon
                   size={24}
-                  className={isActive ? "text-white" : "text-muted-foreground"}
+                  className={isActive ? "text-accent" : "text-muted-foreground"}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
               </button>
@@ -108,7 +108,7 @@ const DesktopSidebar = () => {
                       className={cn(
                         "flex items-center gap-3 px-4 py-2.5 rounded-lg cursor-pointer transition-all text-sm",
                         isActive
-                          ? "bg-[hsl(var(--navy-base))]/10 text-[hsl(var(--navy-base))] font-medium"
+                          ? "bg-accent/10 text-accent font-medium"
                           : "text-muted-foreground hover:bg-muted/50 hover:text-card-foreground"
                       )}
                     >
@@ -149,7 +149,7 @@ const DesktopSidebar = () => {
                       className={cn(
                         "flex items-center gap-3 px-4 py-2.5 rounded-lg cursor-pointer transition-all text-sm",
                         isActive
-                          ? "bg-[hsl(var(--navy-base))]/10 text-[hsl(var(--navy-base))] font-medium"
+                          ? "bg-accent/10 text-accent font-medium"
                           : "text-muted-foreground hover:bg-muted/50 hover:text-card-foreground"
                       )}
                     >

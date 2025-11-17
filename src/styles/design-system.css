@@ -1,31 +1,36 @@
-/* ENDZONE DESIGN SYSTEM v2.0 - COMPREHENSIVE OVERHAUL */
-/* Mobile-first, high-contrast, themeable design system */
+/* ENDZONE DESIGN SYSTEM v2.0 - SPORTS PROFESSIONAL */
+/* Mobile-first, high-contrast, ESPN/NFL-style design system */
 
 :root {
   /* === CORE NEUTRAL PALETTE === */
-  /* High contrast for bright environments */
-  --background: 248 250 252;           /* Bright white background */
-  --foreground: 15 23 42;              /* Deep slate for text */
-  --surface: 255 255 255;              /* Clean white cards */
+  /* High contrast for outdoor/bright environments */
+  --background: 248 250 252;           /* Clean white background */
+  --foreground: 15 23 42;              /* Deep navy text */
+  --surface: 255 255 255;              /* Pure white cards */
   --surface-elevated: 255 255 255;     /* Elevated cards */
   --border: 226 232 240;               /* Subtle borders */
-  --muted: 241 245 249;                /* Muted backgrounds */
-  --muted-foreground: 100 116 139;     /* Secondary text */
+  --muted: 241 245 249;                /* Light gray backgrounds */
+  --muted-foreground: 71 85 105;       /* Readable gray text */
 
-  /* === THEMEABLE TEAM COLORS === */
-  /* Cowboys theme - easily replaceable */
-  --primary: 25 42 86;                 /* Cowboys navy */
-  --primary-foreground: 255 255 255;   /* White on navy */
-  --accent: 255 184 28;                /* Cowboys gold */
-  --accent-foreground: 25 42 86;       /* Navy on gold */
+  /* === TEAM IDENTITY === */
+  /* Professional NFL-style navy/blue system */
+  --primary: 0 34 68;                  /* Deep navy (NFL-style) */
+  --primary-foreground: 255 255 255;   /* White text */
+  --accent: 0 119 200;                 /* Professional blue accent */
+  --accent-foreground: 255 255 255;    /* White on blue */
+  
+  /* === SECONDARY SYSTEM === */
+  /* Balanced slate grays for professional look */
+  --secondary: 71 85 105;              /* Slate gray for balance */
+  --secondary-foreground: 255 255 255;
   
   /* === SEMANTIC COLORS === */
-  /* Universal across all themes */
-  --success: 22 163 74;                /* Profit green */
+  /* Sports-appropriate feedback colors */
+  --success: 34 197 94;                /* Vibrant green (wins/profit) */
   --success-foreground: 255 255 255;
-  --warning: 245 158 11;               /* Warning amber */
+  --warning: 249 115 22;               /* Orange (caution) */
   --warning-foreground: 255 255 255;
-  --destructive: 220 38 38;            /* Error red */
+  --destructive: 239 68 68;            /* Red (losses/errors) */
   --destructive-foreground: 255 255 255;
   
   /* === MOBILE-OPTIMIZED SIZING === */
