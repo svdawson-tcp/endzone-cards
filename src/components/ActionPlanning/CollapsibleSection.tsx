@@ -34,15 +34,15 @@ export const CollapsibleSection = ({
   }, [isOpen, storageKey]);
   
   return (
-    <Card className="p-6 bg-primary/5">
+    <Card className="p-6 bg-white border border-gray-200 shadow-md">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80 transition-opacity">
-          <Icon className="w-5 h-5 text-primary" />
-          <h3 className="text-card-foreground font-medium text-lg">{title}</h3>
+          <Icon className="w-5 h-5 text-[#041E42]" />
+          <h3 className="text-gray-900 font-medium text-lg">{title}</h3>
           {isOpen ? (
-            <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 ml-auto text-gray-600" />
           ) : (
-            <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />
+            <ChevronRight className="w-4 h-4 ml-auto text-gray-600" />
           )}
         </CollapsibleTrigger>
         

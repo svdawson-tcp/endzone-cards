@@ -170,21 +170,20 @@ const ActionPlanning = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[#F5F7FA]">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-4 mb-2">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/goals/business')}
-            className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">Action Planning</h1>
-            <p className="text-white/80 text-sm">Track your progress with actionable goals</p>
+            <h1 className="text-h1 text-[#041E42]">ACTION PLANNING</h1>
+            <p className="text-gray-600 text-sm">Track your progress with actionable goals</p>
           </div>
         </div>
         

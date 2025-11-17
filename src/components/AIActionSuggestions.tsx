@@ -151,15 +151,15 @@ export const AIActionSuggestions = ({
                         suggestions.longterm.length > 0;
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+    <Card className="p-6 bg-white border border-gray-200">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Lightbulb className="h-6 w-6 text-primary" />
+          <div className="p-2 bg-blue-50 rounded-lg">
+            <Lightbulb className="h-6 w-6 text-[#041E42]" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-card-foreground">AI Action Suggestions</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-lg font-semibold text-gray-900">AI Action Suggestions</h3>
+            <p className="text-sm text-gray-600">
               Get personalized recommendations for each timeframe
             </p>
           </div>
@@ -169,7 +169,7 @@ export const AIActionSuggestions = ({
           onClick={generateSuggestions}
           disabled={isGenerating}
           size="sm"
-          className="gap-2"
+          className="gap-2 bg-[#041E42] hover:bg-[#0A2E63] text-white"
         >
           {isGenerating ? (
             <>
@@ -194,9 +194,9 @@ export const AIActionSuggestions = ({
         <div className="space-y-6">
           {suggestions.monthly.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 Monthly Actions
-                <span className="text-xs text-muted-foreground font-normal">
+                <span className="text-xs text-gray-600 font-normal">
                   ({calculateCompletionRate('monthly').toFixed(0)}% complete)
                 </span>
               </h4>
@@ -204,13 +204,13 @@ export const AIActionSuggestions = ({
                 {suggestions.monthly.map((suggestion, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
+                    className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
                   >
-                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-gray-900">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="shrink-0 h-8 px-2 gap-1"
+                      className="shrink-0 h-8 px-2 gap-1 bg-white hover:bg-gray-50"
                       onClick={() => handleAddSuggestion(suggestion, 'monthly')}
                     >
                       <Plus className="h-3 w-3" />
@@ -224,9 +224,9 @@ export const AIActionSuggestions = ({
 
           {suggestions.quarterly.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 Quarterly Goals
-                <span className="text-xs text-muted-foreground font-normal">
+                <span className="text-xs text-gray-600 font-normal">
                   ({calculateCompletionRate('quarterly').toFixed(0)}% complete)
                 </span>
               </h4>
@@ -234,13 +234,13 @@ export const AIActionSuggestions = ({
                 {suggestions.quarterly.map((suggestion, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
+                    className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
                   >
-                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-gray-900">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="shrink-0 h-8 px-2 gap-1"
+                      className="shrink-0 h-8 px-2 gap-1 bg-white hover:bg-gray-50"
                       onClick={() => handleAddSuggestion(suggestion, 'quarterly')}
                     >
                       <Plus className="h-3 w-3" />
@@ -254,9 +254,9 @@ export const AIActionSuggestions = ({
 
           {suggestions.longterm.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-card-foreground mb-3 flex items-center gap-2">
-                Long-term Initiatives
-                <span className="text-xs text-muted-foreground font-normal">
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                Long-term Vision
+                <span className="text-xs text-gray-600 font-normal">
                   ({calculateCompletionRate('longterm').toFixed(0)}% complete)
                 </span>
               </h4>
@@ -264,13 +264,13 @@ export const AIActionSuggestions = ({
                 {suggestions.longterm.map((suggestion, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-2 p-3 bg-background/50 rounded-lg border border-border/50"
+                    className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
                   >
-                    <div className="flex-1 text-sm text-card-foreground">{suggestion}</div>
+                    <div className="flex-1 text-sm text-gray-900">{suggestion}</div>
                     <Button
                       size="sm"
                       variant="outline"
-                      className="shrink-0 h-8 px-2 gap-1"
+                      className="shrink-0 h-8 px-2 gap-1 bg-white hover:bg-gray-50"
                       onClick={() => handleAddSuggestion(suggestion, 'longterm')}
                     >
                       <Plus className="h-3 w-3" />
