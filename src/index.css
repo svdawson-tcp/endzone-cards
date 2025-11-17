@@ -44,20 +44,12 @@
     --radius: 8px;
     --radius-lg: 12px;
 
-    /* === VISIBLE SHADOW SYSTEM (Black shadows for dark backgrounds) === */
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
-    --glow-blue: 0 0 16px rgba(13, 110, 255, 0.4), 0 0 32px rgba(13, 110, 255, 0.2);
-    --glow-gold: 0 0 16px rgba(251, 191, 36, 0.4), 0 0 32px rgba(251, 191, 36, 0.2);
-
     /* === CHART COLORS === */
-    --chart-1: var(--navy-base);
-    --chart-2: var(--silver-base);
-    --chart-3: var(--star-gold);
-    --chart-4: var(--victory-green);
-    --chart-5: var(--star-blue);
+    --chart-1: 15 23 42;           /* Primary navy */
+    --chart-2: 100 116 139;        /* Slate gray */
+    --chart-3: 37 99 235;          /* Blue accent */
+    --chart-4: 34 197 94;          /* Success green */
+    --chart-5: 239 68 68;          /* Destructive red */
   }
 
   .dark {
@@ -68,19 +60,19 @@
     --card-foreground: 248 250 252;
     --popover: 30 41 59;
     --popover-foreground: 248 250 252;
-    --primary: var(--navy-base);
-    --primary-foreground: var(--text-on-dark);
-    --secondary: var(--slate-base);
-    --secondary-foreground: var(--text-on-dark);
+    --primary: 15 23 42;
+    --primary-foreground: 255 255 255;
+    --secondary: 100 116 139;
+    --secondary-foreground: 255 255 255;
     --muted: 51 65 85;
     --muted-foreground: 148 163 184;
-    --accent: var(--blue-accent);
-    --accent-foreground: var(--text-on-dark);
-    --destructive: var(--red-error);
-    --destructive-foreground: var(--text-on-dark);
+    --accent: 37 99 235;
+    --accent-foreground: 255 255 255;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
     --border: 51 65 85;
     --input: 51 65 85;
-    --ring: var(--blue-accent);
+    --ring: 37 99 235;
   }
 }
 
@@ -181,14 +173,14 @@
   .card-holographic-border {
     border: 4px solid transparent;
     background:
-      linear-gradient(hsl(var(--navy-dark)), hsl(var(--navy-dark))) padding-box,
+      linear-gradient(hsl(var(--primary)), hsl(var(--primary))) padding-box,
       linear-gradient(
           135deg,
-          hsl(var(--navy-base)) 0%,
-          hsl(var(--silver-base)) 25%,
-          hsl(var(--star-gold)) 50%,
-          hsl(var(--star-blue)) 75%,
-          hsl(var(--navy-base)) 100%
+          hsl(var(--primary)) 0%,
+          hsl(var(--secondary)) 25%,
+          hsl(var(--accent)) 50%,
+          hsl(var(--success)) 75%,
+          hsl(var(--primary)) 100%
         )
         border-box;
     background-size: 200% 200%;
@@ -211,17 +203,17 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--navy-dark));
+    background: hsl(var(--muted));
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--silver-base));
+    background: hsl(var(--secondary));
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--star-gold));
+    background: hsl(var(--accent));
   }
 }
 
