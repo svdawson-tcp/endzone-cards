@@ -300,7 +300,7 @@ export default function TransactionHistory() {
       const salesTx = tx as SalesTransaction;
       const isDisposition = tx.transaction_type === "disposition";
       return (
-        <span className={isDisposition ? "text-gray-500" : "text-green-600 font-semibold"}>
+        <span className={isDisposition ? "text-[hsl(var(--text-secondary))]" : "text-[hsl(var(--metric-positive))] font-semibold"}>
           {isDisposition ? "" : "+"}${salesTx.revenue.toFixed(2)}
         </span>
       );
@@ -308,7 +308,7 @@ export default function TransactionHistory() {
       const cashTx = tx as CashTransaction;
       const isPositive = cashTx.amount >= 0;
       return (
-        <span className={isPositive ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
+        <span className={isPositive ? "text-[hsl(var(--metric-positive))] font-semibold" : "text-[hsl(var(--metric-negative))] font-semibold"}>
           {isPositive ? "+" : ""}${Math.abs(cashTx.amount).toFixed(2)}
         </span>
       );
@@ -316,14 +316,14 @@ export default function TransactionHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div>
               {/* Page Title - Uses page-title class for white text on dark background */}
-              <h1 className="page-title mb-2">TRANSACTION HISTORY</h1>
-              <p className="text-gray-600">
+              <h1 className="text-h1 mb-2">TRANSACTION HISTORY</h1>
+              <p className="text-[hsl(var(--text-body))]">
                 Complete audit trail of all financial transactions
               </p>
             </div>
@@ -339,22 +339,22 @@ export default function TransactionHistory() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Total Transactions</div>
-              <div className="text-2xl font-bold text-gray-900">{filteredTransactions.length}</div>
+              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Total Transactions</div>
+              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{filteredTransactions.length}</div>
             </div>
             <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Total Revenue</div>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Total Revenue</div>
+              <div className="text-2xl font-bold text-[hsl(var(--metric-positive))]">
                 ${totalRevenue.toFixed(2)}
               </div>
             </div>
             <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Premium Sales</div>
-              <div className="text-2xl font-bold text-gray-900">{counts.show_card_sale}</div>
+              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Premium Sales</div>
+              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{counts.show_card_sale}</div>
             </div>
             <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Bulk Sales</div>
-              <div className="text-2xl font-bold text-gray-900">{counts.bulk_sale}</div>
+              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Bulk Sales</div>
+              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{counts.bulk_sale}</div>
             </div>
           </div>
 
@@ -397,15 +397,15 @@ export default function TransactionHistory() {
 
         {isLoading && (
           <div className="text-center py-12">
-            <p className="text-gray-600">Loading transactions...</p>
+            <p className="text-[hsl(var(--text-body))]">Loading transactions...</p>
           </div>
         )}
 
         {!isLoading && transactions.length === 0 && (
           <div className="bg-white shadow-md rounded-lg p-12 text-center">
             <Receipt className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No transactions yet</h2>
-            <p className="text-gray-600">
+            <h2 className="text-h2 mb-2">No transactions yet</h2>
+            <p className="text-[hsl(var(--text-body))]">
               Transactions will appear here as you record sales, cash movements, and dispositions
             </p>
           </div>
@@ -414,8 +414,8 @@ export default function TransactionHistory() {
         {!isLoading && transactions.length > 0 && sortedTransactions.length === 0 && (
           <div className="bg-white shadow-md rounded-lg p-12 text-center">
             <Receipt className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">No matching transactions</h2>
-            <p className="text-gray-600">Try adjusting your filters or search term</p>
+            <h2 className="text-h2 mb-2">No matching transactions</h2>
+            <p className="text-[hsl(var(--text-body))]">Try adjusting your filters or search term</p>
           </div>
         )}
 
@@ -441,12 +441,12 @@ export default function TransactionHistory() {
                       <TableRow key={tx.id}>
                         <TableCell className="whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-500" />
-                            <span className="text-gray-900 font-medium">
+                            <Calendar className="h-4 w-4 text-[hsl(var(--text-secondary))]" />
+                            <span className="text-[hsl(var(--text-body))] font-medium">
                               {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "MM/dd/yy")}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-[hsl(var(--text-secondary))]">
                             {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "h:mm a")}
                           </div>
                         </TableCell>
@@ -462,7 +462,7 @@ export default function TransactionHistory() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-gray-900">
+                        <TableCell className="max-w-[200px] truncate text-[hsl(var(--text-body))]">
                           {tx.source === "sales" ? (
                             tx.transaction_type === "show_card_sale" && (tx as SalesTransaction).show_cards
                               ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
@@ -471,7 +471,7 @@ export default function TransactionHistory() {
                             tx.notes || "Manual cash entry"
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[150px] truncate text-gray-900">
+                        <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
                           {tx.source === "sales" ? (
                             (tx as SalesTransaction).shows?.name || "-"
                           ) : (
@@ -480,11 +480,11 @@ export default function TransactionHistory() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <DollarSign className="h-4 w-4 text-gray-500" />
+                            <DollarSign className="h-4 w-4 text-[hsl(var(--text-secondary))]" />
                             {getAmountDisplay(tx)}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-gray-600 text-sm">
+                        <TableCell className="max-w-[200px] truncate text-[hsl(var(--text-secondary))] text-sm">
                           {tx.notes || "-"}
                         </TableCell>
                         <TableCell className="text-right">
