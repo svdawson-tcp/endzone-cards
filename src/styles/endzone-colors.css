@@ -21,3 +21,34 @@
   --color-navy-900: #041E42;       /* Cowboys Navy */
   --color-gold-500: #FFC72C;       /* Cowboys Gold */
 }
+
+/* Utility Classes */
+.page-background {
+  background-color: var(--bg-page) !important;
+}
+
+.card-style {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-base);
+}
+
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+.metric-positive {
+  color: var(--metric-positive) !important;
+}
+
+.metric-negative {
+  color: var(--metric-negative) !important;
+}
