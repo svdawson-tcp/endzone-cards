@@ -67,14 +67,14 @@ const ShowCards = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="text-muted-foreground">Loading show cards...</div>
+      <div className="min-h-screen bg-[hsl(var(--bg-page))] flex items-center justify-center">
+        <div className="text-[hsl(var(--text-body))]">Loading show cards...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -125,8 +125,8 @@ const ShowCards = () => {
             <Card className="max-w-md mx-auto">
               <CardContent className="pt-6">
                 <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">No Show Cards Yet</h3>
-                <p className="text-gray-600 mb-4">Add your first premium card to start tracking inventory</p>
+                <h3 className="text-h3 mb-2">No Show Cards Yet</h3>
+                <p className="text-[hsl(var(--text-body))] mb-4">Add your first premium card to start tracking inventory</p>
                 <Button onClick={() => navigate("/show-cards/new")}>ADD SHOW CARD</Button>
               </CardContent>
             </Card>
@@ -135,7 +135,7 @@ const ShowCards = () => {
           <div className="text-center py-12">
             <Card className="max-w-md mx-auto">
               <CardContent className="pt-6">
-                <p className="text-gray-600">No cards match your filters</p>
+                <p className="text-[hsl(var(--text-body))]">No cards match your filters</p>
               </CardContent>
             </Card>
           </div>
@@ -165,18 +165,18 @@ const ShowCards = () => {
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg text-gray-900">{card.player_name}</h3>
-                        <p className="text-sm text-gray-600">{card.year}</p>
+                        <h3 className="font-bold text-lg">{card.player_name}</h3>
+                        <p className="text-sm text-[hsl(var(--text-body))]">{card.year}</p>
                       </div>
                       <Badge variant={getStatusBadgeVariant(card.status)}>
                         {card.status}
                       </Badge>
                     </div>
 
-                    <p className="text-xs text-gray-500">From: {card.lots?.source}</p>
+                    <p className="text-xs text-[hsl(var(--text-secondary))]">From: {card.lots?.source}</p>
 
                     {card.status === "sold" && (card as any).transactions?.[0]?.transaction_date && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[hsl(var(--text-secondary))]">
                         Sold: {new Date((card as any).transactions[0].transaction_date).toLocaleDateString('en-US', { 
                           month: 'short', 
                           day: 'numeric', 
@@ -186,13 +186,13 @@ const ShowCards = () => {
                     )}
 
                     {card.status === "available" && card.asking_price && (
-                      <p className="text-sm font-semibold text-green-600">
+                      <p className="text-sm font-semibold text-[hsl(var(--metric-positive))]">
                         Asking: ${Number(card.asking_price).toFixed(2)}
                       </p>
                     )}
 
                     {card.status === "sold" && (
-                      <p className="text-sm font-semibold text-gray-600">SOLD</p>
+                      <p className="text-sm font-semibold text-[hsl(var(--text-body))]">SOLD</p>
                     )}
                   </div>
                 </CardContent>
