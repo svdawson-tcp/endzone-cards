@@ -12,8 +12,8 @@ interface ActionCardProps {
 
 export const ActionCard = ({ children, variant = "default", className }: ActionCardProps) => {
   const variants = {
-    default: "bg-gradient-to-br from-[hsl(var(--navy-base))] to-[hsl(var(--navy-base))]/90 border border-[hsl(var(--star-gold))]/20 text-white shadow-lg",
-    suggestion: "bg-card border border-[hsl(var(--star-gold))]/30 text-card-foreground shadow-xl backdrop-blur-sm"
+    default: "bg-gradient-to-br from-primary to-primary/90 border border-accent/20 text-primary-foreground shadow-lg",
+    suggestion: "bg-card border border-accent/30 text-card-foreground shadow-xl backdrop-blur-sm"
   };
   
   return (
@@ -36,11 +36,11 @@ export const ActionCardHeader = ({
   disabled = false, 
   completionRate 
 }: ActionCardHeaderProps) => (
-  <div className="flex items-center justify-between p-4 border-b border-[hsl(var(--star-gold))]/30 bg-gradient-to-r from-[hsl(var(--navy-base))] to-[hsl(var(--navy-base))]/95">
+  <div className="flex items-center justify-between p-4 border-b border-accent/30 bg-gradient-to-r from-primary to-primary/95">
     <div className="flex items-center gap-3">
-      <h3 className="font-semibold text-lg text-white">{children}</h3>
+      <h3 className="font-semibold text-lg text-primary-foreground">{children}</h3>
       {typeof completionRate === 'number' && (
-        <span className="text-xs text-[hsl(var(--star-gold))] bg-[hsl(var(--star-gold))]/10 px-2 py-1 rounded-full border border-[hsl(var(--star-gold))]/20">
+        <span className="text-xs text-accent-foreground bg-accent/90 px-2 py-1 rounded-full font-medium">
           {completionRate}% complete
         </span>
       )}
@@ -51,7 +51,7 @@ export const ActionCardHeader = ({
         size="sm" 
         onClick={onAdd} 
         disabled={disabled}
-        className="bg-[hsl(var(--star-gold))] text-[hsl(var(--navy-base))] hover:bg-[hsl(var(--star-gold))]/90 border-[hsl(var(--star-gold))] font-medium"
+        className="bg-accent text-accent-foreground hover:bg-accent/90 border-accent font-medium"
       >
         <Plus className="w-4 h-4 mr-1" />
         Add
@@ -65,7 +65,7 @@ interface ActionCardContentProps {
 }
 
 export const ActionCardContent = ({ children }: ActionCardContentProps) => (
-  <div className="divide-y divide-[hsl(var(--star-gold))]/10">
+  <div className="divide-y divide-accent/10">
     {children}
   </div>
 );
@@ -87,7 +87,7 @@ export const ActionItem = ({
 }: ActionItemProps) => (
   <div 
     className={cn(
-      "flex items-start gap-3 p-3 group hover:bg-white/5 transition-colors",
+      "flex items-start gap-3 p-3 group hover:bg-primary-foreground/5 transition-colors",
       disabled && "pointer-events-none opacity-40"
     )}
   >
@@ -95,12 +95,12 @@ export const ActionItem = ({
       checked={completed} 
       onCheckedChange={onToggle} 
       disabled={disabled}
-      className="data-[state=checked]:bg-[hsl(var(--star-gold))] data-[state=checked]:border-[hsl(var(--star-gold))] border-white/30"
+      className="data-[state=checked]:bg-accent data-[state=checked]:border-accent border-primary-foreground/30"
     />
     <span 
       className={cn(
-        "flex-1 text-white transition-all",
-        completed && "line-through text-white/60"
+        "flex-1 text-primary-foreground transition-all",
+        completed && "line-through text-primary-foreground/60"
       )}
     >
       {children}
@@ -123,14 +123,14 @@ interface SuggestionCardProps {
 }
 
 export const SuggestionCard = ({ children, onAdd }: SuggestionCardProps) => (
-  <div className="bg-card border border-[hsl(var(--star-gold))]/20 p-4 rounded-lg hover:border-[hsl(var(--star-gold))]/40 transition-colors">
+  <div className="bg-card border border-accent/20 p-4 rounded-lg hover:border-accent/40 transition-colors">
     <div className="flex items-start justify-between gap-3">
       <span className="text-card-foreground flex-1">{children}</span>
       <Button 
         variant="outline" 
         size="sm" 
         onClick={onAdd}
-        className="shrink-0 bg-[hsl(var(--star-gold))]/10 hover:bg-[hsl(var(--star-gold))]/20 text-[hsl(var(--navy-base))] border-[hsl(var(--star-gold))]/30 font-medium"
+        className="shrink-0 bg-accent/10 hover:bg-accent/20 text-foreground border-accent/30 font-medium"
       >
         Add
       </Button>
@@ -143,7 +143,7 @@ interface EmptyStateProps {
 }
 
 export const EmptyState = ({ children }: EmptyStateProps) => (
-  <div className="p-6 text-center text-white/60">
+  <div className="p-6 text-center text-primary-foreground/60">
     {children}
   </div>
 );
