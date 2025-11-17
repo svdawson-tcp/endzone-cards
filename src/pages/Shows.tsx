@@ -243,13 +243,13 @@ export default function Shows() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            {/* Page Title - Uses page-title class for white text on dark background */}
-            <h1 className="page-title mb-2">SHOWS</h1>
+            {/* Page Title - Uses page-title class with EndZone design system */}
+            <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">SHOWS</h1>
             <p className="text-muted-foreground">Manage your card show events</p>
           </div>
           <Button
@@ -359,14 +359,14 @@ export default function Shows() {
                 </div>
 
                 {/* Show Name */}
-                <h3 className="text-h3 text-gray-900 mb-4 pr-20">{show.name}</h3>
+                <h3 className="text-h3 text-[hsl(var(--text-primary))] mb-4 pr-20">{show.name}</h3>
 
                 {/* Show Details */}
                 <div className="space-y-3 mb-4">
                   {/* Date */}
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-[hsl(var(--text-secondary))]">
                       {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </span>
                   </div>
@@ -375,14 +375,14 @@ export default function Shows() {
                   {show.location && (
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-gray-900">{show.location}</span>
+                      <span className="text-sm text-[hsl(var(--text-secondary))]">{show.location}</span>
                     </div>
                   )}
 
                   {/* Table Cost */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-[hsl(var(--text-secondary))]">
                       Table Cost: ${show.table_cost.toFixed(2)}
                     </span>
                   </div>

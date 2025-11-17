@@ -262,13 +262,13 @@ export default function Lots() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
           <div>
-            {/* Page Title - Uses page-title class for white text on dark background */}
-            <h1 className="page-title mb-2">LOTS</h1>
+            {/* Page Title - Uses page-title class with EndZone design system */}
+            <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
             <p className="text-muted-foreground">Track your inventory purchases</p>
           </div>
           <Button
@@ -380,14 +380,14 @@ export default function Lots() {
                 </div>
 
                 {/* Lot Source */}
-                <h3 className="text-h3 text-gray-900 mb-4 pr-20">{lot.source}</h3>
+                <h3 className="text-h3 text-[hsl(var(--text-primary))] mb-4 pr-20">{lot.source}</h3>
 
                 {/* Lot Details */}
                 <div className="space-y-3 mb-4">
                   {/* Purchase Date */}
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm text-[hsl(var(--text-secondary))]">
                       {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
                     </span>
                   </div>
@@ -395,7 +395,7 @@ export default function Lots() {
                   {/* Cost */}
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-[hsl(var(--text-secondary))]">
                       Cost: ${Number(lot.total_cost).toFixed(2)}
                     </span>
                   </div>
@@ -404,7 +404,7 @@ export default function Lots() {
                   {lot.revenue > 0 && (
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-gray-900">
+                      <span className="text-sm text-[hsl(var(--text-secondary))]">
                         Revenue: ${lot.revenue.toFixed(2)}
                       </span>
                     </div>
@@ -413,12 +413,12 @@ export default function Lots() {
                   {/* Net Profit/Loss */}
                   <div className="flex items-center gap-2">
                     {lot.net_profit >= 0 ? (
-                      <TrendingUp className="h-4 w-4 text-[hsl(var(--success))]" />
+                      <TrendingUp className="h-4 w-4 text-[hsl(var(--metric-positive))]" />
                     ) : (
-                      <TrendingDown className="h-4 w-4 text-destructive" />
+                      <TrendingDown className="h-4 w-4 text-[hsl(var(--metric-negative))]" />
                     )}
                     <span className={`text-sm font-semibold ${
-                      lot.net_profit >= 0 ? "text-[hsl(var(--success))]" : "text-destructive"
+                      lot.net_profit >= 0 ? "text-[hsl(var(--metric-positive))]" : "text-[hsl(var(--metric-negative))]"
                     }`}>
                       Net: ${lot.net_profit.toFixed(2)}
                     </span>
