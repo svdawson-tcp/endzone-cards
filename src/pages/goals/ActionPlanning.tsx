@@ -3,17 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Edit2, Trash2, Calendar, Target, Rocket, Lightbulb, ChevronDown, ChevronRight } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, Calendar, Target, Rocket, Lightbulb } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AIActionSuggestions } from "@/components/AIActionSuggestions";
 import { ActionEditDialog } from "@/components/ActionEditDialog";
-import { ArchiveManager } from "@/components/ArchiveManager";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMentorModeGuard } from "@/hooks/useMentorModeGuard";
+import { ActionCard, ActionCardHeader, ActionCardContent, ActionItem, EmptyState } from "@/components/ActionPlanning/ActionCard";
+import { CollapsibleSection } from "@/components/ActionPlanning/CollapsibleSection";
 
 interface ActionItem {
   id: string;
@@ -61,10 +59,6 @@ const ActionPlanning = () => {
   const [actionItems, setActionItems] = useState(defaultActions);
   const [addDialog, setAddDialog] = useState<{ open: boolean; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; actionId?: string; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
-  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(() => {
-    const saved = localStorage.getItem('aiSuggestionsOpen');
-    return saved ? JSON.parse(saved) : false;
-  });
 
   const { data: existingGoal, isLoading } = useQuery({
     queryKey: ['user-goals'],
@@ -86,10 +80,6 @@ const ActionPlanning = () => {
       });
     }
   }, [existingGoal]);
-
-  useEffect(() => {
-    localStorage.setItem('aiSuggestionsOpen', JSON.stringify(aiSuggestionsOpen));
-  }, [aiSuggestionsOpen]);
 
   const { data: revenueData } = useQuery({
     queryKey: ['current-monthly-revenue'],
@@ -165,45 +155,103 @@ const ActionPlanning = () => {
 
   const currentProgress = { monthly: getActiveActions('monthly'), quarterly: getActiveActions('quarterly'), longterm: getActiveActions('longterm') };
 
+  const categoryConfig = {
+    monthly: { title: "This Month", icon: Calendar },
+    quarterly: { title: "Next Quarter", icon: Target },
+    longterm: { title: "Long-term", icon: Rocket }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-6">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
-        <div><h1 className="text-3xl font-bold text-foreground">Action Planning</h1></div>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Action Planning</h1>
+        </div>
         
-        <Card className="p-6 bg-primary/5">
-          <Collapsible open={aiSuggestionsOpen} onOpenChange={setAiSuggestionsOpen}>
-            <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80 transition-opacity">
-              <Lightbulb className="w-5 h-5 text-primary" />
-              <h3 className="text-card-foreground font-medium text-lg">AI Action Suggestions</h3>
-              {aiSuggestionsOpen ? <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" /> : <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />}
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent>
-              <div className="mt-4">
-                <AIActionSuggestions currentProgress={currentProgress} businessMetrics={{ revenue: revenueData || 0, target: existingGoal?.target_monthly_income || 0 }} onAddSuggestion={handleAddAISuggestion} />
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </Card>
+        <CollapsibleSection
+          title="AI Action Suggestions"
+          icon={Lightbulb}
+          defaultOpen={false}
+          storageKey="aiSuggestionsOpen"
+        >
+          <AIActionSuggestions 
+            currentProgress={currentProgress} 
+            businessMetrics={{ revenue: revenueData || 0, target: existingGoal?.target_monthly_income || 0 }} 
+            onAddSuggestion={handleAddAISuggestion} 
+          />
+        </CollapsibleSection>
         
-        {(['monthly', 'quarterly', 'longterm'] as const).map((cat) => (
-          <Card key={cat} className="p-6 bg-primary/5">
-            <SectionHeading title={cat === 'monthly' ? "This Month" : cat === 'quarterly' ? "Next Quarter" : "Long-term"} icon={cat === 'monthly' ? Calendar : cat === 'quarterly' ? Target : Rocket} action={<Button size="sm" variant="outline" onClick={() => setAddDialog({ open: true, category: cat })} disabled={isViewingAsMentor}><Plus className="h-4 w-4" />Add</Button>} />
-            <div className="space-y-3 mt-4">
-              {currentProgress[cat].map((action) => (
-                <div key={action.id} className="flex items-start gap-3 p-3 bg-background/50 rounded-lg border group">
-                  <Checkbox checked={action.completed} onCheckedChange={() => handleToggle(action.id, cat)} disabled={isViewingAsMentor} />
-                  <div className="flex-1"><p className={action.completed ? 'line-through text-muted-foreground' : 'text-foreground'}>{action.description}</p></div>
-                  <Button size="sm" variant="outline" className="opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive hover:border-destructive" onClick={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })} disabled={isViewingAsMentor}><Trash2 className="h-3 w-3" /></Button>
+        {(['monthly', 'quarterly', 'longterm'] as const).map((cat) => {
+          const config = categoryConfig[cat];
+          const actions = currentProgress[cat];
+          
+          return (
+            <ActionCard key={cat}>
+              <ActionCardHeader 
+                onAdd={() => setAddDialog({ open: true, category: cat })}
+                disabled={isViewingAsMentor}
+              >
+                <div className="flex items-center gap-2">
+                  <config.icon className="w-5 h-5" />
+                  {config.title}
                 </div>
-              ))}
-            </div>
-          </Card>
-        ))}
+              </ActionCardHeader>
+              
+              <ActionCardContent>
+                {actions.length === 0 ? (
+                  <EmptyState>No actions yet. Click Add to create one.</EmptyState>
+                ) : (
+                  actions.map((action) => (
+                    <ActionItem
+                      key={action.id}
+                      completed={action.completed}
+                      onToggle={() => handleToggle(action.id, cat)}
+                      onDelete={() => setDeleteDialog({ open: true, actionId: action.id, category: cat })}
+                      disabled={isViewingAsMentor}
+                    >
+                      {action.description}
+                    </ActionItem>
+                  ))
+                )}
+              </ActionCardContent>
+            </ActionCard>
+          );
+        })}
 
-        <ActionEditDialog open={addDialog.open} onOpenChange={(open) => setAddDialog({ open })} onSave={(desc) => addDialog.category && handleAddAction(desc, addDialog.category)} title="Add Action" />
-        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open })}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Delete?</AlertDialogTitle></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteDialog.actionId && deleteDialog.category) { const updated = { ...actionItems, [deleteDialog.category]: actionItems[deleteDialog.category].filter(a => a.id !== deleteDialog.actionId) }; setActionItems(updated); saveMutation.mutate(updated); setDeleteDialog({ open: false }); }}}>Delete</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+        <ActionEditDialog 
+          open={addDialog.open} 
+          onOpenChange={(open) => setAddDialog({ open })} 
+          onSave={(desc) => addDialog.category && handleAddAction(desc, addDialog.category)} 
+          title="Add Action" 
+        />
+        
+        <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog({ open })}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Action?</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                if (deleteDialog.actionId && deleteDialog.category) {
+                  const updated = {
+                    ...actionItems,
+                    [deleteDialog.category]: actionItems[deleteDialog.category].filter(a => a.id !== deleteDialog.actionId)
+                  };
+                  setActionItems(updated);
+                  saveMutation.mutate(updated);
+                  setDeleteDialog({ open: false });
+                }
+              }}>
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
