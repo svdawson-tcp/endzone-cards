@@ -2,7 +2,7 @@ import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronD
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import logo from "@/assets/endzone-logo-main.png";
+import logo from "@/assets/endzone-logo-light.png";
 import {
   Collapsible,
   CollapsibleContent,
@@ -45,7 +45,7 @@ const DesktopSidebar = () => {
   };
 
   return (
-    <aside className="hidden md:block fixed left-0 top-0 h-screen w-60 bg-card border-r border-border z-30">
+    <aside className="hidden md:block fixed left-0 top-0 h-screen w-60 bg-[hsl(var(--nav-bg))] border-r border-[hsl(var(--border-strong))] z-30">
       <div className="flex flex-col h-full">
         {/* Logo Section - Fixed */}
         <div className="shrink-0 py-4 px-4">
@@ -67,13 +67,13 @@ const DesktopSidebar = () => {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all",
                   isActive
-                    ? "bg-primary text-primary-foreground border-l-4 border-accent"
-                    : "text-card-foreground hover:bg-muted/50"
+                    ? "bg-[hsl(var(--nav-active-bg))] text-[hsl(var(--nav-active-text))] border-l-4 border-[hsl(var(--nav-active-indicator))]"
+                    : "text-[hsl(var(--nav-text))] hover:bg-[hsl(var(--nav-hover-bg))] hover:text-[hsl(var(--nav-hover-text))]"
                 )}
               >
                 <Icon
                   size={24}
-                  className={isActive ? "text-accent" : "text-muted-foreground"}
+                  className={isActive ? "text-[hsl(var(--nav-active-text))]" : "text-[hsl(var(--nav-icon))]"}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
               </button>
@@ -82,15 +82,15 @@ const DesktopSidebar = () => {
 
           {/* Transactions Section */}
           <Collapsible open={transactionsOpen} onOpenChange={setTransactionsOpen} className="mt-4">
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-muted/50 transition-all group">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-[hsl(var(--nav-hover-bg))] transition-all group">
               <div className="flex items-center gap-3">
-                <Plus size={24} className="text-muted-foreground" />
-                <span className="text-sm font-semibold text-card-foreground">Quick Add</span>
+                <Plus size={24} className="text-[hsl(var(--nav-icon))]" />
+                <span className="text-sm font-semibold text-[hsl(var(--nav-text))]">Quick Add</span>
               </div>
               <ChevronDown 
                 size={16} 
                 className={cn(
-                  "text-muted-foreground transition-transform",
+                  "text-[hsl(var(--nav-icon))] transition-transform",
                   transactionsOpen && "rotate-180"
                 )}
               />
@@ -108,8 +108,8 @@ const DesktopSidebar = () => {
                       className={cn(
                         "flex items-center gap-3 px-4 py-2.5 rounded-lg cursor-pointer transition-all text-sm",
                         isActive
-                          ? "bg-accent/10 text-accent font-medium"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-card-foreground"
+                          ? "bg-[hsl(var(--nav-active-bg))] text-[hsl(var(--nav-active-text))] font-medium border-l-4 border-[hsl(var(--nav-active-indicator))]"
+                          : "text-[hsl(var(--nav-text))] hover:bg-[hsl(var(--nav-hover-bg))] hover:text-[hsl(var(--nav-hover-text))]"
                       )}
                     >
                       <Icon size={18} />
@@ -123,15 +123,15 @@ const DesktopSidebar = () => {
 
           {/* Goals Section - Collapsible */}
           <Collapsible open={goalsOpen} onOpenChange={setGoalsOpen} className="mt-4">
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-muted/50 transition-all group">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2 rounded-lg hover:bg-[hsl(var(--nav-hover-bg))] transition-all group">
               <div className="flex items-center gap-3">
-                <Target size={24} className="text-muted-foreground" />
-                <span className="text-sm font-semibold text-card-foreground">Goals</span>
+                <Target size={24} className="text-[hsl(var(--nav-icon))]" />
+                <span className="text-sm font-semibold text-[hsl(var(--nav-text))]">Goals</span>
               </div>
               <ChevronDown 
                 size={16} 
                 className={cn(
-                  "text-muted-foreground transition-transform",
+                  "text-[hsl(var(--nav-icon))] transition-transform",
                   goalsOpen && "rotate-180"
                 )}
               />
@@ -149,8 +149,8 @@ const DesktopSidebar = () => {
                       className={cn(
                         "flex items-center gap-3 px-4 py-2.5 rounded-lg cursor-pointer transition-all text-sm",
                         isActive
-                          ? "bg-accent/10 text-accent font-medium"
-                          : "text-muted-foreground hover:bg-muted/50 hover:text-card-foreground"
+                          ? "bg-[hsl(var(--nav-active-bg))] text-[hsl(var(--nav-active-text))] font-medium border-l-4 border-[hsl(var(--nav-active-indicator))]"
+                          : "text-[hsl(var(--nav-text))] hover:bg-[hsl(var(--nav-hover-bg))] hover:text-[hsl(var(--nav-hover-text))]"
                       )}
                     >
                       <Icon size={18} />
@@ -168,13 +168,13 @@ const DesktopSidebar = () => {
             className={cn(
               "flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all w-full mt-4",
               location.pathname === "/glossary"
-                ? "bg-primary text-primary-foreground border-l-4 border-accent"
-                : "text-card-foreground hover:bg-muted/50"
+                ? "bg-[hsl(var(--nav-active-bg))] text-[hsl(var(--nav-active-text))] border-l-4 border-[hsl(var(--nav-active-indicator))]"
+                : "text-[hsl(var(--nav-text))] hover:bg-[hsl(var(--nav-hover-bg))] hover:text-[hsl(var(--nav-hover-text))]"
             )}
           >
             <BookText
               size={24}
-              className={location.pathname === "/glossary" ? "text-white" : "text-muted-foreground"}
+              className={location.pathname === "/glossary" ? "text-[hsl(var(--nav-active-text))]" : "text-[hsl(var(--nav-icon))]"}
             />
             <span className="text-sm font-medium">Business Glossary</span>
           </button>
