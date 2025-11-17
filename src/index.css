@@ -4,128 +4,208 @@
 
 @layer base {
   :root {
-    /* === CONCEPT #2: PROFESSIONAL SPORTS SITE COLOR SYSTEM === */
+    /* ===================================
+       ENDZONE DESIGN SYSTEM - HSL FORMAT
+       Professional Color Palette for Sports Card Inventory Management
+       Based on Dallas Cowboys brand colors (Navy, Silver, Gold)
+       =================================== */
 
-    /* === BACKGROUND SYSTEM === */
-    /* Light gray page background for card separation (ESPN-style) */
-    --background-primary: 210 20% 98%; /* #F9FAFB - Page base */
-    --background-secondary: 210 17% 95%; /* #F3F4F6 - Section backgrounds */
-    --background-tertiary: 210 14% 91%; /* #E5E7EB - Elevated sections */
+    /* BRAND COLORS - Navy Scale */
+    --color-navy-50: 210 50% 96%;      /* #F0F4F8 */
+    --color-navy-100: 210 36% 89%;     /* #D9E2EC */
+    --color-navy-200: 210 30% 80%;     /* #BCCCDC */
+    --color-navy-300: 210 24% 70%;     /* #9FB3C8 */
+    --color-navy-400: 210 20% 60%;     /* #829AB1 */
+    --color-navy-500: 210 24% 40%;     /* #486581 */
+    --color-navy-600: 210 29% 31%;     /* #334E68 */
+    --color-navy-700: 210 31% 23%;     /* #243B53 */
+    --color-navy-800: 210 77% 16%;     /* #102A43 */
+    --color-navy-900: 223 100% 13%;    /* #041E42 - Dallas Cowboys Navy */
 
-    /* === CONTENT SURFACES === */
-    /* Pure white cards with strong borders for separation */
-    --surface-primary: 0 0% 100%; /* #FFFFFF - Card backgrounds */
-    --surface-secondary: 210 20% 98%; /* #F9FAFB - Alternate cards */
+    /* BRAND COLORS - Gold Scale */
+    --color-gold-50: 48 100% 97%;      /* #FFFBEB */
+    --color-gold-100: 48 97% 89%;      /* #FEF3C7 */
+    --color-gold-200: 48 97% 77%;      /* #FDE68A */
+    --color-gold-300: 45 97% 65%;      /* #FCD34D */
+    --color-gold-400: 43 96% 56%;      /* #FBBF24 */
+    --color-gold-500: 45 100% 59%;     /* #FFC72C - Dallas Cowboys Gold */
+    --color-gold-600: 32 95% 44%;      /* #D97706 */
+    --color-gold-700: 30 93% 38%;      /* #B45309 */
+    --color-gold-800: 28 93% 31%;      /* #92400E */
+    --color-gold-900: 26 86% 27%;      /* #78350F */
 
-    /* === TEXT COLORS - Navy Typography Hierarchy === */
-    --text-on-light: 210 77% 16%; /* #102A43 - Navy-800 headings on white cards */
-    --text-on-dark: 0 0% 98%; /* #FAFAFA - White text on dark backgrounds */
-    --text-secondary: 210 29% 31%; /* #334E68 - Navy-600 body text */
-    --text-tertiary: 210 24% 40%; /* #486581 - Navy-500 labels */
+    /* BRAND COLORS - Silver Scale */
+    --color-silver-50: 210 20% 98%;    /* #F9FAFB */
+    --color-silver-100: 210 17% 95%;   /* #F3F4F6 */
+    --color-silver-200: 210 14% 89%;   /* #E5E7EB */
+    --color-silver-300: 210 15% 82%;   /* #D1D5DB */
+    --color-silver-400: 210 11% 67%;   /* #9CA3AF */
+    --color-silver-500: 195 7% 57%;    /* #869397 - Dallas Cowboys Silver */
+    --color-silver-600: 220 13% 47%;   /* #6B7280 */
+    --color-silver-700: 220 14% 34%;   /* #4B5563 */
+    --color-silver-800: 220 13% 26%;   /* #374151 */
+    --color-silver-900: 220 17% 17%;   /* #1F2937 */
 
-    /* === TEAM COLOR ACCENTS - USE SPARINGLY (10%) === */
-    --navy-dark: 218 100% 12%; /* #041E42 - Cowboys Navy Dark */
-    --navy-base: 223 100% 29%; /* #041E42 - Cowboys Navy */
-    --navy-light: 224 100% 35%; /* Lighter navy for hovers */
+    /* SEMANTIC COLORS - Success/Profit */
+    --color-success-50: 152 76% 96%;   /* #ECFDF5 */
+    --color-success-100: 149 80% 90%;  /* #D1FAE5 */
+    --color-success-200: 152 76% 80%;  /* #A7F3D0 */
+    --color-success-500: 158 64% 52%;  /* #10B981 */
+    --color-success-600: 158 64% 40%;  /* #059669 */
+    --color-success-700: 158 75% 32%;  /* #047857 */
 
-    --silver-dark: 200 8% 40%; /* Silver dark */
-    --silver-base: 200 6% 56%; /* Cowboys Silver */
-    --silver-light: 200 15% 85%; /* Light silver */
+    /* SEMANTIC COLORS - Danger/Loss */
+    --color-danger-50: 0 86% 97%;      /* #FEF2F2 */
+    --color-danger-100: 0 93% 94%;     /* #FEE2E2 */
+    --color-danger-200: 0 96% 89%;     /* #FECACA */
+    --color-danger-500: 0 84% 60%;     /* #EF4444 */
+    --color-danger-600: 0 72% 51%;     /* #DC2626 */
+    --color-danger-700: 0 74% 42%;     /* #B91C1C */
 
-    --star-gold: 45 100% 59%; /* #FFC72C - Cowboys Gold */
-    --star-blue: 212 95% 51%; /* Bright blue accent */
-    --victory-green: 158 64% 40%; /* #059669 - Success green */
+    /* SEMANTIC COLORS - Warning */
+    --color-warning-50: 48 100% 97%;   /* #FFFBEB */
+    --color-warning-100: 48 97% 89%;   /* #FEF3C7 */
+    --color-warning-200: 48 97% 77%;   /* #FDE68A */
+    --color-warning-500: 38 92% 50%;   /* #F59E0B */
+    --color-warning-600: 32 95% 44%;   /* #D97706 */
+    --color-warning-700: 30 93% 38%;   /* #B45309 */
 
-    /* === SEMANTIC TOKENS === */
-    --background: var(--background-primary);
-    --foreground: var(--text-on-light);
+    /* SEMANTIC COLORS - Info */
+    --color-info-50: 214 100% 97%;     /* #EFF6FF */
+    --color-info-100: 214 95% 93%;     /* #DBEAFE */
+    --color-info-200: 213 97% 87%;     /* #BFDBFE */
+    --color-info-500: 217 91% 60%;     /* #3B82F6 */
+    --color-info-600: 221 83% 53%;     /* #2563EB */
 
-    --card: var(--surface-primary);
-    --card-foreground: var(--text-on-light);
+    /* ===================================
+       SEMANTIC TOKEN ALIASES
+       These map to the color scales above
+       =================================== */
 
-    --popover: var(--surface-primary);
-    --popover-foreground: var(--text-on-light);
+    /* Background Colors */
+    --bg-page: var(--color-silver-50);
+    --bg-sidebar: var(--color-navy-900);
+    --bg-card: var(--color-silver-100);
+    --bg-card-elevated: 0 0% 100%;     /* #FFFFFF */
+    --bg-card-subdued: var(--color-navy-50);
+    --bg-hover: var(--color-navy-100);
+    --bg-hover-dark: var(--color-navy-800);
+    --bg-active: var(--color-navy-200);
+    --bg-active-dark: var(--color-navy-700);
 
-    --primary: var(--navy-base);
-    --primary-foreground: var(--text-on-dark);
+    /* Text Colors - Light Backgrounds */
+    --text-primary: var(--color-navy-800);
+    --text-secondary: var(--color-navy-600);
+    --text-tertiary: var(--color-navy-500);
+    --text-muted: var(--color-navy-400);
+    --text-link: var(--color-navy-900);
+    --text-link-hover: var(--color-gold-600);
 
-    --secondary: var(--text-secondary);
-    --secondary-foreground: var(--surface-primary);
+    /* Text Colors - Dark Backgrounds */
+    --text-primary-inverse: 0 0% 100%; /* #FFFFFF */
+    --text-secondary-inverse: var(--color-navy-100);
+    --text-muted-inverse: var(--color-navy-300);
 
-    --muted: var(--background-secondary);
+    /* Text Colors - Semantic */
+    --text-success: var(--color-success-600);
+    --text-danger: var(--color-danger-600);
+    --text-warning: var(--color-warning-600);
+
+    /* Financial Metrics (for profit/loss) */
+    --metric-positive: var(--color-success-600);
+    --metric-negative: var(--color-danger-600);
+
+    /* Border Colors */
+    --border-default: var(--color-silver-200);
+    --border-subtle: var(--color-silver-300);
+    --border-strong: var(--color-navy-300);
+    --border-interactive: var(--color-navy-900);
+    --border-focus: var(--color-gold-500);
+
+    /* ===================================
+       TAILWIND/SHADCN SEMANTIC TOKENS
+       These maintain compatibility with existing components
+       =================================== */
+
+    --background: var(--bg-page);
+    --foreground: var(--text-secondary);
+
+    --card: var(--bg-card-elevated);
+    --card-foreground: var(--text-primary);
+
+    --popover: var(--bg-card-elevated);
+    --popover-foreground: var(--text-primary);
+
+    --primary: var(--color-navy-900);
+    --primary-foreground: var(--text-primary-inverse);
+
+    --secondary: var(--color-silver-500);
+    --secondary-foreground: var(--color-navy-900);
+
+    --muted: var(--bg-hover);
     --muted-foreground: var(--text-tertiary);
 
-    --accent: var(--star-gold);
-    --accent-foreground: var(--navy-dark);
+    --accent: var(--color-gold-500);
+    --accent-foreground: var(--color-navy-900);
 
-    --destructive: 0 84% 60%; /* Red for losses */
-    --destructive-foreground: var(--text-on-dark);
+    --destructive: var(--color-danger-600);
+    --destructive-foreground: var(--text-primary-inverse);
 
-    --success: var(--victory-green); /* Green for profits */
-    --success-foreground: var(--text-on-dark);
+    --success: var(--color-success-600);
+    --success-foreground: var(--text-primary-inverse);
 
-    /* Borders - Visible gray for white cards on light gray pages */
-    --border: 210 14% 89%; /* #E5E7EB - Light gray borders */
-    --input: 210 14% 89%;
-    --ring: var(--star-blue);
+    --border: var(--border-default);
+    --input: var(--border-subtle);
+    --ring: var(--color-info-600);
 
-    /* === MODERN BORDER RADIUS === */
+    /* Border Radius */
     --radius-sm: 4px;
     --radius: 8px;
     --radius-lg: 12px;
 
-    /* === PROFESSIONAL SHADOW SYSTEM (Subtle shadows for light backgrounds) === */
-    --shadow-sm: 0 1px 2px rgba(16, 42, 67, 0.06);
-    --shadow-md: 0 2px 4px rgba(16, 42, 67, 0.08);
-    --shadow-lg: 0 4px 8px rgba(16, 42, 67, 0.12);
-    --card-shadow: 0 1px 3px rgba(16, 42, 67, 0.08), 0 1px 2px rgba(16, 42, 67, 0.04);
-    --glow-blue: 0 0 16px rgba(13, 110, 255, 0.4), 0 0 32px rgba(13, 110, 255, 0.2);
-    --glow-gold: 0 0 16px rgba(255, 199, 44, 0.4), 0 0 32px rgba(255, 199, 44, 0.2);
+    /* Shadow System */
+    --shadow-sm: 0 1px 2px 0 rgba(4, 30, 66, 0.05);
+    --shadow-base: 0 1px 3px 0 rgba(4, 30, 66, 0.08), 0 1px 2px 0 rgba(4, 30, 66, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(4, 30, 66, 0.08), 0 2px 4px -1px rgba(4, 30, 66, 0.04);
+    --shadow-lg: 0 10px 15px -3px rgba(4, 30, 66, 0.08), 0 4px 6px -2px rgba(4, 30, 66, 0.03);
+    --shadow-xl: 0 20px 25px -5px rgba(4, 30, 66, 0.08), 0 10px 10px -5px rgba(4, 30, 66, 0.02);
+    --shadow-card-shadow: var(--shadow-base);
+    --shadow-focus: 0 0 0 3px rgba(255, 199, 44, 0.4);
+    --shadow-glow-blue: 0 0 16px rgba(13, 110, 255, 0.4), 0 0 32px rgba(13, 110, 255, 0.2);
+    --shadow-glow-gold: 0 0 16px rgba(255, 199, 44, 0.4), 0 0 32px rgba(255, 199, 44, 0.2);
 
-    /* === CHART COLORS === */
-    --chart-1: var(--navy-base);
-    --chart-2: var(--silver-base);
-    --chart-3: var(--star-gold);
-    --chart-4: var(--victory-green);
-    --chart-5: var(--star-blue);
+    /* Chart Colors */
+    --chart-1: var(--color-navy-900);
+    --chart-2: var(--color-silver-500);
+    --chart-3: var(--color-gold-500);
+    --chart-4: var(--color-success-600);
+    --chart-5: var(--color-info-600);
   }
 
-  /* Dark mode - Stadium backgrounds with white cards */
   .dark {
-    /* Dark stadium background with white card overlays */
-    --background: 210 50% 6%; /* Very dark blue-gray */
-    --foreground: var(--text-on-dark);
-
-    --card: var(--surface-primary); /* Keep cards white */
-    --card-foreground: var(--text-on-light); /* Dark text on white cards */
-
-    --popover: var(--surface-primary);
-    --popover-foreground: var(--text-on-light);
-
-    --primary: var(--navy-base);
-    --primary-foreground: var(--text-on-dark);
-
-    --secondary: var(--silver-base);
-    --secondary-foreground: var(--navy-dark);
-
+    --background: 210 50% 6%;
+    --foreground: var(--text-primary-inverse);
+    --card: var(--bg-card-elevated);
+    --card-foreground: var(--text-primary);
+    --popover: var(--bg-card-elevated);
+    --popover-foreground: var(--text-primary);
+    --primary: var(--color-navy-900);
+    --primary-foreground: var(--text-primary-inverse);
+    --secondary: var(--color-silver-500);
+    --secondary-foreground: var(--color-navy-900);
     --muted: 210 50% 10%;
     --muted-foreground: var(--text-tertiary);
-
-    --accent: var(--star-gold);
-    --accent-foreground: var(--navy-dark);
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: var(--text-on-dark);
-
-    --border: 210 20% 20%; /* Darker borders for dark mode */
+    --accent: var(--color-gold-500);
+    --accent-foreground: var(--color-navy-900);
+    --destructive: var(--color-danger-600);
+    --destructive-foreground: var(--text-primary-inverse);
+    --border: 210 20% 20%;
     --input: 210 20% 20%;
-    --ring: var(--star-blue);
-
-    /* Stronger shadows for dark backgrounds */
+    --ring: var(--color-info-600);
     --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
+    --shadow-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -136,39 +216,25 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-weight: 400;
     letter-spacing: -0.011em;
   }
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: "Anton", sans-serif;
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
 
-  /* iOS Safe Area Support */
   @supports (padding: env(safe-area-inset-bottom)) {
     body {
       padding-bottom: env(safe-area-inset-bottom);
     }
   }
 
-  /* Reduced Motion Support */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    *, *::before, *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
@@ -176,17 +242,13 @@
   }
 }
 
-/* ===== TRADING CARD FLIP ANIMATION ===== */
-
 @layer components {
-  /* Flip card container with 3D perspective */
   .flip-card {
     perspective: 1500px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Inner wrapper that rotates */
   .flip-card-inner {
     position: relative;
     width: 100%;
@@ -195,12 +257,10 @@
     transform-style: preserve-3d;
   }
 
-  /* Flipped state */
   .flip-card-inner.flipped {
     transform: rotateY(180deg);
   }
 
-  /* Common styles for front/back faces */
   .flip-card-face {
     position: absolute;
     width: 100%;
@@ -211,67 +271,34 @@
     overflow: hidden;
   }
 
-  /* Front face positioning */
   .flip-card-front {
     transform: rotateY(0deg);
     z-index: 2;
   }
 
-  /* Back face positioning (pre-rotated) */
   .flip-card-back {
     transform: rotateY(180deg);
   }
 
-  /* Holographic border effect */
   .card-holographic-border {
     border: 4px solid transparent;
-    background:
-      linear-gradient(hsl(var(--navy-dark)), hsl(var(--navy-dark))) padding-box,
-      linear-gradient(
-          135deg,
-          hsl(var(--navy-base)) 0%,
-          hsl(var(--silver-base)) 25%,
-          hsl(var(--star-gold)) 50%,
-          hsl(var(--star-blue)) 75%,
-          hsl(var(--navy-base)) 100%
-        )
-        border-box;
+    background: linear-gradient(hsl(var(--color-navy-900)), hsl(var(--color-navy-900))) padding-box, linear-gradient(135deg, hsl(var(--color-navy-900)) 0%, hsl(var(--color-silver-500)) 25%, hsl(var(--color-gold-500)) 50%, hsl(var(--color-info-600)) 75%, hsl(var(--color-navy-900)) 100%) border-box;
     background-size: 200% 200%;
     animation: holographic-shimmer 3s ease infinite;
   }
 
   @keyframes holographic-shimmer {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
-  /* Custom scrollbar for card back */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--navy-dark));
-    border-radius: 3px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--silver-base));
-    border-radius: 3px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--star-gold));
-  }
+  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: hsl(var(--color-navy-900)); border-radius: 3px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--color-silver-500)); border-radius: 3px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--color-gold-500)); }
 }
 
 @layer utilities {
-  /* === TYPOGRAPHY SYSTEM === */
   .text-display {
     @apply text-5xl font-bold leading-tight;
     font-family: "Anton", sans-serif;
@@ -281,6 +308,20 @@
 
   .text-h1 {
     @apply text-3xl font-bold leading-snug;
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .text-h2 {
+    @apply text-2xl font-bold leading-snug;
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .text-h3 {
+    @apply text-xl font-bold leading-snug;
     font-family: "Anton", sans-serif;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -302,42 +343,30 @@
     font-family: "Inter", monospace;
   }
 
-  /* === FORM LABEL UTILITY === */
   .form-label {
-    @apply text-sm font-medium text-card-foreground mb-1.5;
+    @apply text-sm font-medium mb-1.5;
+    color: hsl(var(--text-primary));
   }
 
-  /* === SHADOW UTILITIES === */
-  .shadow-sm {
-    box-shadow: var(--shadow-sm);
+  .page-title {
+    @apply text-h1 text-[hsl(var(--text-primary))];
   }
 
-  .shadow-md {
-    box-shadow: var(--shadow-md);
+  .card-title {
+    @apply text-h2 text-[hsl(var(--text-primary))];
   }
 
-  .shadow-lg {
-    box-shadow: var(--shadow-lg);
+  .section-heading {
+    @apply text-h3 text-[hsl(var(--text-primary))];
   }
 
-  .shadow-card-shadow {
-    box-shadow: var(--card-shadow);
-  }
+  .shadow-sm { box-shadow: var(--shadow-sm); }
+  .shadow-md { box-shadow: var(--shadow-md); }
+  .shadow-lg { box-shadow: var(--shadow-lg); }
+  .shadow-card-shadow { box-shadow: var(--shadow-card-shadow); }
+  .shadow-glow-blue { box-shadow: var(--shadow-glow-blue); }
+  .shadow-glow-gold { box-shadow: var(--shadow-glow-gold); }
 
-  .shadow-glow-blue {
-    box-shadow: var(--glow-blue);
-  }
-
-  .shadow-glow-gold {
-    box-shadow: var(--glow-gold);
-  }
-
-  /* === FINANCIAL METRIC UTILITIES === */
-  .text-profit {
-    @apply text-[hsl(var(--success))];
-  }
-
-  .text-loss {
-    @apply text-[hsl(var(--destructive))];
-  }
+  .text-profit { color: hsl(var(--metric-positive)); }
+  .text-loss { color: hsl(var(--metric-negative)); }
 }
