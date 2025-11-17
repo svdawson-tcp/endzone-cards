@@ -64,7 +64,7 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
             <img 
               src={endzoneLogo} 
               alt="EndZone - Your Gameplan to Profit" 
-              className="h-10 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </button>
         </div>
