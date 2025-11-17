@@ -254,7 +254,7 @@ export default function Shows() {
           </div>
           <Button
             onClick={() => navigate("/shows/new")}
-            className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase self-start md:self-auto"
+            className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
           >
             <Plus className="mr-2 h-5 w-5" />
             CREATE SHOW
@@ -268,28 +268,24 @@ export default function Shows() {
           <Button
             variant={filterTab === "all" ? "default" : "outline"}
             onClick={() => setFilterTab("all")}
-            className={filterTab === "all" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
           >
             All ({counts.all})
           </Button>
           <Button
             variant={filterTab === "planned" ? "default" : "outline"}
             onClick={() => setFilterTab("planned")}
-            className={filterTab === "planned" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
           >
             Planned ({counts.planned})
           </Button>
           <Button
             variant={filterTab === "active" ? "default" : "outline"}
             onClick={() => setFilterTab("active")}
-            className={filterTab === "active" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
           >
             Active ({counts.active})
           </Button>
           <Button
             variant={filterTab === "completed" ? "default" : "outline"}
             onClick={() => setFilterTab("completed")}
-            className={filterTab === "completed" ? "bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))]" : ""}
           >
             Closed ({counts.completed})
           </Button>
@@ -326,7 +322,7 @@ export default function Shows() {
             <p className="text-muted-foreground mb-6">Create your first show to get started</p>
             <Button
               onClick={() => navigate("/shows/new")}
-              className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold uppercase"
+              className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
             >
               <Plus className="mr-2 h-5 w-5" />
               CREATE SHOW
@@ -451,7 +447,7 @@ export default function Shows() {
                   {show.status === "planned" && (
                     <Button
                       size="sm"
-                      className="w-full bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
+                      className="w-full bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold"
                       onClick={() => statusChangeMutation.mutate({ showId: show.id, newStatus: "active" })}
                       disabled={statusChangeMutation.isPending}
                     >
@@ -472,7 +468,7 @@ export default function Shows() {
                       </Button>
                       <Button
                         size="sm"
-                        className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white font-semibold"
+                        className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold"
                         onClick={() => statusChangeMutation.mutate({ showId: show.id, newStatus: "completed" })}
                         disabled={statusChangeMutation.isPending}
                       >
