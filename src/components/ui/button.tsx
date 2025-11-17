@@ -10,29 +10,29 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        /* Primary action - Cowboys accent gold */
-        default: "bg-accent text-accent-foreground shadow-md hover:bg-accent/90 active:shadow-sm",
+        /* Primary action - Dallas Cowboys Navy */
+        default: "bg-[#041E42] text-white shadow-md hover:bg-[#0A2E63] active:shadow-sm",
         
-        /* Secondary action - Navy outline */
-        secondary: "bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15 active:bg-primary/20",
+        /* Secondary action - Light gray background */
+        secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400",
         
-        /* Destructive action - Universal red */
-        destructive: "bg-destructive text-destructive-foreground shadow-md hover:bg-destructive/90 active:shadow-sm",
+        /* Destructive action - Red */
+        destructive: "bg-red-600 text-white shadow-md hover:bg-red-700 active:shadow-sm",
         
-        /* Success action - Universal green */
-        success: "bg-success text-success-foreground shadow-md hover:bg-success/90 active:shadow-sm",
+        /* Success action - Green */
+        success: "bg-green-600 text-white shadow-md hover:bg-green-700 active:shadow-sm",
         
         /* Outline button - High contrast border */
         outline: "border border-gray-300 bg-white text-gray-900 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100",
         
         /* Ghost button - Minimal but visible */
-        ghost: "text-foreground hover:bg-muted hover:text-foreground active:bg-muted/80",
+        ghost: "text-gray-700 hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200",
         
-        /* Warning action - Universal amber */
-        warning: "bg-warning text-warning-foreground shadow-md hover:bg-warning/90 active:shadow-sm",
+        /* Warning action - Amber */
+        warning: "bg-amber-500 text-white shadow-md hover:bg-amber-600 active:shadow-sm",
         
         /* Link variant */
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-[#041E42] underline-offset-4 hover:underline",
       },
       size: {
         /* Mobile-optimized touch targets */
