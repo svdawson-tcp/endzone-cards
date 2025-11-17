@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useMentorModeGuard } from "@/hooks/useMentorModeGuard";
 import { ActionCard, ActionCardHeader, ActionCardContent, ActionItem, EmptyState } from "@/components/ActionPlanning";
 import { CollapsibleSection } from "@/components/ActionPlanning";
-import dashboardBg from "@/assets/backgrounds/dashboard-stadium-bg.jpg";
+
 
 interface ActionItem {
   id: string;
@@ -170,17 +170,8 @@ const ActionPlanning = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-base))]/95 to-[hsl(var(--navy-base))]/90 pb-20 md:pb-6"
-      style={{
-        backgroundImage: `url(${dashboardBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundBlendMode: 'overlay',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-4 mb-2">
           <Button
             variant="ghost"

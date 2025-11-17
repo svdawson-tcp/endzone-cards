@@ -67,17 +67,15 @@ const ShowCards = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-light))] to-[hsl(var(--gold-base))] p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-white text-center">Loading show cards...</p>
-        </div>
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-muted-foreground">Loading show cards...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-light))] to-[hsl(var(--gold-base))] p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <h1 className="page-title">SHOW CARDS</h1>

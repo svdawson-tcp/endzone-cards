@@ -316,7 +316,7 @@ export default function TransactionHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">

@@ -108,27 +108,23 @@ const ShowCardDetail = () => {
 
   if (cardLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-light))] to-[hsl(var(--gold-base))] p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-white text-center">Loading card details...</p>
-        </div>
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-muted-foreground">Loading card details...</div>
       </div>
     );
   }
 
   if (!card) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-light))] to-[hsl(var(--gold-base))] p-4 md:p-8">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-white text-center">Card not found</p>
-        </div>
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-muted-foreground">Card not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-light))] to-[hsl(var(--gold-base))] p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
