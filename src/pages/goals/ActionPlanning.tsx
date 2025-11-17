@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Edit2, Trash2, Calendar, Target, Rocket } from "lucide-react";
+import { ArrowLeft, Plus, Edit2, Trash2, Calendar, Target, Rocket, Lightbulb, ChevronDown, ChevronRight } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AIActionSuggestions } from "@/components/AIActionSuggestions";
 import { ActionEditDialog } from "@/components/ActionEditDialog";
@@ -60,6 +61,10 @@ const ActionPlanning = () => {
   const [actionItems, setActionItems] = useState(defaultActions);
   const [addDialog, setAddDialog] = useState<{ open: boolean; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; actionId?: string; category?: 'monthly' | 'quarterly' | 'longterm' }>({ open: false });
+  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(() => {
+    const saved = localStorage.getItem('aiSuggestionsOpen');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   const { data: existingGoal, isLoading } = useQuery({
     queryKey: ['user-goals'],
@@ -81,6 +86,10 @@ const ActionPlanning = () => {
       });
     }
   }, [existingGoal]);
+
+  useEffect(() => {
+    localStorage.setItem('aiSuggestionsOpen', JSON.stringify(aiSuggestionsOpen));
+  }, [aiSuggestionsOpen]);
 
   const { data: revenueData } = useQuery({
     queryKey: ['current-monthly-revenue'],
@@ -162,7 +171,21 @@ const ActionPlanning = () => {
         <Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button>
         <div><h1 className="text-3xl font-bold text-foreground">Action Planning</h1></div>
         
-        <AIActionSuggestions currentProgress={currentProgress} businessMetrics={{ revenue: revenueData || 0, target: existingGoal?.target_monthly_income || 0 }} onAddSuggestion={handleAddAISuggestion} />
+        <Card className="p-6 bg-primary/5">
+          <Collapsible open={aiSuggestionsOpen} onOpenChange={setAiSuggestionsOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80 transition-opacity">
+              <Lightbulb className="w-5 h-5 text-primary" />
+              <h3 className="text-card-foreground font-medium text-lg">AI Action Suggestions</h3>
+              {aiSuggestionsOpen ? <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" /> : <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />}
+            </CollapsibleTrigger>
+            
+            <CollapsibleContent>
+              <div className="mt-4">
+                <AIActionSuggestions currentProgress={currentProgress} businessMetrics={{ revenue: revenueData || 0, target: existingGoal?.target_monthly_income || 0 }} onAddSuggestion={handleAddAISuggestion} />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        </Card>
         
         {(['monthly', 'quarterly', 'longterm'] as const).map((cat) => (
           <Card key={cat} className="p-6 bg-primary/5">
