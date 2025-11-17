@@ -132,7 +132,7 @@ const BusinessGoals = () => {
 
   if (loadingGoals) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
@@ -140,7 +140,7 @@ const BusinessGoals = () => {
 
   if (!existingGoal) {
     return (
-      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <Card className="p-6 max-w-md">
           <h2 className="text-xl font-bold text-foreground mb-4">Personal Goals Required</h2>
           <p className="text-muted-foreground mb-4">
@@ -155,8 +155,8 @@ const BusinessGoals = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24 md:pb-8">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button

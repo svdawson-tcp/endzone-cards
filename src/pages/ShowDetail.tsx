@@ -199,15 +199,15 @@ export default function ShowDetail() {
 
   if (showLoading || transactionsLoading || expensesLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-gray-600">Loading show details...</p>
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <p className="text-muted-foreground">Loading show details...</p>
       </div>
     );
   }
 
   if (!show) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2 text-gray-900">Show not found</h2>
           <Button onClick={() => navigate("/shows")}>
@@ -220,7 +220,7 @@ export default function ShowDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header with Back Button */}
         <div className="mb-6">

@@ -7,8 +7,8 @@ const BusinessModel = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24 md:pb-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button

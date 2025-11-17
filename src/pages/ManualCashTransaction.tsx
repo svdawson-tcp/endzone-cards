@@ -168,12 +168,13 @@ const ManualCashTransaction = () => {
   const currentConfig = config[type];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 p-4 md:p-8">
+    <div className="min-h-screen bg-slate-100">
+      <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Back Button */}
       <Button
         variant="ghost"
         onClick={() => navigate("/dashboard")}
-        className="mb-4 text-white hover:text-white/80"
+        className="mb-4"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Dashboard
@@ -285,6 +286,7 @@ const ManualCashTransaction = () => {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 };
