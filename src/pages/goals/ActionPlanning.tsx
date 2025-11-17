@@ -10,8 +10,9 @@ import { AIActionSuggestions } from "@/components/AIActionSuggestions";
 import { ActionEditDialog } from "@/components/ActionEditDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useMentorModeGuard } from "@/hooks/useMentorModeGuard";
-import { ActionCard, ActionCardHeader, ActionCardContent, ActionItem, EmptyState } from "@/components/ActionPlanning/ActionCard";
-import { CollapsibleSection } from "@/components/ActionPlanning/CollapsibleSection";
+import { ActionCard, ActionCardHeader, ActionCardContent, ActionItem, EmptyState } from "@/components/ActionPlanning";
+import { CollapsibleSection } from "@/components/ActionPlanning";
+import dashboardBg from "@/assets/backgrounds/dashboard-stadium-bg.jpg";
 
 interface ActionItem {
   id: string;
@@ -150,6 +151,13 @@ const ActionPlanning = () => {
 
   const getActiveActions = (category: 'monthly' | 'quarterly' | 'longterm') => actionItems[category].filter(a => !a.archived);
 
+  const calculateCompletionRate = (category: 'monthly' | 'quarterly' | 'longterm') => {
+    const actions = getActiveActions(category);
+    if (actions.length === 0) return 0;
+    const completed = actions.filter(a => a.completed).length;
+    return Math.round((completed / actions.length) * 100);
+  };
+
   if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
   if (!existingGoal) return <div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-primary/5 mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-card-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
 
@@ -162,14 +170,31 @@ const ActionPlanning = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-6">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-[hsl(var(--navy-base))] via-[hsl(var(--navy-base))]/95 to-[hsl(var(--navy-base))]/90 pb-20 md:pb-6"
+      style={{
+        backgroundImage: `url(${dashboardBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundBlendMode: 'overlay',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Action Planning</h1>
+        <div className="flex items-center gap-4 mb-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/goals/business')}
+            className="text-white/80 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-white">Action Planning</h1>
+            <p className="text-white/80 text-sm">Track your progress with actionable goals</p>
+          </div>
         </div>
         
         <CollapsibleSection
@@ -188,12 +213,14 @@ const ActionPlanning = () => {
         {(['monthly', 'quarterly', 'longterm'] as const).map((cat) => {
           const config = categoryConfig[cat];
           const actions = currentProgress[cat];
+          const completionRate = calculateCompletionRate(cat);
           
           return (
-            <ActionCard key={cat}>
+            <ActionCard key={cat} variant="default">
               <ActionCardHeader 
                 onAdd={() => setAddDialog({ open: true, category: cat })}
                 disabled={isViewingAsMentor}
+                completionRate={completionRate}
               >
                 <div className="flex items-center gap-2">
                   <config.icon className="w-5 h-5" />
