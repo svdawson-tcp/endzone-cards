@@ -4,69 +4,40 @@
 
 @layer base {
   :root {
-    /* === CORE NEUTRAL PALETTE === */
-    /* High contrast for outdoor/bright environments */
-    --background-primary: 248 250 252;    /* Clean white background */
-    --background-secondary: 241 245 249;  /* Light gray sections */
-    --background-tertiary: 226 232 240;   /* Elevated sections */
+    /* === ESPN/NFL PROFESSIONAL PALETTE === */
+    --background: 255 255 255;            /* Pure white */
+    --foreground: 15 23 42;               /* Slate 800 */
+    
+    --card: 255 255 255;                  /* Pure white */
+    --card-foreground: 15 23 42;          /* Slate 800 */
 
-    /* === CONTENT SURFACES === */
-    --surface-primary: 255 255 255;       /* Pure white cards */
-    --surface-secondary: 248 250 252;     /* Alternate cards */
+    --popover: 255 255 255;               /* Pure white */
+    --popover-foreground: 15 23 42;       /* Slate 800 */
 
-    /* === TEXT COLORS === */
-    --text-on-light: 15 23 42;            /* Deep navy text on white */
-    --text-on-dark: 255 255 255;          /* White text on dark backgrounds */
-    --text-secondary: 71 85 105;          /* Readable gray text */
+    --primary: 15 23 42;                  /* Slate 800 navy */
+    --primary-foreground: 255 255 255;    /* White */
 
-    /* === PROFESSIONAL SPORTS COLORS === */
-    --navy-dark: 0 22 51;                 /* Deep navy for emphasis */
-    --navy-base: 0 34 68;                 /* Primary navy (NFL-style) */
-    --navy-light: 0 51 102;               /* Lighter navy variant */
+    --secondary: 100 116 139;             /* Slate 500 */
+    --secondary-foreground: 255 255 255;  /* White */
 
-    --slate-dark: 51 65 85;               /* Dark slate gray */
-    --slate-base: 71 85 105;              /* Base slate gray */
-    --slate-light: 148 163 184;           /* Light slate gray */
+    --muted: 248 250 252;                 /* Slate 50 */
+    --muted-foreground: 100 116 139;      /* Slate 500 */
 
-    --blue-accent: 0 119 200;             /* Professional blue accent */
-    --green-success: 34 197 94;           /* Vibrant green (wins/profit) */
-    --orange-warning: 249 115 22;         /* Orange (caution) */
-    --red-error: 239 68 68;               /* Red (losses/errors) */
+    --accent: 37 99 235;                  /* Blue 600 */
+    --accent-foreground: 255 255 255;     /* White */
 
-    /* === SEMANTIC TOKENS === */
-    --background: var(--background-primary);
-    --foreground: var(--text-on-light);
+    --destructive: 239 68 68;             /* Red 500 */
+    --destructive-foreground: 255 255 255; /* White */
 
-    --card: var(--surface-primary);
-    --card-foreground: var(--text-on-light);
+    --success: 34 197 94;                 /* Green 500 */
+    --success-foreground: 255 255 255;    /* White */
 
-    --popover: var(--surface-primary);
-    --popover-foreground: var(--text-on-light);
+    --warning: 245 158 11;                /* Amber 500 */
+    --warning-foreground: 255 255 255;    /* White */
 
-    --primary: var(--navy-base);
-    --primary-foreground: var(--text-on-dark);
-
-    --secondary: var(--slate-base);
-    --secondary-foreground: var(--text-on-dark);
-
-    --muted: var(--background-secondary);
-    --muted-foreground: var(--text-secondary);
-
-    --accent: var(--blue-accent);
-    --accent-foreground: var(--text-on-dark);
-
-    --destructive: var(--red-error);
-    --destructive-foreground: var(--text-on-dark);
-
-    --success: var(--green-success);
-    --success-foreground: var(--text-on-dark);
-
-    --warning: var(--orange-warning);
-    --warning-foreground: var(--text-on-dark);
-
-    --border: 226 232 240;                /* Subtle borders */
-    --input: 226 232 240;
-    --ring: var(--blue-accent);
+    --border: 226 232 240;                /* Slate 200 */
+    --input: 226 232 240;                 /* Slate 200 */
+    --ring: 37 99 235;                    /* Blue 600 */
 
     /* === MODERN BORDER RADIUS === */
     --radius-sm: 4px;

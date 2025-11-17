@@ -143,8 +143,8 @@ const BottomTabBar = () => {
                             onClick={() => handleMenuClick(item.route)}
                             className="flex items-start gap-4 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left min-h-[60px]"
                           >
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[hsl(var(--navy-base))] flex items-center justify-center">
-                              <ItemIcon className="text-white" size={20} />
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                              <ItemIcon className="text-primary-foreground" size={20} />
                             </div>
                             <div className="flex-1">
                               <p className="font-semibold text-card-foreground">{item.label}</p>
@@ -168,21 +168,21 @@ const BottomTabBar = () => {
                   <button
                     className={cn(
                       "flex flex-col items-center justify-center py-2 px-3 cursor-pointer rounded-lg transition-all duration-200 min-h-[44px]",
-                      isActive ? "bg-[hsl(var(--star-gold))]/10" : "hover:bg-muted/50"
+                      isActive ? "bg-accent/10" : "hover:bg-muted/50"
                     )}
                     aria-label={tab.label}
                   >
                     <Icon
                       className={cn(
                         "transition-colors",
-                        isActive ? "text-[hsl(var(--navy-base))]" : "text-muted-foreground"
+                        isActive ? "text-accent" : "text-muted-foreground"
                       )}
                       size={24}
                     />
                     <span
                       className={cn(
                         "text-xs mt-1 transition-colors",
-                        isActive ? "text-[hsl(var(--navy-base))] font-semibold" : "text-muted-foreground"
+                        isActive ? "text-accent font-semibold" : "text-muted-foreground"
                       )}
                     >
                       {tab.label}
@@ -203,8 +203,8 @@ const BottomTabBar = () => {
                             onClick={() => handleGoalsClick(item.route)}
                             className="flex items-center gap-4 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left min-h-[60px]"
                           >
-                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[hsl(var(--navy-base))] flex items-center justify-center">
-                              <ItemIcon className="text-white" size={20} />
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                              <ItemIcon className="text-primary-foreground" size={20} />
                             </div>
                             <div className="flex-1">
                               <p className="font-semibold text-card-foreground">{item.label}</p>
@@ -228,7 +228,7 @@ const BottomTabBar = () => {
                     className="flex flex-col items-center justify-center -translate-y-4 cursor-pointer"
                     aria-label={tab.label}
                   >
-                    <div className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-200 active:scale-95">
+                    <div className="bg-primary hover:bg-primary/90 rounded-full w-14 h-14 flex items-center justify-center shadow-lg transition-all duration-200 active:scale-95">
                       <Icon className="text-white" size={28} />
                     </div>
                   </button>
@@ -247,8 +247,8 @@ const BottomTabBar = () => {
                           onClick={() => handleQuickAddClick(item.route)}
                           className="flex items-start gap-4 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left min-h-[60px]"
                         >
-                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[hsl(var(--navy-base))] flex items-center justify-center">
-                            <ItemIcon className="text-white" size={20} />
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                            <ItemIcon className="text-primary-foreground" size={20} />
                           </div>
                           <div className="flex-1">
                             <p className="font-semibold text-card-foreground">{item.label}</p>
@@ -272,7 +272,7 @@ const BottomTabBar = () => {
               className={cn(
                 "flex flex-col items-center justify-center py-2 px-3 cursor-pointer rounded-lg transition-all duration-200 min-h-[44px]",
                 isActive
-                  ? "bg-[hsl(var(--star-gold))]/10"
+                  ? "bg-accent/10"
                   : "hover:bg-muted/50"
               )}
               aria-label={tab.label}
@@ -282,7 +282,7 @@ const BottomTabBar = () => {
                 className={cn(
                   "transition-colors",
                   isActive
-                    ? "text-[hsl(var(--navy-base))]"
+                    ? "text-accent"
                     : "text-muted-foreground"
                 )}
                 size={24}
@@ -291,7 +291,7 @@ const BottomTabBar = () => {
                 className={cn(
                   "text-xs mt-1 transition-colors",
                   isActive
-                    ? "text-[hsl(var(--navy-base))] font-semibold"
+                    ? "text-accent font-semibold"
                     : "text-muted-foreground"
                 )}
               >

@@ -421,7 +421,7 @@ export default function Dashboard() {
           {/* Net Profit */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               NET PROFIT
@@ -446,7 +446,7 @@ export default function Dashboard() {
           {/* Profit Margin */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               PROFIT MARGIN
@@ -471,7 +471,7 @@ export default function Dashboard() {
           {/* Total Revenue */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL REVENUE
@@ -496,7 +496,7 @@ export default function Dashboard() {
           {/* Cash on Hand */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               CASH ON HAND
@@ -525,7 +525,7 @@ export default function Dashboard() {
           {/* Premium Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <Package className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL COSTS
@@ -549,7 +549,7 @@ export default function Dashboard() {
 
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <CreditCard className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               PREMIUM SALES
@@ -574,7 +574,7 @@ export default function Dashboard() {
           {/* Bulk Sales */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <Package className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               BULK SALES
@@ -599,7 +599,7 @@ export default function Dashboard() {
           {/* Show Card Inventory */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <CreditCard className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <CreditCard className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               SHOW CARD INVENTORY
@@ -617,7 +617,7 @@ export default function Dashboard() {
           {/* Average Sale Value */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               AVERAGE SALE VALUE
@@ -650,7 +650,7 @@ export default function Dashboard() {
           {/* Total Costs */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <Package className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               TOTAL COSTS
@@ -715,7 +715,7 @@ export default function Dashboard() {
           {/* Inventory Turnover */}
           <div className="bg-card shadow-card-shadow rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-[hsl(var(--star-gold))]" />
+              <TrendingUp className="h-8 w-8 text-accent" />
             </div>
             <p className="text-xs uppercase tracking-wider text-gray-600 mb-2">
               INVENTORY TURNOVER
@@ -743,19 +743,19 @@ export default function Dashboard() {
         <section className="flex flex-col md:flex-row gap-4 mb-12">
           <Button 
             onClick={() => navigate("/transactions/new")}
-            className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
           >
             RECORD SALE
           </Button>
           <Button 
             onClick={() => navigate("/show-cards/new")}
-            className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
           >
             ADD SHOW CARD
           </Button>
           <Button 
             onClick={() => navigate("/shows/new")}
-            className="bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
           >
             CREATE SHOW
           </Button>
