@@ -168,7 +168,7 @@ const ManualCashTransaction = () => {
   const currentConfig = config[type];
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-[#F5F7FA]">
       <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Back Button */}
       <Button
@@ -181,12 +181,12 @@ const ManualCashTransaction = () => {
       </Button>
 
       {/* Page Title - Uses page-title class for white text on dark background */}
-      <h1 className="page-title mb-2">{currentConfig.title}</h1>
-      <p className="text-muted-foreground mb-6">{currentConfig.subtitle}</p>
+      <h1 className="text-h1 mb-2">{currentConfig.title}</h1>
+      <p className="text-gray-600 mb-6">{currentConfig.subtitle}</p>
 
       {/* Form Card */}
       <div className="max-w-2xl mx-auto">
-        <div className="bg-card shadow-card-shadow rounded-lg p-6">
+        <div className="bg-white border border-gray-200 shadow-md rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Transaction Type Badge */}
             <div>
@@ -277,7 +277,7 @@ const ManualCashTransaction = () => {
               </Button>
               <Button
                 type="submit"
-                className="flex-1 bg-[hsl(var(--navy-base))] hover:bg-[hsl(var(--navy-light))] text-white"
+                className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white"
                 disabled={insertMutation.isPending}
               >
                 {insertMutation.isPending ? "RECORDING..." : currentConfig.buttonText}
