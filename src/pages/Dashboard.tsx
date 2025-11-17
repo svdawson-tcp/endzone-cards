@@ -386,7 +386,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-muted">
+    <div className="min-h-screen bg-slate-100">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Date Range Selector */}
         <div className="flex justify-center mb-8">
