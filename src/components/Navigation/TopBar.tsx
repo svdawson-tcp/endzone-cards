@@ -3,7 +3,7 @@ import { LogOut, User, Settings, Menu } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import endzoneLogo from "@/assets/endzone-logo-main.png";
+import endzoneLogo from "@/assets/endzone-logo-full.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,12 +59,12 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
           
           <button 
             onClick={() => navigate("/dashboard")}
-            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded py-1"
+            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
           >
             <img 
               src={endzoneLogo} 
               alt="EndZone - Your Gameplan to Profit" 
-              className="h-10 w-auto sm:h-12"
+              className="h-14 w-auto"
             />
           </button>
         </div>
