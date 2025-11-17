@@ -4,75 +4,128 @@
 
 @layer base {
   :root {
-    /* === ESPN/NFL PROFESSIONAL PALETTE === */
-    --background: 0 0% 100%;              /* Pure white (HSL) */
-    --foreground: 215 25% 27%;            /* Slate 800 (HSL) */
-    
-    --card: 0 0% 100%;                    /* Pure white (HSL) */
-    --card-foreground: 215 25% 27%;       /* Slate 800 (HSL) */
+    /* === CONCEPT #2: PROFESSIONAL SPORTS SITE COLOR SYSTEM === */
 
-    --popover: 0 0% 100%;                 /* Pure white (HSL) */
-    --popover-foreground: 215 25% 27%;    /* Slate 800 (HSL) */
+    /* === BACKGROUND SYSTEM === */
+    /* Light gray page background for card separation (ESPN-style) */
+    --background-primary: 210 20% 98%; /* #F9FAFB - Page base */
+    --background-secondary: 210 17% 95%; /* #F3F4F6 - Section backgrounds */
+    --background-tertiary: 210 14% 91%; /* #E5E7EB - Elevated sections */
 
-    --primary: 215 25% 27%;               /* Slate 800 navy (HSL) */
-    --primary-foreground: 0 0% 100%;      /* White (HSL) */
+    /* === CONTENT SURFACES === */
+    /* Pure white cards with strong borders for separation */
+    --surface-primary: 0 0% 100%; /* #FFFFFF - Card backgrounds */
+    --surface-secondary: 210 20% 98%; /* #F9FAFB - Alternate cards */
 
-    --secondary: 215 14% 34%;             /* Slate 500 (HSL) */
-    --secondary-foreground: 0 0% 100%;    /* White (HSL) */
+    /* === TEXT COLORS - Navy Typography Hierarchy === */
+    --text-on-light: 210 77% 16%; /* #102A43 - Navy-800 headings on white cards */
+    --text-on-dark: 0 0% 98%; /* #FAFAFA - White text on dark backgrounds */
+    --text-secondary: 210 29% 31%; /* #334E68 - Navy-600 body text */
+    --text-tertiary: 210 24% 40%; /* #486581 - Navy-500 labels */
 
-    --muted: 210 40% 98%;                 /* Slate 50 (HSL) */
-    --muted-foreground: 215 14% 34%;      /* Slate 500 (HSL) */
+    /* === TEAM COLOR ACCENTS - USE SPARINGLY (10%) === */
+    --navy-dark: 218 100% 12%; /* #041E42 - Cowboys Navy Dark */
+    --navy-base: 223 100% 29%; /* #041E42 - Cowboys Navy */
+    --navy-light: 224 100% 35%; /* Lighter navy for hovers */
 
-    --accent: 221 83% 53%;                /* Blue 600 (HSL) */
-    --accent-foreground: 0 0% 100%;       /* White (HSL) */
+    --silver-dark: 200 8% 40%; /* Silver dark */
+    --silver-base: 200 6% 56%; /* Cowboys Silver */
+    --silver-light: 200 15% 85%; /* Light silver */
 
-    --destructive: 0 84% 60%;             /* Red 500 (HSL) */
-    --destructive-foreground: 0 0% 100%;  /* White (HSL) */
+    --star-gold: 45 100% 59%; /* #FFC72C - Cowboys Gold */
+    --star-blue: 212 95% 51%; /* Bright blue accent */
+    --victory-green: 158 64% 40%; /* #059669 - Success green */
 
-    --success: 142 71% 45%;               /* Green 500 (HSL) */
-    --success-foreground: 0 0% 100%;      /* White (HSL) */
+    /* === SEMANTIC TOKENS === */
+    --background: var(--background-primary);
+    --foreground: var(--text-on-light);
 
-    --warning: 32 95% 44%;                /* Amber 500 (HSL) */
-    --warning-foreground: 0 0% 100%;      /* White (HSL) */
+    --card: var(--surface-primary);
+    --card-foreground: var(--text-on-light);
 
-    --border: 214 32% 91%;                /* Slate 200 (HSL) */
-    --input: 214 32% 91%;                 /* Slate 200 (HSL) */
-    --ring: 221 83% 53%;                  /* Blue 600 (HSL) */
+    --popover: var(--surface-primary);
+    --popover-foreground: var(--text-on-light);
+
+    --primary: var(--navy-base);
+    --primary-foreground: var(--text-on-dark);
+
+    --secondary: var(--text-secondary);
+    --secondary-foreground: var(--surface-primary);
+
+    --muted: var(--background-secondary);
+    --muted-foreground: var(--text-tertiary);
+
+    --accent: var(--star-gold);
+    --accent-foreground: var(--navy-dark);
+
+    --destructive: 0 84% 60%; /* Red for losses */
+    --destructive-foreground: var(--text-on-dark);
+
+    --success: var(--victory-green); /* Green for profits */
+    --success-foreground: var(--text-on-dark);
+
+    /* Borders - Visible gray for white cards on light gray pages */
+    --border: 210 14% 89%; /* #E5E7EB - Light gray borders */
+    --input: 210 14% 89%;
+    --ring: var(--star-blue);
 
     /* === MODERN BORDER RADIUS === */
     --radius-sm: 4px;
     --radius: 8px;
     --radius-lg: 12px;
 
+    /* === PROFESSIONAL SHADOW SYSTEM (Subtle shadows for light backgrounds) === */
+    --shadow-sm: 0 1px 2px rgba(16, 42, 67, 0.06);
+    --shadow-md: 0 2px 4px rgba(16, 42, 67, 0.08);
+    --shadow-lg: 0 4px 8px rgba(16, 42, 67, 0.12);
+    --card-shadow: 0 1px 3px rgba(16, 42, 67, 0.08), 0 1px 2px rgba(16, 42, 67, 0.04);
+    --glow-blue: 0 0 16px rgba(13, 110, 255, 0.4), 0 0 32px rgba(13, 110, 255, 0.2);
+    --glow-gold: 0 0 16px rgba(255, 199, 44, 0.4), 0 0 32px rgba(255, 199, 44, 0.2);
+
     /* === CHART COLORS === */
-    --chart-1: 215 25% 27%;               /* Primary navy (HSL) */
-    --chart-2: 215 14% 34%;               /* Slate gray (HSL) */
-    --chart-3: 221 83% 53%;               /* Blue accent (HSL) */
-    --chart-4: 142 71% 45%;               /* Success green (HSL) */
-    --chart-5: 0 84% 60%;                 /* Destructive red (HSL) */
+    --chart-1: var(--navy-base);
+    --chart-2: var(--silver-base);
+    --chart-3: var(--star-gold);
+    --chart-4: var(--victory-green);
+    --chart-5: var(--star-blue);
   }
 
+  /* Dark mode - Stadium backgrounds with white cards */
   .dark {
-    /* Dark mode - maintains sports professional palette */
-    --background: 215 25% 27%;            /* Slate 800 (HSL) */
-    --foreground: 210 40% 98%;            /* Slate 50 (HSL) */
-    --card: 217 32% 17%;                  /* Slate 700 (HSL) */
-    --card-foreground: 210 40% 98%;       /* Slate 50 (HSL) */
-    --popover: 217 32% 17%;               /* Slate 700 (HSL) */
-    --popover-foreground: 210 40% 98%;    /* Slate 50 (HSL) */
-    --primary: 215 25% 27%;               /* Slate 800 (HSL) */
-    --primary-foreground: 0 0% 100%;      /* White (HSL) */
-    --secondary: 215 14% 34%;             /* Slate 500 (HSL) */
-    --secondary-foreground: 0 0% 100%;    /* White (HSL) */
-    --muted: 217 33% 27%;                 /* Slate 600 (HSL) */
-    --muted-foreground: 215 20% 65%;      /* Slate 400 (HSL) */
-    --accent: 221 83% 53%;                /* Blue 600 (HSL) */
-    --accent-foreground: 0 0% 100%;       /* White (HSL) */
-    --destructive: 0 84% 60%;             /* Red 500 (HSL) */
-    --destructive-foreground: 0 0% 100%;  /* White (HSL) */
-    --border: 217 33% 27%;                /* Slate 600 (HSL) */
-    --input: 217 33% 27%;                 /* Slate 600 (HSL) */
-    --ring: 221 83% 53%;                  /* Blue 600 (HSL) */
+    /* Dark stadium background with white card overlays */
+    --background: 210 50% 6%; /* Very dark blue-gray */
+    --foreground: var(--text-on-dark);
+
+    --card: var(--surface-primary); /* Keep cards white */
+    --card-foreground: var(--text-on-light); /* Dark text on white cards */
+
+    --popover: var(--surface-primary);
+    --popover-foreground: var(--text-on-light);
+
+    --primary: var(--navy-base);
+    --primary-foreground: var(--text-on-dark);
+
+    --secondary: var(--silver-base);
+    --secondary-foreground: var(--navy-dark);
+
+    --muted: 210 50% 10%;
+    --muted-foreground: var(--text-tertiary);
+
+    --accent: var(--star-gold);
+    --accent-foreground: var(--navy-dark);
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: var(--text-on-dark);
+
+    --border: 210 20% 20%; /* Darker borders for dark mode */
+    --input: 210 20% 20%;
+    --ring: var(--star-blue);
+
+    /* Stronger shadows for dark backgrounds */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -173,14 +226,14 @@
   .card-holographic-border {
     border: 4px solid transparent;
     background:
-      linear-gradient(hsl(var(--primary)), hsl(var(--primary))) padding-box,
+      linear-gradient(hsl(var(--navy-dark)), hsl(var(--navy-dark))) padding-box,
       linear-gradient(
           135deg,
-          hsl(var(--primary)) 0%,
-          hsl(var(--secondary)) 25%,
-          hsl(var(--accent)) 50%,
-          hsl(var(--success)) 75%,
-          hsl(var(--primary)) 100%
+          hsl(var(--navy-base)) 0%,
+          hsl(var(--silver-base)) 25%,
+          hsl(var(--star-gold)) 50%,
+          hsl(var(--star-blue)) 75%,
+          hsl(var(--navy-base)) 100%
         )
         border-box;
     background-size: 200% 200%;
@@ -203,17 +256,17 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
+    background: hsl(var(--navy-dark));
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--secondary));
+    background: hsl(var(--silver-base));
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--accent));
+    background: hsl(var(--star-gold));
   }
 }
 
@@ -249,32 +302,6 @@
     font-family: "Inter", monospace;
   }
 
-  /* === CONTEXT-AWARE TITLE UTILITIES === */
-  
-  /* Page titles on dark backgrounds (stadium/page level) */
-  .page-title {
-    @apply text-3xl font-bold leading-snug text-foreground;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-  
-  /* Card titles on light backgrounds (white cards) */
-  .card-title {
-    @apply text-xl font-bold leading-snug text-card-foreground;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-  
-  /* Section headings on light backgrounds */
-  .section-heading {
-    @apply text-lg font-bold leading-snug text-card-foreground;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
   /* === FORM LABEL UTILITY === */
   .form-label {
     @apply text-sm font-medium text-card-foreground mb-1.5;
@@ -293,7 +320,24 @@
     box-shadow: var(--shadow-lg);
   }
 
+  .shadow-card-shadow {
+    box-shadow: var(--card-shadow);
+  }
+
   .shadow-glow-blue {
     box-shadow: var(--glow-blue);
+  }
+
+  .shadow-glow-gold {
+    box-shadow: var(--glow-gold);
+  }
+
+  /* === FINANCIAL METRIC UTILITIES === */
+  .text-profit {
+    @apply text-[hsl(var(--success))];
+  }
+
+  .text-loss {
+    @apply text-[hsl(var(--destructive))];
   }
 }
