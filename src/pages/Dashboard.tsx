@@ -386,7 +386,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen page-background">
+    <div style={{ backgroundColor: '#F9FAFB', minHeight: '100vh', padding: '1.5rem' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Date Range Selector */}
         <div className="flex justify-center mb-8">
@@ -413,7 +413,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Net Profit */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -438,7 +438,7 @@ export default function Dashboard() {
           </div>
 
           {/* Profit Margin */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -463,7 +463,7 @@ export default function Dashboard() {
           </div>
 
           {/* Total Revenue */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -488,7 +488,7 @@ export default function Dashboard() {
           </div>
 
           {/* Cash on Hand */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -517,7 +517,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Premium Sales */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
@@ -541,7 +541,7 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-accent" />
             </div>
@@ -566,7 +566,7 @@ export default function Dashboard() {
           </div>
 
           {/* Bulk Sales */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
@@ -591,7 +591,7 @@ export default function Dashboard() {
           </div>
 
           {/* Show Card Inventory */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <CreditCard className="h-8 w-8 text-accent" />
             </div>
@@ -609,7 +609,7 @@ export default function Dashboard() {
           </div>
 
           {/* Average Sale Value */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -642,7 +642,7 @@ export default function Dashboard() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Total Costs */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-accent" />
             </div>
@@ -667,7 +667,7 @@ export default function Dashboard() {
           </div>
 
           {/* Total Inventory Value */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <Package className="h-8 w-8 text-blue-600" />
             </div>
@@ -687,7 +687,7 @@ export default function Dashboard() {
           </div>
 
           {/* Total Business Value */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <Wallet className="h-8 w-8 text-purple-600" />
             </div>
@@ -707,7 +707,7 @@ export default function Dashboard() {
           </div>
 
           {/* Inventory Turnover */}
-          <div className="card-style rounded-lg p-6">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
               <TrendingUp className="h-8 w-8 text-accent" />
             </div>
@@ -758,7 +758,7 @@ export default function Dashboard() {
         {/* Recent Activity */}
         <section className="mb-12">
           <h2 className="text-lg font-semibold mb-4 text-primary">RECENT ACTIVITY</h2>
-          <div className="card-style rounded-lg p-6 overflow-x-auto">
+          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
             {loadingActivity ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
@@ -824,7 +824,7 @@ export default function Dashboard() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 {upcomingShows.map((show: any) => (
-                  <div key={show.id} className="card-style rounded-lg p-6">
+                  <div key={show.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-sm font-semibold text-primary">{show.name}</h3>
                       {getStatusBadge(show.status)}
