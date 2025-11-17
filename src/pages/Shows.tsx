@@ -486,7 +486,7 @@ export default function Shows() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 text-[hsl(var(--text-body))] border-[hsl(var(--border-default))]"
                       onClick={() => navigate(`/shows/${show.id}`)}
                     >
                       <Eye className="mr-1 h-4 w-4" />
@@ -495,7 +495,7 @@ export default function Shows() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 text-[hsl(var(--text-body))] border-[hsl(var(--border-default))]"
                       onClick={() => navigate(`/shows/${show.id}/edit`)}
                     >
                       <Edit className="mr-1 h-4 w-4" />
@@ -505,7 +505,7 @@ export default function Shows() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteClick(show)}
-                      className="text-destructive hover:text-destructive"
+                      className="text-[hsl(var(--color-danger))] border-[hsl(var(--border-default))] hover:bg-[hsl(var(--color-danger))] hover:text-white"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
