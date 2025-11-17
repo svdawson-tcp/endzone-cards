@@ -370,7 +370,7 @@ export default function Lots() {
             {sortedLots.map((lot) => (
               <div
                 key={lot.id}
-                className="bg-card shadow-card-shadow rounded-lg p-6 relative hover:shadow-lg transition-shadow"
+                className="bg-card border border-[hsl(var(--border-default))] shadow-card-shadow rounded-lg p-6 relative hover:shadow-lg transition-shadow"
               >
                 {/* Status Badge */}
                 <div className="absolute top-4 right-4">
