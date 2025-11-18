@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
 import { useMemo, useState } from "react";
 import { 
@@ -41,19 +42,19 @@ const LotDetail = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [showCloseDialog, setShowCloseDialog] = useState(false);
+  const { getEffectiveUserId } = useMentorAccess();
 
   // Fetch lot details
   const { data: lot, isLoading: lotLoading } = useQuery({
     queryKey: ["lot", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("lots")
         .select("*")
         .eq("id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
 
       if (error) throw error;
@@ -66,14 +67,13 @@ const LotDetail = () => {
   const { data: showCards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ["lot-show-cards", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("show_cards")
         .select("*")
         .eq("lot_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -86,14 +86,13 @@ const LotDetail = () => {
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ["lot-transactions", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
         .eq("lot_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -106,15 +105,14 @@ const LotDetail = () => {
   const { data: dispositions = [], isLoading: dispositionsLoading } = useQuery({
     queryKey: ["lot-dispositions", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
         .eq("lot_id", id)
         .eq("transaction_type", "disposition")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

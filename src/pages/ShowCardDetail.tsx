@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import {
 const ShowCardDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { getEffectiveUserId } = useMentorAccess();
   const [isFlipped, setIsFlipped] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
@@ -36,14 +38,13 @@ const ShowCardDetail = () => {
   const { data: card, isLoading: cardLoading } = useQuery({
     queryKey: ["show-card", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("show_cards")
         .select("*, lots!show_cards_lot_id_fkey(source, purchase_date, total_cost)")
         .eq("id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
 
       if (error) throw error;
@@ -54,14 +55,13 @@ const ShowCardDetail = () => {
   const { data: transactions = [] } = useQuery({
     queryKey: ["show-card-transactions", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
         .eq("show_card_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
