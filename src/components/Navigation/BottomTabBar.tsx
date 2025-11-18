@@ -9,6 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useMentorView } from "@/contexts/MentorViewContext";
 
 const BottomTabBar = () => {
   const location = useLocation();
@@ -16,6 +17,7 @@ const BottomTabBar = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [goalsMenuOpen, setGoalsMenuOpen] = useState(false);
+  const { viewingUserId } = useMentorView();
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
@@ -85,22 +87,26 @@ const BottomTabBar = () => {
   ];
 
   const handleTabClick = (route: string) => {
-    navigate(route);
+    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
+    navigate(`${route}${params}`);
   };
 
   const handleQuickAddClick = (route: string) => {
     setSheetOpen(false);
-    navigate(route);
+    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
+    navigate(`${route}${params}`);
   };
 
   const handleMenuClick = (route: string) => {
     setMenuOpen(false);
-    navigate(route);
+    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
+    navigate(`${route}${params}`);
   };
 
   const handleGoalsClick = (route: string) => {
     setGoalsMenuOpen(false);
-    navigate(route);
+    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
+    navigate(`${route}${params}`);
   };
 
   return (

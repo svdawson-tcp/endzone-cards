@@ -31,6 +31,7 @@ import PersonalGoals from "./pages/goals/PersonalGoals";
 import BusinessGoals from "./pages/goals/BusinessGoals";
 import ActionPlanning from "./pages/goals/ActionPlanning";
 import Glossary from "./pages/Glossary";
+import { MentorViewProvider } from "./contexts/MentorViewContext";
 
 const queryClient = new QueryClient();
 
@@ -50,8 +51,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <ScrollToTop />
-        <Routes>
+        <MentorViewProvider>
+          <ScrollToTop />
+          <Routes>
           <Route path="/" element={<AuthRedirect />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><AuthenticatedLayout><Dashboard /></AuthenticatedLayout></ProtectedRoute>} />
@@ -81,7 +83,8 @@ const App = () => (
           <Route path="/glossary" element={<ProtectedRoute><AuthenticatedLayout><Glossary /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </MentorViewProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

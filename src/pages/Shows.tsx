@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useMentorView } from "@/contexts/MentorViewContext";
 import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -53,9 +54,8 @@ export default function Shows() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showToDelete, setShowToDelete] = useState<Show | null>(null);
 
-  // Extract viewingUserId from URL for mentor view
-  const searchParams = new URLSearchParams(window.location.search);
-  const viewingUserId = searchParams.get("viewingUserId");
+  // Use mentor view context
+  const { viewingUserId } = useMentorView();
 
   const getEffectiveUserId = async () => {
     if (viewingUserId) {

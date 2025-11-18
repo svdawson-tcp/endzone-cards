@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { useMentorView } from "@/contexts/MentorViewContext";
 import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,9 +60,8 @@ export default function Lots() {
   const [lotToClose, setLotToClose] = useState<LotWithRevenue | null>(null);
   const [unsoldCardCount, setUnsoldCardCount] = useState(0);
 
-  // Extract viewingUserId from URL for mentor view
-  const searchParams = new URLSearchParams(window.location.search);
-  const viewingUserId = searchParams.get("viewingUserId");
+  // Use mentor view context
+  const { viewingUserId } = useMentorView();
 
   const getEffectiveUserId = async () => {
     if (viewingUserId) {
