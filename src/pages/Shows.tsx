@@ -53,17 +53,29 @@ export default function Shows() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showToDelete, setShowToDelete] = useState<Show | null>(null);
 
+  // Extract viewingUserId from URL for mentor view
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewingUserId = searchParams.get("viewingUserId");
+
+  const getEffectiveUserId = async () => {
+    if (viewingUserId) {
+      return viewingUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return user.id;
+  };
+
   // Fetch shows with revenue and expenses
   const { data: shows = [], isLoading } = useQuery({
-    queryKey: ["shows"],
+    queryKey: ["shows", viewingUserId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data: showsData, error } = await supabase
         .from("shows")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("show_date", { ascending: true });
 
       if (error) throw error;

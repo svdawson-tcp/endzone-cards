@@ -13,11 +13,23 @@ const ShowCards = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Extract viewingUserId from URL for mentor view
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewingUserId = searchParams.get("viewingUserId");
+
+  const getEffectiveUserId = async () => {
+    if (viewingUserId) {
+      return viewingUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return user.id;
+  };
+
   const { data: showCards = [], isLoading } = useQuery({
-    queryKey: ["show-cards"],
+    queryKey: ["show-cards", viewingUserId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("show_cards")
@@ -26,7 +38,7 @@ const ShowCards = () => {
           lots!show_cards_lot_id_fkey(source),
           transactions!left(transaction_date)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

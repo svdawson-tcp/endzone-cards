@@ -103,11 +103,23 @@ export default function TransactionHistory() {
     showCardId?: string | null;
   } | null>(null);
 
+  // Extract viewingUserId from URL for mentor view
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewingUserId = searchParams.get("viewingUserId");
+
+  const getEffectiveUserId = async () => {
+    if (viewingUserId) {
+      return viewingUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return user.id;
+  };
+
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ["all-transactions"],
+    queryKey: ["all-transactions", viewingUserId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       // Fetch sales transactions (exclude deleted)
       const { data: salesData, error: salesError } = await supabase
@@ -118,7 +130,7 @@ export default function TransactionHistory() {
           lots(source),
           show_cards(player_name, year)
         `)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .or("deleted.is.null,deleted.eq.false")
         .order("transaction_date", { ascending: false });
 
@@ -128,7 +140,7 @@ export default function TransactionHistory() {
       const { data: cashData, error: cashError } = await supabase
         .from("cash_transactions")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .in("transaction_type", ["deposit", "withdrawal", "adjustment"])
         .order("created_at", { ascending: false });
 
