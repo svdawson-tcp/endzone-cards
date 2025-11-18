@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useMentorView } from "@/contexts/MentorViewContext";
+import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,7 @@ interface LotWithRevenue extends Lot {
 
 export default function Lots() {
   const navigate = useNavigate();
+  const navigateWithMentorView = useNavigateWithMentorView();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -284,7 +286,7 @@ export default function Lots() {
             <p className="text-muted-foreground">Track your inventory purchases</p>
           </div>
           <Button
-            onClick={() => navigate("/lots/new")}
+            onClick={() => navigateWithMentorView("/lots/new")}
             className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
           >
             <Plus className="mr-2 h-5 w-5" />
@@ -353,7 +355,7 @@ export default function Lots() {
             <h2 className="text-h2 mb-2">No lots yet</h2>
             <p className="text-muted-foreground mb-6">Create your first lot to start tracking purchases</p>
             <Button
-              onClick={() => navigate("/lots/new")}
+              onClick={() => navigateWithMentorView("/lots/new")}
               className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
             >
               <Plus className="mr-2 h-5 w-5" />
@@ -449,14 +451,14 @@ export default function Lots() {
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
                   <Button
-                    onClick={() => navigate(`/lots/${lot.id}`)}
+                    onClick={() => navigateWithMentorView(`/lots/${lot.id}`)}
                     variant="outline"
                     className="w-full"
                   >
                     VIEW DETAILS
                   </Button>
                   <Button
-                    onClick={() => navigate(`/show-cards/new?lot_id=${lot.id}`)}
+                    onClick={() => navigateWithMentorView(`/show-cards/new?lot_id=${lot.id}`)}
                     className="w-full bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -477,7 +479,7 @@ export default function Lots() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigate(`/lots/${lot.id}/edit`)}
+                      onClick={() => navigateWithMentorView(`/lots/${lot.id}/edit`)}
                     >
                       <Edit className="mr-1 h-4 w-4" />
                       Edit
