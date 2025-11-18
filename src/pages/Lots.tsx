@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useMentorView } from "@/contexts/MentorViewContext";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,21 +62,12 @@ export default function Lots() {
   const [lotToClose, setLotToClose] = useState<LotWithRevenue | null>(null);
   const [unsoldCardCount, setUnsoldCardCount] = useState(0);
 
-  // Use mentor view context
-  const { viewingUserId } = useMentorView();
-
-  const getEffectiveUserId = async () => {
-    if (viewingUserId) {
-      return viewingUserId;
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return user.id;
-  };
+  // Use mentor access context
+  const { getEffectiveUserId } = useMentorAccess();
 
   // Fetch lots with revenue calculation
   const { data: lots = [], isLoading } = useQuery({
-    queryKey: ["lots", viewingUserId],
+    queryKey: ["lots"],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
 
