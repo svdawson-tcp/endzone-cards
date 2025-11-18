@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { useMentorView } from "@/contexts/MentorViewContext";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -56,21 +56,12 @@ export default function Shows() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showToDelete, setShowToDelete] = useState<Show | null>(null);
 
-  // Use mentor view context
-  const { viewingUserId } = useMentorView();
-
-  const getEffectiveUserId = async () => {
-    if (viewingUserId) {
-      return viewingUserId;
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return user.id;
-  };
+  // Use mentor access context
+  const { getEffectiveUserId } = useMentorAccess();
 
   // Fetch shows with revenue and expenses
   const { data: shows = [], isLoading } = useQuery({
-    queryKey: ["shows", viewingUserId],
+    queryKey: ["shows"],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
 

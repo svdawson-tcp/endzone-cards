@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useMentorView } from "@/contexts/MentorViewContext";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 const BottomTabBar = () => {
   const location = useLocation();
@@ -17,7 +17,7 @@ const BottomTabBar = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [goalsMenuOpen, setGoalsMenuOpen] = useState(false);
-  const { viewingUserId } = useMentorView();
+  const { isViewingAsMentor, logActivity } = useMentorAccess();
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
@@ -87,26 +87,34 @@ const BottomTabBar = () => {
   ];
 
   const handleTabClick = (route: string) => {
-    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
-    navigate(`${route}${params}`);
+    navigate(route);
+    if (isViewingAsMentor) {
+      logActivity("navigation", route);
+    }
   };
 
   const handleQuickAddClick = (route: string) => {
     setSheetOpen(false);
-    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
-    navigate(`${route}${params}`);
+    navigate(route);
+    if (isViewingAsMentor) {
+      logActivity("quick_add", route);
+    }
   };
 
   const handleMenuClick = (route: string) => {
     setMenuOpen(false);
-    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
-    navigate(`${route}${params}`);
+    navigate(route);
+    if (isViewingAsMentor) {
+      logActivity("menu_navigation", route);
+    }
   };
 
   const handleGoalsClick = (route: string) => {
     setGoalsMenuOpen(false);
-    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
-    navigate(`${route}${params}`);
+    navigate(route);
+    if (isViewingAsMentor) {
+      logActivity("goals_navigation", route);
+    }
   };
 
   return (

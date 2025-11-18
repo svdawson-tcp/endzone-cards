@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useMentorView } from "@/contexts/MentorViewContext";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { 
   Receipt, 
   Download,
@@ -104,20 +104,11 @@ export default function TransactionHistory() {
     showCardId?: string | null;
   } | null>(null);
 
-  // Use mentor view context
-  const { viewingUserId } = useMentorView();
-
-  const getEffectiveUserId = async () => {
-    if (viewingUserId) {
-      return viewingUserId;
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return user.id;
-  };
+  // Use mentor access context
+  const { getEffectiveUserId } = useMentorAccess();
 
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ["all-transactions", viewingUserId],
+    queryKey: ["all-transactions"],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
 

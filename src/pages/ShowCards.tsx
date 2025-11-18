@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useMentorView } from "@/contexts/MentorViewContext";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 
 const ShowCards = () => {
@@ -16,20 +16,11 @@ const ShowCards = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Use mentor view context
-  const { viewingUserId } = useMentorView();
-
-  const getEffectiveUserId = async () => {
-    if (viewingUserId) {
-      return viewingUserId;
-    }
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
-    return user.id;
-  };
+  // Use mentor access context
+  const { getEffectiveUserId } = useMentorAccess();
 
   const { data: showCards = [], isLoading } = useQuery({
-    queryKey: ["show-cards", viewingUserId],
+    queryKey: ["show-cards"],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
 
