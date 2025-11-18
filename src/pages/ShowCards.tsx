@@ -8,11 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
-import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 
 const ShowCards = () => {
   const navigate = useNavigate();
-  const navigateWithMentorView = useNavigateWithMentorView();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -85,7 +83,7 @@ const ShowCards = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <h1 className="page-title">SHOW CARDS</h1>
           <Button
-            onClick={() => navigateWithMentorView("/show-cards/new")}
+            onClick={() => navigate("/show-cards/new")}
             className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
           >
             ADD SHOW CARD
@@ -132,7 +130,7 @@ const ShowCards = () => {
                 <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-h3 mb-2">No Show Cards Yet</h3>
                 <p className="text-[hsl(var(--text-body))] mb-4">Add your first premium card to start tracking inventory</p>
-                <Button onClick={() => navigateWithMentorView("/show-cards/new")}>ADD SHOW CARD</Button>
+                <Button onClick={() => navigate("/show-cards/new")}>ADD SHOW CARD</Button>
               </CardContent>
             </Card>
           </div>
@@ -150,7 +148,7 @@ const ShowCards = () => {
               <Card
                 key={card.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => navigateWithMentorView(`/show-cards/${card.id}`)}
+                onClick={() => navigate(`/show-cards/${card.id}`)}
               >
                 <CardContent className="p-4">
                   {/* Photo */}
