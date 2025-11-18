@@ -59,18 +59,30 @@ export default function Lots() {
   const [lotToClose, setLotToClose] = useState<LotWithRevenue | null>(null);
   const [unsoldCardCount, setUnsoldCardCount] = useState(0);
 
+  // Extract viewingUserId from URL for mentor view
+  const searchParams = new URLSearchParams(window.location.search);
+  const viewingUserId = searchParams.get("viewingUserId");
+
+  const getEffectiveUserId = async () => {
+    if (viewingUserId) {
+      return viewingUserId;
+    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    return user.id;
+  };
+
   // Fetch lots with revenue calculation
   const { data: lots = [], isLoading } = useQuery({
-    queryKey: ["lots"],
+    queryKey: ["lots", viewingUserId],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       // Fetch lots
       const { data: lotsData, error: lotsError } = await supabase
         .from("lots")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("purchase_date", { ascending: false });
 
       if (lotsError) throw lotsError;
@@ -79,7 +91,7 @@ export default function Lots() {
       const { data: transactionsData, error: transactionsError } = await supabase
         .from("transactions")
         .select("lot_id, revenue")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .not("lot_id", "is", null);
 
       if (transactionsError) throw transactionsError;
