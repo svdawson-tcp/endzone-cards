@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
 import { 
   Calendar, 
@@ -62,19 +63,19 @@ export default function ShowDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getEffectiveUserId } = useMentorAccess();
 
   // Fetch show details
   const { data: show, isLoading: showLoading } = useQuery({
     queryKey: ["show", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("shows")
         .select("*")
         .eq("id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .single();
 
       if (error) throw error;
@@ -87,14 +88,13 @@ export default function ShowDetail() {
   const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
     queryKey: ["show-transactions", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
         .eq("show_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -107,14 +107,13 @@ export default function ShowDetail() {
   const { data: expenses = [], isLoading: expensesLoading } = useQuery({
     queryKey: ["show-expenses", id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const userId = await getEffectiveUserId();
 
       const { data, error } = await supabase
         .from("expenses")
         .select("*")
         .eq("show_id", id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("expense_date", { ascending: false });
 
       if (error) throw error;
