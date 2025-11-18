@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
-import { useNavigateWithMentorView } from "@/hooks/useNavigateWithMentorView";
 import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,7 +46,6 @@ interface Show {
 
 export default function Shows() {
   const navigate = useNavigate();
-  const navigateWithMentorView = useNavigateWithMentorView();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -258,7 +256,7 @@ export default function Shows() {
             <p className="text-muted-foreground">Manage your card show events</p>
           </div>
           <Button
-            onClick={() => navigateWithMentorView("/shows/new")}
+            onClick={() => navigate("/shows/new")}
             className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
           >
             <Plus className="mr-2 h-5 w-5" />
@@ -326,7 +324,7 @@ export default function Shows() {
             <h2 className="text-h2 mb-2">No shows yet</h2>
             <p className="text-muted-foreground mb-6">Create your first show to get started</p>
             <Button
-              onClick={() => navigateWithMentorView("/shows/new")}
+              onClick={() => navigate("/shows/new")}
               className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
             >
               <Plus className="mr-2 h-5 w-5" />
@@ -488,7 +486,7 @@ export default function Shows() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigateWithMentorView(`/shows/${show.id}`)}
+                      onClick={() => navigate(`/shows/${show.id}`)}
                     >
                       <Eye className="mr-1 h-4 w-4" />
                       View
@@ -497,7 +495,7 @@ export default function Shows() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={() => navigateWithMentorView(`/shows/${show.id}/edit`)}
+                      onClick={() => navigate(`/shows/${show.id}/edit`)}
                     >
                       <Edit className="mr-1 h-4 w-4" />
                       Edit
