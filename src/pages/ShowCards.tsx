@@ -7,15 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useMentorView } from "@/contexts/MentorViewContext";
 
 const ShowCards = () => {
   const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract viewingUserId from URL for mentor view
-  const searchParams = new URLSearchParams(window.location.search);
-  const viewingUserId = searchParams.get("viewingUserId");
+  // Use mentor view context
+  const { viewingUserId } = useMentorView();
 
   const getEffectiveUserId = async () => {
     if (viewingUserId) {

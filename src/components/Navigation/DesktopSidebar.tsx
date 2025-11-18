@@ -7,12 +7,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useMentorView } from "@/contexts/MentorViewContext";
 
 const DesktopSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [transactionsOpen, setTransactionsOpen] = useState(true);
   const [goalsOpen, setGoalsOpen] = useState(true);
+  const { viewingUserId } = useMentorView();
 
   const navItems = [
     { icon: Home, label: "Dashboard", route: "/dashboard" },
@@ -40,7 +42,8 @@ const DesktopSidebar = () => {
   ];
 
   const handleNavClick = (route: string) => {
-    navigate(route);
+    const params = viewingUserId ? `?viewingUserId=${viewingUserId}` : "";
+    navigate(`${route}${params}`);
   };
 
   return (

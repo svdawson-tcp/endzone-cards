@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useMentorView } from "@/contexts/MentorViewContext";
 import { 
   Receipt, 
   Download,
@@ -103,9 +104,8 @@ export default function TransactionHistory() {
     showCardId?: string | null;
   } | null>(null);
 
-  // Extract viewingUserId from URL for mentor view
-  const searchParams = new URLSearchParams(window.location.search);
-  const viewingUserId = searchParams.get("viewingUserId");
+  // Use mentor view context
+  const { viewingUserId } = useMentorView();
 
   const getEffectiveUserId = async () => {
     if (viewingUserId) {
