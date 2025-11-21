@@ -139,4 +139,22 @@
   .metric-negative {
     color: hsl(var(--metric-negative));
   }
+
+  /* Night Game Header Glow Animation */
+  @keyframes header-pulse-glow {
+    0%, 100% {
+      box-shadow: 0 1px 2px -1px rgba(0, 102, 255, 0.2);
+      border-bottom-color: rgba(0, 102, 255, 0.1);
+    }
+    50% {
+      box-shadow: 0 8px 20px -6px rgba(0, 102, 255, 0.7);
+      border-bottom-color: rgba(0, 102, 255, 0.5);
+    }
+  }
+
+  .animate-header-glow {
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    animation: header-pulse-glow 4s ease-in-out infinite;
+  }
 }
