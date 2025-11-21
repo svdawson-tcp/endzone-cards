@@ -98,7 +98,7 @@ const ShowCards = () => {
               placeholder="Search by player name..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="min-h-[44px]"
+              className="min-h-[44px] bg-card text-foreground border-border placeholder:text-muted-foreground"
             />
 
             {/* Status Filter Tabs */}
