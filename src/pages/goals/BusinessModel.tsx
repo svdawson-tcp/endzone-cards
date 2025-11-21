@@ -7,7 +7,7 @@ const BusinessModel = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -35,24 +35,24 @@ const BusinessModel = () => {
             <div className="bg-primary/10 p-3 rounded-lg shrink-0">
               <TrendingUp className="h-6 w-6 text-primary" />
             </div>
-            <div>
-              <h2 className="text-xl font-bold card-foreground mb-2">
-                The Card Trading Business
-              </h2>
-              <p className="card-foreground/80 leading-relaxed">
-                Card trading is a unique business that combines market knowledge, fast 
-                inventory turnover, and efficient operations. Success comes from buying 
-                undervalued cards, knowing your market, and selling at optimal prices. 
-                Your goal is to maximize cash velocity—turning inventory into profit quickly.
-              </p>
-            </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground mb-2">
+              The Card Trading Business
+            </h2>
+            <p className="text-muted-foreground leading-relaxed">
+              Card trading is a unique business that combines market knowledge, fast 
+              inventory turnover, and efficient operations. Success comes from buying 
+              undervalued cards, knowing your market, and selling at optimal prices. 
+              Your goal is to maximize cash velocity—turning inventory into profit quickly.
+            </p>
+          </div>
           </div>
         </Card>
 
         {/* Revenue Streams */}
         <div>
-          <h2 className="text-xl font-bold foreground mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 foreground" />
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-foreground" />
             Revenue Streams
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -61,27 +61,27 @@ const BusinessModel = () => {
                 <div className="bg-primary/10 p-2 rounded-lg shrink-0">
                   <Award className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Show Sales (Premium)</h3>
-                  <p className="text-sm card-foreground/80 mb-3">
-                    Individual premium cards sold at shows. Higher margins but requires 
-                    market expertise and customer interaction.
-                  </p>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Typical Margin:</span>
-                      <span className="card-foreground font-semibold">30-100%+</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Volume:</span>
-                      <span className="card-foreground font-semibold">Lower</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Time Investment:</span>
-                      <span className="card-foreground font-semibold">High</span>
-                    </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">Show Sales (Premium)</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Individual premium cards sold at shows. Higher margins but requires 
+                  market expertise and customer interaction.
+                </p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Typical Margin:</span>
+                    <span className="text-foreground font-semibold">30-100%+</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Volume:</span>
+                    <span className="text-foreground font-semibold">Lower</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time Investment:</span>
+                    <span className="text-foreground font-semibold">High</span>
                   </div>
                 </div>
+              </div>
               </div>
             </Card>
 
@@ -90,75 +90,75 @@ const BusinessModel = () => {
                 <div className="bg-primary/10 p-2 rounded-lg shrink-0">
                   <ShoppingCart className="h-5 w-5 text-primary" />
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Bulk Sales</h3>
-                  <p className="text-sm card-foreground/80 mb-3">
-                    Selling multiple cards at once to dealers or collectors. Lower margins 
-                    but faster cash conversion and less effort per sale.
-                  </p>
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Typical Margin:</span>
-                      <span className="card-foreground font-semibold">10-30%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Volume:</span>
-                      <span className="card-foreground font-semibold">Higher</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="card-foreground/70">Time Investment:</span>
-                      <span className="card-foreground font-semibold">Low</span>
-                    </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">Bulk Sales</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Selling multiple cards at once to dealers or collectors. Lower margins 
+                  but faster cash conversion and less effort per sale.
+                </p>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Typical Margin:</span>
+                    <span className="text-foreground font-semibold">10-30%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Volume:</span>
+                    <span className="text-foreground font-semibold">Higher</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Time Investment:</span>
+                    <span className="text-foreground font-semibold">Low</span>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            <Card className="p-6 bg-card border-border shadow-md hover:shadow-lg transition-all md:col-span-2">
-              <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <Globe className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Online Sales</h3>
-                  <p className="text-sm card-foreground/80 mb-3">
-                    eBay, Facebook Marketplace, COMC, and specialized card platforms. 
-                    Expands reach beyond local market but requires shipping and platform management.
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <div className="card-foreground/70">Typical Margin:</div>
-                      <div className="card-foreground font-semibold">20-80%</div>
-                    </div>
-                    <div>
-                      <div className="card-foreground/70">Volume:</div>
-                      <div className="card-foreground font-semibold">Very High</div>
-                    </div>
-                    <div>
-                      <div className="card-foreground/70">Time Investment:</div>
-                      <div className="card-foreground font-semibold">Medium</div>
-                    </div>
-                    <div>
-                      <div className="card-foreground/70">Platform Fees:</div>
-                      <div className="card-foreground font-semibold">10-15%</div>
-                    </div>
+          <Card className="p-6 bg-card border-border shadow-md hover:shadow-lg transition-all md:col-span-2">
+            <div className="flex items-start gap-3">
+              <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+                <Globe className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-foreground mb-2">Online Sales</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  eBay, Facebook Marketplace, COMC, and specialized card platforms. 
+                  Expands reach beyond local market but requires shipping and platform management.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div>
+                    <div className="text-muted-foreground">Typical Margin:</div>
+                    <div className="text-foreground font-semibold">20-80%</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Volume:</div>
+                    <div className="text-foreground font-semibold">Very High</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Time Investment:</div>
+                    <div className="text-foreground font-semibold">Medium</div>
+                  </div>
+                  <div>
+                    <div className="text-muted-foreground">Platform Fees:</div>
+                    <div className="text-foreground font-semibold">10-15%</div>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
           </div>
         </div>
 
         {/* Key Success Factors */}
         <div>
-          <h2 className="text-xl font-bold foreground mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 foreground" />
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Target className="h-5 w-5 text-foreground" />
             Key Success Factors
           </h2>
           <div className="grid gap-4">
             <Card className="p-5 bg-card border-border shadow-md">
-              <h3 className="text-lg font-bold card-foreground mb-2">Buy Low, Sell High</h3>
-              <p className="text-sm card-foreground/80">
+              <h3 className="text-lg font-bold text-foreground mb-2">Buy Low, Sell High</h3>
+              <p className="text-sm text-muted-foreground">
                 Success starts with smart purchasing. Look for undervalued lots at estate sales, 
                 storage auctions, and from casual collectors. The profit is made at the purchase, 
                 not the sale. Target 50%+ margins on premium cards.
@@ -166,8 +166,8 @@ const BusinessModel = () => {
             </Card>
 
             <Card className="p-5 bg-card border-border shadow-md">
-              <h3 className="text-lg font-bold card-foreground mb-2">Fast Inventory Turnover</h3>
-              <p className="text-sm card-foreground/80">
+              <h3 className="text-lg font-bold text-foreground mb-2">Fast Inventory Turnover</h3>
+              <p className="text-sm text-muted-foreground">
                 Cash velocity matters more than holding for maximum profit. A 30% margin turned 
                 monthly beats a 100% margin turned annually. Don&apos;t fall in love with inventory—
                 move it quickly and reinvest.
@@ -175,8 +175,8 @@ const BusinessModel = () => {
             </Card>
 
             <Card className="p-5 bg-card border-border shadow-md">
-              <h3 className="text-lg font-bold card-foreground mb-2">Market Knowledge</h3>
-              <p className="text-sm card-foreground/80">
+              <h3 className="text-lg font-bold text-foreground mb-2">Market Knowledge</h3>
+              <p className="text-sm text-muted-foreground">
                 Know which players, years, and sets are valuable. Study recent sales on eBay, 
                 monitor PSA/Beckett values, and understand what collectors want. Specialize in 
                 specific eras or sports to build expertise faster.
@@ -184,8 +184,8 @@ const BusinessModel = () => {
             </Card>
 
             <Card className="p-5 bg-card border-border shadow-md">
-              <h3 className="text-lg font-bold card-foreground mb-2">Efficient Operations</h3>
-              <p className="text-sm card-foreground/80">
+              <h3 className="text-lg font-bold text-foreground mb-2">Efficient Operations</h3>
+              <p className="text-sm text-muted-foreground">
                 Time is money. Optimize your sorting, pricing, and selling processes. Use tools 
                 like EndZone to track everything instantly. Know your numbers—cost basis, margins, 
                 cash position—without digging through paperwork.
@@ -196,8 +196,8 @@ const BusinessModel = () => {
 
         {/* Growth Levers */}
         <div>
-          <h2 className="text-xl font-bold foreground mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5 foreground" />
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Zap className="h-5 w-5 text-foreground" />
             Growth Levers
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
@@ -207,8 +207,8 @@ const BusinessModel = () => {
                   <Calendar className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Increase Show Frequency</h3>
-                  <p className="text-sm card-foreground/80">
+                  <h3 className="text-lg font-bold text-foreground mb-2">Increase Show Frequency</h3>
+                  <p className="text-sm text-muted-foreground">
                     More shows = more opportunities. Start with monthly shows, then bi-weekly, 
                     then weekly. Each show is a cash injection opportunity.
                   </p>
@@ -222,8 +222,8 @@ const BusinessModel = () => {
                   <TrendingUp className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Improve Average Sale Price</h3>
-                  <p className="text-sm card-foreground/80">
+                  <h3 className="text-lg font-bold text-foreground mb-2">Improve Average Sale Price</h3>
+                  <p className="text-sm text-muted-foreground">
                     Focus on higher-value cards. A $200 average sale vs $50 means 4x fewer 
                     transactions for the same revenue.
                   </p>
@@ -237,8 +237,8 @@ const BusinessModel = () => {
                   <MapPin className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold card-foreground mb-2">Expand Geographic Market</h3>
-                  <p className="text-sm card-foreground/80">
+                  <h3 className="text-lg font-bold text-foreground mb-2">Expand Geographic Market</h3>
+                  <p className="text-sm text-muted-foreground">
                     Travel to neighboring cities and states. Larger markets have more buyers 
                     and often higher prices for the same cards.
                   </p>

@@ -158,8 +158,8 @@ const ActionPlanning = () => {
     return Math.round((completed / actions.length) * 100);
   };
 
-  if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
-  if (!existingGoal) return <div className="min-h-screen bg-background p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-primary/5 mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-card-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center"><div className="text-muted-foreground">Loading...</div></div>;
+  if (!existingGoal) return <div className="min-h-screen p-6"><div className="max-w-4xl mx-auto"><Button variant="ghost" size="sm" onClick={() => navigate('/goals/business')}><ArrowLeft className="mr-2 h-4 w-4" />Back</Button><Card className="p-8 text-center bg-card border-border mt-6"><Target className="h-12 w-12 text-primary mx-auto mb-4" /><h2 className="text-xl font-semibold mb-2 text-foreground">Set Your Goals First</h2><Button onClick={() => navigate('/goals/business')}>Set Up Goals</Button></Card></div></div>;
 
   const currentProgress = { monthly: getActiveActions('monthly'), quarterly: getActiveActions('quarterly'), longterm: getActiveActions('longterm') };
 
@@ -170,7 +170,7 @@ const ActionPlanning = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA]">
+    <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <div className="flex items-center gap-4 mb-2">
           <Button
@@ -182,8 +182,8 @@ const ActionPlanning = () => {
             Back
           </Button>
           <div>
-            <h1 className="text-h1 text-[#041E42]">ACTION PLANNING</h1>
-            <p className="text-gray-600 text-sm">Track your progress with actionable goals</p>
+            <h1 className="page-title text-[hsl(var(--text-primary))]">ACTION PLANNING</h1>
+            <p className="text-muted-foreground text-sm">Track your progress with actionable goals</p>
           </div>
         </div>
         
