@@ -40,7 +40,7 @@ export const ActionCardHeader = ({
     <div className="flex items-center gap-3">
       <h3 className="font-semibold text-lg text-foreground">{children}</h3>
       {typeof completionRate === 'number' && (
-        <span className="text-xs text-background bg-primary px-3 py-1 rounded-full font-medium inline-flex items-center justify-center min-w-[90px]">
+        <span className="text-xs text-background bg-primary px-3 py-1 rounded-full font-medium inline-flex items-center justify-center min-w-[90px] text-center">
           {completionRate}% complete
         </span>
       )}
