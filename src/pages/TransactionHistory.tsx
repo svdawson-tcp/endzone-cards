@@ -325,8 +325,8 @@ export default function TransactionHistory() {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
             <div>
               {/* Page Title - Uses page-title class for white text on dark background */}
-              <h1 className="text-h1 mb-2">TRANSACTION HISTORY</h1>
-              <p className="text-[hsl(var(--text-body))]">
+              <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">TRANSACTION HISTORY</h1>
+              <p className="text-muted-foreground">
                 Complete audit trail of all financial transactions
               </p>
             </div>
@@ -341,34 +341,34 @@ export default function TransactionHistory() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Total Transactions</div>
-              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{filteredTransactions.length}</div>
+            <div className="bg-card border border-border shadow-md rounded-lg p-4">
+              <div className="text-sm text-muted-foreground mb-1">Total Transactions</div>
+              <div className="text-2xl font-bold text-foreground">{filteredTransactions.length}</div>
             </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Total Revenue</div>
+            <div className="bg-card border border-border shadow-md rounded-lg p-4">
+              <div className="text-sm text-muted-foreground mb-1">Total Revenue</div>
               <div className="text-2xl font-bold text-[hsl(var(--metric-positive))]">
                 ${totalRevenue.toFixed(2)}
               </div>
             </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Premium Sales</div>
-              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{counts.show_card_sale}</div>
+            <div className="bg-card border border-border shadow-md rounded-lg p-4">
+              <div className="text-sm text-muted-foreground mb-1">Premium Sales</div>
+              <div className="text-2xl font-bold text-foreground">{counts.show_card_sale}</div>
             </div>
-            <div className="bg-white shadow-md rounded-lg p-4">
-              <div className="text-sm text-[hsl(var(--text-secondary))] mb-1">Bulk Sales</div>
-              <div className="text-2xl font-bold text-[hsl(var(--text-body))]">{counts.bulk_sale}</div>
+            <div className="bg-card border border-border shadow-md rounded-lg p-4">
+              <div className="text-sm text-muted-foreground mb-1">Bulk Sales</div>
+              <div className="text-2xl font-bold text-foreground">{counts.bulk_sale}</div>
             </div>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search transactions..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-card text-foreground border-border placeholder:text-muted-foreground"
               />
             </div>
 
@@ -405,25 +405,25 @@ export default function TransactionHistory() {
         )}
 
         {!isLoading && transactions.length === 0 && (
-          <div className="bg-white shadow-md rounded-lg p-12 text-center">
-            <Receipt className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-h2 mb-2">No transactions yet</h2>
-            <p className="text-[hsl(var(--text-body))]">
+          <div className="bg-card border border-border shadow-md rounded-lg p-12 text-center">
+            <Receipt className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-h2 text-foreground mb-2">No transactions yet</h2>
+            <p className="text-muted-foreground">
               Transactions will appear here as you record sales, cash movements, and dispositions
             </p>
           </div>
         )}
 
         {!isLoading && transactions.length > 0 && sortedTransactions.length === 0 && (
-          <div className="bg-white shadow-md rounded-lg p-12 text-center">
-            <Receipt className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-h2 mb-2">No matching transactions</h2>
-            <p className="text-[hsl(var(--text-body))]">Try adjusting your filters or search term</p>
+          <div className="bg-card border border-border shadow-md rounded-lg p-12 text-center">
+            <Receipt className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-h2 text-foreground mb-2">No matching transactions</h2>
+            <p className="text-muted-foreground">Try adjusting your filters or search term</p>
           </div>
         )}
 
         {!isLoading && sortedTransactions.length > 0 && (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
+          <div className="bg-card border border-border shadow-md rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
