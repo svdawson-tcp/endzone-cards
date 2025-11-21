@@ -37,12 +37,12 @@ export const CollapsibleSection = ({
     <Card className="p-6 bg-card border-border shadow-md">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger className="flex items-center gap-2 w-full hover:opacity-80 transition-opacity">
-          <Icon className="w-5 h-5 text-primary" />
+          <Icon className="w-5 h-5 text-accent" />
           <h3 className="text-foreground font-medium text-lg">{title}</h3>
           {isOpen ? (
-            <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" />
+            <ChevronDown className="w-4 h-4 ml-auto text-foreground" />
           ) : (
-            <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />
+            <ChevronRight className="w-4 h-4 ml-auto text-foreground" />
           )}
         </CollapsibleTrigger>
         

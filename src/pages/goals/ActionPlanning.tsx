@@ -177,6 +177,7 @@ const ActionPlanning = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/goals/business')}
+            className="text-foreground hover:text-foreground/80"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
@@ -213,7 +214,7 @@ const ActionPlanning = () => {
                 completionRate={completionRate}
               >
                 <div className="flex items-center gap-2">
-                  <config.icon className="w-5 h-5" />
+                  <config.icon className="w-5 h-5 text-foreground" />
                   {config.title}
                 </div>
               </ActionCardHeader>
