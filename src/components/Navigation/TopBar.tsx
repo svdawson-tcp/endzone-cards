@@ -67,8 +67,8 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
           )}
         </div>
 
-        {/* Right: Account controls */}
-        <div className="flex items-center gap-2">
+        {/* Right: Account controls - Hidden on mobile, visible on desktop */}
+        <div className="hidden md:flex items-center gap-2">
           <AccountSwitcher />
           
           <DropdownMenu>
