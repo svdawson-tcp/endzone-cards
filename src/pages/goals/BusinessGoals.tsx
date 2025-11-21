@@ -132,7 +132,7 @@ const BusinessGoals = () => {
 
   if (loadingGoals) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
@@ -140,8 +140,8 @@ const BusinessGoals = () => {
 
   if (!existingGoal) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <Card className="p-6 max-w-md">
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-6 max-w-md bg-card border-border">
           <h2 className="text-xl font-bold text-foreground mb-4">Personal Goals Required</h2>
           <p className="text-muted-foreground mb-4">
             Please set your personal goals first to calculate business targets.
@@ -155,7 +155,7 @@ const BusinessGoals = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen">
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
