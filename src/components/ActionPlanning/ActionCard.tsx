@@ -94,7 +94,7 @@ export const ActionItem = ({
       checked={completed} 
       onCheckedChange={onToggle} 
       disabled={disabled}
-      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-border"
+      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-muted-foreground/30 bg-card"
     />
     <span 
       className={cn(
