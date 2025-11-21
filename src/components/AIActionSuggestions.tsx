@@ -154,8 +154,8 @@ export const AIActionSuggestions = ({
     <Card className="p-6 bg-card border-border">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Lightbulb className="h-6 w-6 text-primary" />
+          <div className="p-2 bg-accent/20 rounded-lg">
+            <Lightbulb className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-foreground">AI Action Suggestions</h3>
