@@ -268,24 +268,42 @@ export default function Lots() {
     <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 mb-8">
-          <div>
-            {/* Page Title - Uses page-title class with EndZone design system */}
-            <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
-            <p className="text-muted-foreground">Track your inventory purchases</p>
+        <div className="flex flex-col gap-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+            <div>
+              {/* Page Title - Uses page-title class with EndZone design system */}
+              <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
+              <p className="text-muted-foreground">Track your inventory purchases</p>
+            </div>
+            <Button
+              onClick={() => navigate("/lots/new")}
+              className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              CREATE LOT
+            </Button>
           </div>
-          <Button
-            onClick={() => navigate("/lots/new")}
-            className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
-          >
-            <Plus className="mr-2 h-5 w-5" />
-            CREATE LOT
-          </Button>
+          
+          {/* Mobile Filter Dropdown - only visible on mobile */}
+          <div className="md:hidden">
+            <Select value={filterTab} onValueChange={(value) => setFilterTab(value as FilterTab)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All ({counts.all})</SelectItem>
+                <SelectItem value="active">Active ({counts.active})</SelectItem>
+                <SelectItem value="closed">Closed ({counts.closed})</SelectItem>
+                <SelectItem value="archived">Archived ({counts.archived})</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Filter Tabs and Sort */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div className="flex flex-wrap gap-2 flex-1">
+          {/* Desktop Filter Buttons - hidden on mobile */}
+          <div className="hidden md:flex flex-wrap gap-2 flex-1">
             <Button
               variant={filterTab === "all" ? "default" : "outline"}
               onClick={() => setFilterTab("all")}
