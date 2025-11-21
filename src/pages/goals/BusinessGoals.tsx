@@ -300,7 +300,7 @@ const BusinessGoals = () => {
                   type="number"
                   value={milestone3Month}
                   onChange={(e) => setMilestone3Month(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 3
@@ -314,7 +314,7 @@ const BusinessGoals = () => {
                   type="number"
                   value={milestone6Month}
                   onChange={(e) => setMilestone6Month(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 6
@@ -328,7 +328,7 @@ const BusinessGoals = () => {
                   type="number"
                   value={milestone12Month}
                   onChange={(e) => setMilestone12Month(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Monthly business revenue target for month 12
