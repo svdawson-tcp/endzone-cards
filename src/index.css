@@ -4,571 +4,139 @@
 
 @layer base {
   :root {
-    /* ENDZONE ALTERNATIVE DESIGN SYSTEM - Dallas Cowboys Brand Mockup Match */
-    
-    /* CORE BRAND COLORS */
-    --color-primary: 223 100% 13%;      /* #041E42 - Dallas Cowboys Navy */
-    --color-primary-tint: 216 79% 21%;  /* #0A2E63 - Hover/Active tint */
-    --color-silver: 195 7% 57%;         /* #869397 - Dallas Cowboys Silver */
-    --color-gold: 45 100% 59%;          /* #FFC72C - Dallas Cowboys Gold */
+    /* ==============================================
+       NIGHT GAME THEME - CORE COLORS (HSL)
+       ============================================== */
 
-    /* BACKGROUND COLORS */
-    --color-bg-light: 214 20% 97%;      /* #F5F7FA - Page background */
-    --color-bg-card: 0 0% 100%;         /* #FFFFFF - Card background */
-    --color-bg-nav: 223 100% 13%;       /* #041E42 - Navigation background */
+    /* BACKGROUNDS - Deep dark blues */
+    --color-bg-app: 220 60% 5%;      /* #050a14 - Deepest background */
+    --color-bg-card: 216 45% 11%;    /* #0F172A - Slightly lighter card bg */
+    --color-bg-nav: 220 60% 5%;      /* Match app bg for seamless nav */
 
-    /* TEXT COLORS */
-    --color-text-dark: 0 0% 10%;        /* #1A1A1A - Primary text (STRONG) */
-    --color-text-light: 0 0% 100%;      /* #FFFFFF - Text on dark backgrounds */
-    --color-text-muted: 215 14% 38%;    /* #5A6570 - Secondary/muted text */
+    /* ACCENTS - Electric Blue & Trophy Gold */
+    --color-primary-glow: 216 100% 50%; /* #0066FF - Vibrant Blue */
+    --color-gold-accent: 48 100% 50%;   /* #FFD700 - Metallic Gold */
 
-    /* BORDER COLORS */
-    --color-border-light: 212 18% 91%;  /* #DDE3EA - Light borders */
-    --color-border-dark: 214 28% 23%;   /* #2B3A4F - Dark borders */
+    /* TEXT COLORS - Light on Dark */
+    --color-text-main: 0 0% 100%;       /* #FFFFFF - Primary headings */
+    --color-text-muted: 215 20% 65%;    /* #94A3B8 - Secondary text */
 
-    /* SEMANTIC COLORS */
-    --color-success: 142 71% 45%;       /* #16A34A - Profit (BRIGHTER GREEN) */
-    --color-danger: 0 72% 51%;          /* #DC2626 - Loss/negative */
-    --color-warning: 38 92% 50%;        /* #F59E0B - Warning */
-    --color-info: 221 83% 53%;          /* #2563EB - Info */
-    --color-muted: 211 16% 82%;         /* #C9D1D9 - Disabled/muted */
+    /* SEMANTIC STATES */
+    /* We use gold for positive in this theme to match the "winning" aesthetic */
+    --color-success-gold: 48 100% 50%;
+    --color-danger: 0 72% 51%;
 
-    /* SEMANTIC TOKEN ALIASES */
-    --bg-page: var(--color-bg-light);
-    --bg-card: var(--color-bg-card);
-    --bg-sidebar: var(--color-bg-nav);
-    --bg-hover: 214 20% 94%;
-    --bg-active: var(--color-silver);
+    /* ==============================================
+       TAILWIND / SHADCN TOKEN MAPPING
+       ============================================== */
+    --background: var(--color-bg-app);
+    --foreground: var(--color-text-main);
 
-    --text-primary: var(--color-primary);
-    --text-body: var(--color-text-dark);
-    --text-secondary: var(--color-text-muted);
-    --text-inverse: var(--color-text-light);
+    --card: var(--color-bg-card);
+    --card-foreground: var(--color-text-main);
 
-    --metric-positive: var(--color-success);
-    --metric-negative: var(--color-danger);
+    --popover: var(--color-bg-card);
+    --popover-foreground: var(--color-text-main);
 
-    --border-default: var(--color-border-light);
-    --border-strong: var(--color-border-dark);
-    --border-focus: var(--color-gold);
+    --primary: var(--color-primary-glow);
+    --primary-foreground: var(--color-text-main);
 
-    /* BUTTON COLORS */
-    --btn-primary-bg: var(--color-primary);
-    --btn-primary-hover: var(--color-primary-tint);
-    --btn-secondary-bg: 214 13% 90%;
-    --btn-secondary-hover: 212 11% 85%;
-    --btn-danger-bg: var(--color-danger);
-    --btn-danger-hover: 0 74% 42%;
+    --secondary: var(--color-bg-card);
+    --secondary-foreground: var(--color-text-main);
 
-    /* NAVIGATION COLORS */
-    --nav-bg: var(--color-bg-nav);
-    --nav-text: 0 0% 85%;
-    --nav-icon: 0 0% 75%;
-    --nav-hover-bg: var(--color-primary-tint);
-    --nav-hover-text: 0 0% 100%;
-    --nav-active-bg: var(--color-silver);
-    --nav-active-text: var(--color-primary);
-    --nav-active-indicator: var(--color-gold);
+    --muted: var(--color-bg-app);
+    --muted-foreground: var(--color-text-muted);
 
-    /* TAILWIND/SHADCN COMPATIBILITY */
-    --background: var(--bg-page);
-    --foreground: var(--text-body);
-    --card: var(--bg-card);
-    --card-foreground: var(--text-body);
-    --popover: var(--bg-card);
-    --popover-foreground: var(--text-body);
-    --primary: var(--color-primary);
-    --primary-foreground: var(--text-inverse);
-    --secondary: var(--color-silver);
-    --secondary-foreground: var(--color-primary);
-    --muted: var(--bg-hover);
-    --muted-foreground: var(--text-secondary);
-    --accent: var(--color-gold);
-    --accent-foreground: var(--color-primary);
+    --accent: var(--color-gold-accent);
+    --accent-foreground: var(--color-bg-app);
+
     --destructive: var(--color-danger);
-    --destructive-foreground: var(--text-inverse);
-    --success: var(--color-success);
-    --success-foreground: var(--text-inverse);
-    --border: var(--border-default);
-    --input: var(--border-default);
-    --ring: var(--color-info);
-    --radius-sm: 4px;
-    --radius: 8px;
-    --radius-lg: 12px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-    --shadow-card-shadow: var(--shadow-base);
-    --shadow-focus: 0 0 0 3px rgba(255, 199, 44, 0.4);
-    --chart-1: var(--color-primary);
-    --chart-2: var(--color-silver);
-    --chart-3: var(--color-gold);
-    --chart-4: var(--color-success);
-    --chart-5: var(--color-info);
-  }
+    --destructive-foreground: var(--color-text-main);
 
-  .dark {
-    --background: 210 50% 6%;
-    --foreground: var(--text-inverse);
-    --card: var(--bg-card);
-    --card-foreground: var(--text-body);
-    --muted: 210 50% 10%;
-    --border: 210 20% 20%;
-    --shadow-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
+    --border: 215 25% 20%; /* Subtle dark border */
+    --input: 215 25% 20%;
+    --ring: var(--color-primary-glow);
+
+    --radius: 1rem; /* Slightly rounder corners for modern feel */
+
+    /* CUSTOM LEGACY MAPPINGS (Keeping these so old classes don't break immediately) */
+    --text-primary: var(--color-text-main);
+    --text-body: var(--color-text-main);
+    --text-secondary: var(--color-text-muted);
+    --text-tertiary: var(--color-text-muted);
+    /* Map positive metrics to GOLD now */
+    --metric-positive: var(--color-success-gold);
+    --metric-negative: var(--color-danger);
   }
 }
 
 @layer base {
-  * { @apply border-border; }
   body {
     @apply bg-background text-foreground;
+    /* Optional subtle grid pattern background */
+    background-image: linear-gradient(rgba(0, 102, 255, 0.03) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0, 102, 255, 0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-weight: 400;
-    letter-spacing: -0.011em;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: hsl(var(--text-primary));
-  }
-}
-
-@layer components {
-  .flip-card { perspective: 1500px; cursor: pointer; }
-  .flip-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform-style: preserve-3d;
-  }
-  .flip-card-inner.flipped { transform: rotateY(180deg); }
-  .flip-card-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .flip-card-front { transform: rotateY(0deg); z-index: 2; }
-  .flip-card-back { transform: rotateY(180deg); }
-  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: hsl(var(--color-primary)); border-radius: 3px; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--color-silver)); border-radius: 3px; }
-}
-
-@layer utilities {
-  .text-display {
-    @apply text-5xl font-bold leading-tight;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: hsl(var(--text-primary));
-  }
-  .text-h1 {
-    @apply text-3xl font-bold leading-snug;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: hsl(var(--text-primary));
-  }
-  .text-h2 {
-    @apply text-2xl font-bold leading-snug;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: hsl(var(--text-primary));
-  }
-  .text-h3 {
-    @apply text-xl font-bold leading-snug;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: hsl(var(--text-primary));
-  }
-  .text-body {
-    @apply text-base font-normal leading-relaxed;
-    font-family: "Inter", sans-serif;
-    color: hsl(var(--text-body));
-  }
-  .form-label {
-    @apply text-sm font-medium mb-1.5;
-    color: hsl(var(--text-secondary));
-  }
-  .shadow-card-shadow { box-shadow: var(--shadow-card-shadow); }
-  .text-profit { color: hsl(var(--metric-positive)); font-weight: 600; }
-  .text-loss { color: hsl(var(--metric-negative)); font-weight: 600; }
-}
-
-@layer base {
-  :root {
-    /* ===================================
-       ENDZONE DESIGN SYSTEM - HSL FORMAT
-       Professional Color Palette for Sports Card Inventory Management
-       Based on Dallas Cowboys brand colors (Navy, Silver, Gold)
-       =================================== */
-
-    /* BRAND COLORS - Navy Scale */
-    --color-navy-50: 210 50% 96%;      /* #F0F4F8 */
-    --color-navy-100: 210 36% 89%;     /* #D9E2EC */
-    --color-navy-200: 210 30% 80%;     /* #BCCCDC */
-    --color-navy-300: 210 24% 70%;     /* #9FB3C8 */
-    --color-navy-400: 210 20% 60%;     /* #829AB1 */
-    --color-navy-500: 210 24% 40%;     /* #486581 */
-    --color-navy-600: 210 29% 31%;     /* #334E68 */
-    --color-navy-700: 210 31% 23%;     /* #243B53 */
-    --color-navy-800: 210 77% 16%;     /* #102A43 */
-    --color-navy-900: 223 100% 13%;    /* #041E42 - Dallas Cowboys Navy */
-
-    /* BRAND COLORS - Gold Scale */
-    --color-gold-50: 48 100% 97%;      /* #FFFBEB */
-    --color-gold-100: 48 97% 89%;      /* #FEF3C7 */
-    --color-gold-200: 48 97% 77%;      /* #FDE68A */
-    --color-gold-300: 45 97% 65%;      /* #FCD34D */
-    --color-gold-400: 43 96% 56%;      /* #FBBF24 */
-    --color-gold-500: 45 100% 59%;     /* #FFC72C - Dallas Cowboys Gold */
-    --color-gold-600: 32 95% 44%;      /* #D97706 */
-    --color-gold-700: 30 93% 38%;      /* #B45309 */
-    --color-gold-800: 28 93% 31%;      /* #92400E */
-    --color-gold-900: 26 86% 27%;      /* #78350F */
-
-    /* BRAND COLORS - Silver Scale */
-    --color-silver-50: 210 20% 98%;    /* #F9FAFB */
-    --color-silver-100: 210 17% 95%;   /* #F3F4F6 */
-    --color-silver-200: 210 14% 89%;   /* #E5E7EB */
-    --color-silver-300: 210 15% 82%;   /* #D1D5DB */
-    --color-silver-400: 210 11% 67%;   /* #9CA3AF */
-    --color-silver-500: 195 7% 57%;    /* #869397 - Dallas Cowboys Silver */
-    --color-silver-600: 220 13% 47%;   /* #6B7280 */
-    --color-silver-700: 220 14% 34%;   /* #4B5563 */
-    --color-silver-800: 220 13% 26%;   /* #374151 */
-    --color-silver-900: 220 17% 17%;   /* #1F2937 */
-
-    /* SEMANTIC COLORS - Success/Profit */
-    --color-success-50: 152 76% 96%;   /* #ECFDF5 */
-    --color-success-100: 149 80% 90%;  /* #D1FAE5 */
-    --color-success-200: 152 76% 80%;  /* #A7F3D0 */
-    --color-success-500: 158 64% 52%;  /* #10B981 */
-    --color-success-600: 158 64% 40%;  /* #059669 */
-    --color-success-700: 158 75% 32%;  /* #047857 */
-
-    /* SEMANTIC COLORS - Danger/Loss */
-    --color-danger-50: 0 86% 97%;      /* #FEF2F2 */
-    --color-danger-100: 0 93% 94%;     /* #FEE2E2 */
-    --color-danger-200: 0 96% 89%;     /* #FECACA */
-    --color-danger-500: 0 84% 60%;     /* #EF4444 */
-    --color-danger-600: 0 72% 51%;     /* #DC2626 */
-    --color-danger-700: 0 74% 42%;     /* #B91C1C */
-
-    /* SEMANTIC COLORS - Warning */
-    --color-warning-50: 48 100% 97%;   /* #FFFBEB */
-    --color-warning-100: 48 97% 89%;   /* #FEF3C7 */
-    --color-warning-200: 48 97% 77%;   /* #FDE68A */
-    --color-warning-500: 38 92% 50%;   /* #F59E0B */
-    --color-warning-600: 32 95% 44%;   /* #D97706 */
-    --color-warning-700: 30 93% 38%;   /* #B45309 */
-
-    /* SEMANTIC COLORS - Info */
-    --color-info-50: 214 100% 97%;     /* #EFF6FF */
-    --color-info-100: 214 95% 93%;     /* #DBEAFE */
-    --color-info-200: 213 97% 87%;     /* #BFDBFE */
-    --color-info-500: 217 91% 60%;     /* #3B82F6 */
-    --color-info-600: 221 83% 53%;     /* #2563EB */
-
-    /* ===================================
-       SEMANTIC TOKEN ALIASES
-       These map to the color scales above
-       =================================== */
-
-    /* Background Colors */
-    --bg-page: var(--color-silver-50);
-    --bg-sidebar: var(--color-navy-900);
-    --bg-card: var(--color-silver-100);
-    --bg-card-elevated: 0 0% 100%;     /* #FFFFFF */
-    --bg-card-subdued: var(--color-navy-50);
-    --bg-hover: var(--color-navy-100);
-    --bg-hover-dark: var(--color-navy-800);
-    --bg-active: var(--color-navy-200);
-    --bg-active-dark: var(--color-navy-700);
-
-    /* Text Colors - Light Backgrounds */
-    --text-primary: var(--color-navy-800);
-    --text-secondary: var(--color-navy-600);
-    --text-tertiary: var(--color-navy-500);
-    --text-muted: var(--color-navy-400);
-    --text-link: var(--color-navy-900);
-    --text-link-hover: var(--color-gold-600);
-
-    /* Text Colors - Dark Backgrounds */
-    --text-primary-inverse: 0 0% 100%; /* #FFFFFF */
-    --text-secondary-inverse: var(--color-navy-100);
-    --text-muted-inverse: var(--color-navy-300);
-
-    /* Text Colors - Semantic */
-    --text-success: var(--color-success-600);
-    --text-danger: var(--color-danger-600);
-    --text-warning: var(--color-warning-600);
-
-    /* Financial Metrics (for profit/loss) */
-    --metric-positive: var(--color-success-600);
-    --metric-negative: var(--color-danger-600);
-
-    /* Border Colors */
-    --border-default: var(--color-silver-200);
-    --border-subtle: var(--color-silver-300);
-    --border-strong: var(--color-navy-300);
-    --border-interactive: var(--color-navy-900);
-    --border-focus: var(--color-gold-500);
-
-    /* ===================================
-       TAILWIND/SHADCN SEMANTIC TOKENS
-       These maintain compatibility with existing components
-       =================================== */
-
-    --background: var(--bg-page);
-    --foreground: var(--text-secondary);
-
-    --card: var(--bg-card-elevated);
-    --card-foreground: var(--text-primary);
-
-    --popover: var(--bg-card-elevated);
-    --popover-foreground: var(--text-primary);
-
-    --primary: var(--color-navy-900);
-    --primary-foreground: var(--text-primary-inverse);
-
-    --secondary: var(--color-silver-500);
-    --secondary-foreground: var(--color-navy-900);
-
-    --muted: var(--bg-hover);
-    --muted-foreground: var(--text-tertiary);
-
-    --accent: var(--color-gold-500);
-    --accent-foreground: var(--color-navy-900);
-
-    --destructive: var(--color-danger-600);
-    --destructive-foreground: var(--text-primary-inverse);
-
-    --success: var(--color-success-600);
-    --success-foreground: var(--text-primary-inverse);
-
-    --border: var(--border-default);
-    --input: var(--border-subtle);
-    --ring: var(--color-info-600);
-
-    /* Border Radius */
-    --radius-sm: 4px;
-    --radius: 8px;
-    --radius-lg: 12px;
-
-    /* Shadow System */
-    --shadow-sm: 0 1px 2px 0 rgba(4, 30, 66, 0.05);
-    --shadow-base: 0 1px 3px 0 rgba(4, 30, 66, 0.08), 0 1px 2px 0 rgba(4, 30, 66, 0.04);
-    --shadow-md: 0 4px 6px -1px rgba(4, 30, 66, 0.08), 0 2px 4px -1px rgba(4, 30, 66, 0.04);
-    --shadow-lg: 0 10px 15px -3px rgba(4, 30, 66, 0.08), 0 4px 6px -2px rgba(4, 30, 66, 0.03);
-    --shadow-xl: 0 20px 25px -5px rgba(4, 30, 66, 0.08), 0 10px 10px -5px rgba(4, 30, 66, 0.02);
-    --shadow-card-shadow: var(--shadow-base);
-    --shadow-focus: 0 0 0 3px rgba(255, 199, 44, 0.4);
-    --shadow-glow-blue: 0 0 16px rgba(13, 110, 255, 0.4), 0 0 32px rgba(13, 110, 255, 0.2);
-    --shadow-glow-gold: 0 0 16px rgba(255, 199, 44, 0.4), 0 0 32px rgba(255, 199, 44, 0.2);
-
-    /* Chart Colors */
-    --chart-1: var(--color-navy-900);
-    --chart-2: var(--color-silver-500);
-    --chart-3: var(--color-gold-500);
-    --chart-4: var(--color-success-600);
-    --chart-5: var(--color-info-600);
-  }
-
-  .dark {
-    --background: 210 50% 6%;
-    --foreground: var(--text-primary-inverse);
-    --card: var(--bg-card-elevated);
-    --card-foreground: var(--text-primary);
-    --popover: var(--bg-card-elevated);
-    --popover-foreground: var(--text-primary);
-    --primary: var(--color-navy-900);
-    --primary-foreground: var(--text-primary-inverse);
-    --secondary: var(--color-silver-500);
-    --secondary-foreground: var(--color-navy-900);
-    --muted: 210 50% 10%;
-    --muted-foreground: var(--text-tertiary);
-    --accent: var(--color-gold-500);
-    --accent-foreground: var(--color-navy-900);
-    --destructive: var(--color-danger-600);
-    --destructive-foreground: var(--text-primary-inverse);
-    --border: 210 20% 20%;
-    --input: 210 20% 20%;
-    --ring: var(--color-info-600);
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
-    --shadow-card-shadow: 0 4px 6px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.1);
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-weight: 400;
-    letter-spacing: -0.011em;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
+    /* Ensure headers are white */
+    color: hsl(var(--text-primary));
   }
-
-  @supports (padding: env(safe-area-inset-bottom)) {
-    body {
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
-}
-
-@layer components {
-  .flip-card {
-    perspective: 1500px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .flip-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    transform-style: preserve-3d;
-  }
-
-  .flip-card-inner.flipped {
-    transform: rotateY(180deg);
-  }
-
-  .flip-card-face {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-
-  .flip-card-front {
-    transform: rotateY(0deg);
-    z-index: 2;
-  }
-
-  .flip-card-back {
-    transform: rotateY(180deg);
-  }
-
-  .card-holographic-border {
-    border: 4px solid transparent;
-    background: linear-gradient(hsl(var(--color-navy-900)), hsl(var(--color-navy-900))) padding-box, linear-gradient(135deg, hsl(var(--color-navy-900)) 0%, hsl(var(--color-silver-500)) 25%, hsl(var(--color-gold-500)) 50%, hsl(var(--color-info-600)) 75%, hsl(var(--color-navy-900)) 100%) border-box;
-    background-size: 200% 200%;
-    animation: holographic-shimmer 3s ease infinite;
-  }
-
-  @keyframes holographic-shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: hsl(var(--color-navy-900)); border-radius: 3px; }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--color-silver-500)); border-radius: 3px; }
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--color-gold-500)); }
 }
 
 @layer utilities {
-  .text-display {
-    @apply text-5xl font-bold leading-tight;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+  /* ==============================================
+     NIGHT GAME CUSTOM UTILITIES
+     ============================================== */
+
+  /* The glowing dark card effect */
+  .night-game-card {
+    @apply bg-card rounded-2xl relative overflow-hidden transition-all duration-300;
+    /* Multi-layered shadow for depth and subtle blue glow bezel */
+    box-shadow:
+      0 10px 30px -10px rgba(0, 0, 0, 0.8), /* Deep shadow */
+      inset 0 1px 1px rgba(255, 255, 255, 0.1), /* Top rim light */
+      inset 0 -1px 1px rgba(0, 0, 0, 0.5), /* Bottom rim dark */
+      0 0 0 1px rgba(0, 102, 255, 0.15); /* Subtle blue border glow */
   }
 
+  .night-game-card:hover {
+     box-shadow:
+      0 20px 40px -10px rgba(0, 0, 0, 0.9),
+      inset 0 1px 1px rgba(255, 255, 255, 0.15),
+      0 0 0 1px rgba(0, 102, 255, 0.3), /* Brighter glow on hover */
+      0 0 15px rgba(0, 102, 255, 0.1); /* Outer ambient glow */
+  }
+
+  /* The metallic gold text gradient */
+  .gold-stat-text {
+    background: linear-gradient(to bottom, #FFF7CC 0%, #FFD700 40%, #B8860B 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));
+    font-family: "Anton", sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  /* Overrides for existing classes */
   .text-h1 {
     @apply text-3xl font-bold leading-snug;
     font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
     text-transform: uppercase;
-  }
-
-  .text-h2 {
-    @apply text-2xl font-bold leading-snug;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  .text-h3 {
-    @apply text-xl font-bold leading-snug;
-    font-family: "Anton", sans-serif;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  .text-body {
-    @apply text-base font-normal leading-relaxed;
-    font-family: "Inter", sans-serif;
-  }
-
-  .text-label {
-    @apply text-xs font-semibold uppercase tracking-widest;
-    font-family: "Montserrat", sans-serif;
-    letter-spacing: 0.15em;
-  }
-
-  .text-mono {
-    @apply text-2xl font-semibold tracking-wide;
-    font-family: "Inter", monospace;
-  }
-
-  .form-label {
-    @apply text-sm font-medium mb-1.5;
     color: hsl(var(--text-primary));
   }
-
-  .page-title {
-    @apply text-h1 text-[hsl(var(--text-primary))];
+  /* Ensure metric positive uses the new gold variable */
+  .metric-positive {
+    color: hsl(var(--metric-positive));
   }
-
-  .card-title {
-    @apply text-h2 text-[hsl(var(--text-primary))];
+  .metric-negative {
+    color: hsl(var(--metric-negative));
   }
-
-  .section-heading {
-    @apply text-h3 text-[hsl(var(--text-primary))];
-  }
-
-  .shadow-sm { box-shadow: var(--shadow-sm); }
-  .shadow-md { box-shadow: var(--shadow-md); }
-  .shadow-lg { box-shadow: var(--shadow-lg); }
-  .shadow-card-shadow { box-shadow: var(--shadow-card-shadow); }
-  .shadow-glow-blue { box-shadow: var(--shadow-glow-blue); }
-  .shadow-glow-gold { box-shadow: var(--shadow-glow-gold); }
-
-  .text-profit { color: hsl(var(--metric-positive)); }
-  .text-loss { color: hsl(var(--metric-negative)); }
 }

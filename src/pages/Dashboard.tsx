@@ -369,17 +369,19 @@ export default function Dashboard() {
     return <Badge variant={config.variant} className={config.className}>{displayLabel}</Badge>;
   };
 
+  const isLoadingInitial = loadingRevenue || loadingLotCosts || loadingExpenses || loadingCash;
+
   return (
-    <div style={{ backgroundColor: '#F9FAFB', minHeight: '100vh', padding: '1.5rem' }}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Date Range Selector */}
-        <div className="flex justify-center mb-8">
+    <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl pb-24">
+      {/* Header with Date Selector */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="w-full md:w-auto">
           <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-[200px] bg-card">
-              <Calendar className="mr-2 h-4 w-4" />
+            <SelectTrigger className="w-full md:w-[200px] bg-card border-input text-foreground">
+              <Calendar className="mr-2 h-4 w-4 text-accent" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-card border-input text-foreground">
               <SelectItem value="7days">Last 7 Days</SelectItem>
               <SelectItem value="30days">Last 30 Days</SelectItem>
               <SelectItem value="thismonth">This Month</SelectItem>
@@ -389,135 +391,142 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
         </div>
+      </div>
 
-        {/* Section 1: Am I profitable? */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3 text-primary">
-            AM I PROFITABLE?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Net Profit */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
+      {/* Section 1: Am I Profitable? */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
+          Am I Profitable?
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+          {/* NET PROFIT - Hero Card with Gold Effect */}
+          <div className="night-game-card p-6 relative group cursor-pointer" onClick={() => navigate('/transaction-history')}>
+            <div className="flex flex-col h-full justify-between relative z-10">
+              <TrendingUp className="h-8 w-8 text-accent mb-4" />
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                  Net Profit
+                </h3>
+                {isLoadingInitial ? (
+                  <Skeleton className="h-12 w-3/4 bg-muted/20" />
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-5xl font-bold gold-stat-text mb-2">
+                      ${netProfit.toFixed(2)}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {getDateRangeLabel() === "All Time" 
+                        ? "Money earned after all costs"
+                        : `${getDateRangeLabel()} - Money earned after costs`
+                      }
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              NET PROFIT
-            </p>
-            {loadingRevenue || loadingLotCosts || loadingExpenses ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <>
-                <p className={`text-3xl font-bold ${getProfitColor()}`}>
-                  ${netProfit.toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Money earned after all costs"
-                    : `${getDateRangeLabel()} - Money earned after all costs`
-                  }
-                </p>
-              </>
-            )}
+            <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-1/4 translate-y-1/4 z-0">
+              <TrendingUp className="h-32 w-32 text-accent" />
+            </div>
           </div>
 
-          {/* Profit Margin */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
+          {/* PROFIT MARGIN */}
+          <div className="night-game-card p-6 relative overflow-hidden">
+            <div className="relative z-10">
+              <TrendingUp className="h-8 w-8 text-accent mb-4" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Profit Margin
+              </h3>
+              {isLoadingInitial ? (
+                <Skeleton className="h-10 w-1/2 bg-muted/20" />
+              ) : (
+                <>
+                  <div className={`text-3xl font-bold ${getMarginColor()}`}>
+                    {profitMargin.toFixed(1)}%
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {getDateRangeLabel() === "All Time" 
+                      ? "Percentage kept as profit"
+                      : `${getDateRangeLabel()} - Percentage kept as profit`
+                    }
+                  </p>
+                </>
+              )}
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              PROFIT MARGIN
-            </p>
-            {loadingRevenue || loadingLotCosts || loadingExpenses ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <>
-                <p className={`text-3xl font-bold ${getMarginColor()}`}>
-                  {profitMargin.toFixed(1)}%
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Percentage of revenue kept as profit"
-                    : `${getDateRangeLabel()} - Percentage kept as profit`
-                  }
-                </p>
-              </>
-            )}
           </div>
 
-          {/* Total Revenue */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
+          {/* TOTAL REVENUE */}
+          <div className="night-game-card p-6 relative overflow-hidden">
+            <div className="relative z-10">
+              <TrendingUp className="h-8 w-8 text-accent mb-4" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Total Revenue
+              </h3>
+              {loadingRevenue ? (
+                <Skeleton className="h-10 w-1/2 bg-muted/20" />
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-foreground">
+                    ${(totalRevenue || 0).toFixed(2)}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {getDateRangeLabel() === "All Time" 
+                      ? "Total money from card sales"
+                      : `${getDateRangeLabel()} - Total from card sales`
+                    }
+                  </p>
+                </>
+              )}
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              TOTAL REVENUE
-            </p>
-            {loadingRevenue ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <>
-                <p className="text-3xl font-bold text-primary">
-                  ${(totalRevenue || 0).toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Total money from card sales"
-                    : `${getDateRangeLabel()} - Total from card sales`
-                  }
-                </p>
-              </>
-            )}
           </div>
 
-          {/* Cash on Hand */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
+          {/* CASH ON HAND */}
+          <div className="night-game-card p-6 relative overflow-hidden">
+            <div className="relative z-10">
+              <Wallet className="h-8 w-8 text-accent mb-4" />
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                Cash on Hand
+              </h3>
+              {loadingCash ? (
+                <Skeleton className="h-10 w-1/2 bg-muted/20" />
+              ) : (
+                <>
+                  <div className="text-3xl font-bold text-foreground">
+                    ${(cashBalance || 0).toFixed(2)}
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Money available to spend
+                  </p>
+                </>
+              )}
             </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              CASH ON HAND
-            </p>
-            {loadingCash ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <>
-                <p className="text-3xl font-bold text-primary">
-                  ${(cashBalance || 0).toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">Money available to spend</p>
-              </>
-            )}
           </div>
+        </div>
+      </div>
 
-          </div>
-        </section>
+      {/* Section 2: How Am I Selling? */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
+          How Am I Selling?
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-        {/* Section 2: How am I selling? */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3 text-primary">
-            HOW AM I SELLING?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Premium Sales */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              TOTAL COSTS
-            </p>
+          {/* TOTAL COSTS */}
+          <div className="night-game-card p-6">
+            <Package className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Total Costs
+            </h3>
             {loadingLotCosts || loadingExpenses ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${totalCosts.toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
                   {getDateRangeLabel() === "All Time" 
-                    ? "Cost of inventory + business expenses"
+                    ? "Cost of inventory + expenses"
                     : `${getDateRangeLabel()} - Inventory + expenses`
                   }
                 </p>
@@ -525,21 +534,20 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <CreditCard className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              PREMIUM SALES
-            </p>
+          {/* PREMIUM SALES */}
+          <div className="night-game-card p-6">
+            <CreditCard className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Premium Sales
+            </h3>
             {loadingPremium ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${(premiumSales || 0).toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from individual card sales"
                     : `${getDateRangeLabel()} - Individual card sales`
@@ -549,22 +557,20 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Bulk Sales */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              BULK SALES
-            </p>
+          {/* BULK SALES */}
+          <div className="night-game-card p-6">
+            <Package className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Bulk Sales
+            </h3>
             {loadingBulk ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${(bulkSales || 0).toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
                   {getDateRangeLabel() === "All Time" 
                     ? "Revenue from multi-card sales"
                     : `${getDateRangeLabel()} - Multi-card sales`
@@ -574,265 +580,242 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Show Card Inventory */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <CreditCard className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              SHOW CARD INVENTORY
-            </p>
+          {/* SHOW CARD INVENTORY */}
+          <div className="night-game-card p-6">
+            <CreditCard className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Show Card Inventory
+            </h3>
             {loadingCards ? (
-              <Skeleton className="h-8 w-16" />
+              <Skeleton className="h-10 w-16 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">{availableCards}</p>
-                <p className="text-xs mt-1 text-tertiary">High-value cards ready to sell</p>
+                <div className="text-3xl font-bold text-foreground">
+                  {availableCards}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  High-value cards ready to sell
+                </p>
               </>
             )}
           </div>
 
-          {/* Average Sale Value */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              AVERAGE SALE VALUE
-            </p>
+          {/* AVERAGE SALE VALUE */}
+          <div className="night-game-card p-6">
+            <TrendingUp className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Average Sale Value
+            </h3>
             {loadingAverage ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${(averageSaleData?.averageValue || 0).toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
                   {getDateRangeLabel() === "All Time" 
-                    ? "Average money earned per transaction"
+                    ? "Average money per transaction"
                     : `${getDateRangeLabel()} - Avg per transaction`
                   }
                 </p>
               </>
             )}
           </div>
-          </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Section 3: What's my investment? */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-3 text-primary">
-            WHAT'S MY INVESTMENT?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Total Costs */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              TOTAL COSTS
-            </p>
-            {loadingLotCosts || loadingExpenses ? (
-              <Skeleton className="h-8 w-32" />
-            ) : (
-              <>
-                <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                  ${totalCosts.toFixed(2)}
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Cost of inventory + business expenses"
-                    : `${getDateRangeLabel()} - Inventory + expenses`
-                  }
-                </p>
-              </>
-            )}
-          </div>
+      {/* Section 3: What's My Investment? */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
+          What's My Investment?
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-          {/* Total Inventory Value */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <Package className="h-8 w-8 text-blue-600" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              TOTAL INVENTORY VALUE
-            </p>
+          {/* TOTAL INVENTORY VALUE */}
+          <div className="night-game-card p-6">
+            <Package className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Total Inventory Value
+            </h3>
             {loadingInventory ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${(inventoryValue || 0).toFixed(2)}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Money tied up in unsold cards
                 </p>
-                <p className="text-xs mt-1 text-tertiary">Money tied up in unsold cards</p>
               </>
             )}
           </div>
 
-          {/* Total Business Value */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <Wallet className="h-8 w-8 text-purple-600" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              TOTAL BUSINESS VALUE
-            </p>
+          {/* TOTAL BUSINESS VALUE */}
+          <div className="night-game-card p-6">
+            <Wallet className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Total Business Value
+            </h3>
             {loadingCash || loadingInventory ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   ${totalBusinessValue.toFixed(2)}
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Total worth if liquidated today
                 </p>
-                <p className="text-xs mt-1 text-tertiary">Total worth if liquidated today</p>
               </>
             )}
           </div>
 
-          {/* Inventory Turnover */}
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <TrendingUp className="h-8 w-8 text-accent" />
-            </div>
-            <p className="text-xs uppercase tracking-wider mb-2 text-tertiary">
-              INVENTORY TURNOVER
-            </p>
+          {/* INVENTORY TURNOVER */}
+          <div className="night-game-card p-6">
+            <TrendingUp className="h-8 w-8 text-accent mb-4" />
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Inventory Turnover
+            </h3>
             {loadingRevenue || loadingInventory ? (
-              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-10 w-1/2 bg-muted/20" />
             ) : (
               <>
-                <p className="text-3xl font-bold text-primary">
+                <div className="text-3xl font-bold text-foreground">
                   {inventoryTurnover === Infinity ? "∞" : inventoryTurnover.toFixed(1)}x
-                </p>
-                <p className="text-xs mt-1 text-tertiary">
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
                   {getDateRangeLabel() === "All Time" 
-                    ? "How quickly inventory converts to cash"
+                    ? "Inventory converts to cash"
                     : `${getDateRangeLabel()} - Inventory to cash speed`
                   }
                 </p>
               </>
             )}
           </div>
-          </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Quick Actions */}
-        <section className="flex flex-col md:flex-row gap-4 mb-12">
-          <Button 
-            onClick={() => navigate("/transactions/new")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
-          >
-            RECORD SALE
-          </Button>
-          <Button 
-            onClick={() => navigate("/show-cards/new")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
-          >
-            ADD SHOW CARD
-          </Button>
-          <Button 
-            onClick={() => navigate("/shows/new")}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
-          >
-            CREATE SHOW
-          </Button>
-        </section>
+      {/* Quick Actions */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <Button 
+          onClick={() => navigate("/transactions/new")}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+        >
+          RECORD SALE
+        </Button>
+        <Button 
+          onClick={() => navigate("/show-cards/new")}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+        >
+          ADD SHOW CARD
+        </Button>
+        <Button 
+          onClick={() => navigate("/shows/new")}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+        >
+          CREATE SHOW
+        </Button>
+      </div>
 
-        {/* Recent Activity */}
-        <section className="mb-12">
-          <h2 className="text-lg font-semibold mb-4 text-primary">RECENT ACTIVITY</h2>
-          <div style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
-            {loadingActivity ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : !recentActivity || recentActivity.length === 0 ? (
-              <p className="text-center py-8 text-tertiary">
-                No transactions yet. Record your first sale!
-              </p>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Date</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Type</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Description</th>
-                    <th className="text-right py-3 px-2 text-sm font-semibold uppercase text-secondary">Amount</th>
-                    <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-secondary">Show</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentActivity.map((transaction: any) => (
-                    <tr key={transaction.id} className="border-b border-border/50">
-                      <td className="py-3 px-2 text-sm text-primary">
-                        {format(new Date(transaction.created_at), "MM/dd/yy")}
-                      </td>
-                      <td className="py-3 px-2">
-                        {getTransactionTypeBadge(transaction.transaction_type)}
-                      </td>
-                      <td className="py-3 px-2 text-sm text-primary">
-                        {transaction.show_cards?.player_name || transaction.lots?.source || "—"}
-                      </td>
-                      <td className="py-3 px-2 text-sm text-right metric-positive">
-                        ${Number(transaction.revenue).toFixed(2)}
-                      </td>
-                      <td className="py-3 px-2 text-sm text-primary">
-                        {transaction.shows?.name || "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </section>
-
-        {/* Upcoming Shows */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4 text-primary">UPCOMING SHOWS</h2>
-          {loadingShows ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-48 w-full" />
+      {/* Recent Activity */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
+          Recent Activity
+        </h2>
+        <div className="night-game-card p-6 overflow-x-auto">
+          {loadingActivity ? (
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full bg-muted/20" />
               ))}
             </div>
-          ) : !upcomingShows || upcomingShows.length === 0 ? (
-            <div className="card-style rounded-lg p-6 text-center">
-              <p className="mb-4 text-tertiary">No upcoming shows. Create your first show!</p>
-              <Button onClick={() => navigate("/shows/new")}>Create Show</Button>
-            </div>
+          ) : !recentActivity || recentActivity.length === 0 ? (
+            <p className="text-center py-8 text-muted-foreground">
+              No transactions yet. Record your first sale!
+            </p>
           ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                {upcomingShows.map((show: any) => (
-                  <div key={show.id} style={{ backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '0.5rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-primary">{show.name}</h3>
-                      {getStatusBadge(show.status)}
-                    </div>
-                    <p className="text-sm mb-1 text-primary">
-                      {format(new Date(show.show_date), "MMM dd, yyyy")}
-                    </p>
-                    <p className="text-sm mb-3 text-tertiary">
-                      {show.location || "Location TBD"}
-                    </p>
-                    <p className="text-sm font-semibold text-primary">
-                      Table Cost: ${Number(show.table_cost).toFixed(2)}
-                    </p>
-                  </div>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-muted-foreground">Date</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-muted-foreground">Type</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-muted-foreground">Description</th>
+                  <th className="text-right py-3 px-2 text-sm font-semibold uppercase text-muted-foreground">Amount</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold uppercase text-muted-foreground">Show</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActivity.map((transaction: any) => (
+                  <tr key={transaction.id} className="border-b border-border/50">
+                    <td className="py-3 px-2 text-sm text-foreground">
+                      {format(new Date(transaction.created_at), "MM/dd/yy")}
+                    </td>
+                    <td className="py-3 px-2">
+                      {getTransactionTypeBadge(transaction.transaction_type)}
+                    </td>
+                    <td className="py-3 px-2 text-sm text-foreground">
+                      {transaction.show_cards?.player_name || transaction.lots?.source || "—"}
+                    </td>
+                    <td className="py-3 px-2 text-sm text-right metric-positive">
+                      ${Number(transaction.revenue).toFixed(2)}
+                    </td>
+                    <td className="py-3 px-2 text-sm text-foreground">
+                      {transaction.shows?.name || "—"}
+                    </td>
+                  </tr>
                 ))}
-              </div>
-              <div className="text-center">
-                <Button variant="outline" onClick={() => navigate("/shows")}>
-                  View All Shows
-                </Button>
-              </div>
-            </>
+              </tbody>
+            </table>
           )}
-        </section>
+        </div>
+      </div>
+
+      {/* Upcoming Shows */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
+          Upcoming Shows
+        </h2>
+        {loadingShows ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-48 w-full bg-muted/20" />
+            ))}
+          </div>
+        ) : !upcomingShows || upcomingShows.length === 0 ? (
+          <div className="night-game-card p-6 text-center">
+            <p className="mb-4 text-muted-foreground">No upcoming shows. Create your first show!</p>
+            <Button onClick={() => navigate("/shows/new")}>Create Show</Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {upcomingShows.map((show: any) => (
+                <div key={show.id} className="night-game-card p-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-foreground">{show.name}</h3>
+                    {getStatusBadge(show.status)}
+                  </div>
+                  <p className="text-sm mb-1 text-foreground">
+                    {format(new Date(show.show_date), "MMM dd, yyyy")}
+                  </p>
+                  <p className="text-sm mb-3 text-muted-foreground">
+                    {show.location || "Location TBD"}
+                  </p>
+                  <p className="text-sm font-semibold text-foreground">
+                    Table Cost: ${Number(show.table_cost).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="text-center mt-4">
+              <Button variant="outline" onClick={() => navigate("/shows")}>
+                View All Shows
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
