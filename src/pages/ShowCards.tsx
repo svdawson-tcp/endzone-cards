@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 const ShowCards = () => {
@@ -80,14 +87,31 @@ const ShowCards = () => {
     <div className="min-h-screen bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <h1 className="page-title">SHOW CARDS</h1>
-          <Button
-            onClick={() => navigate("/show-cards/new")}
-            className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
-          >
-            ADD SHOW CARD
-          </Button>
+        <div className="flex flex-col gap-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <h1 className="page-title">SHOW CARDS</h1>
+            <Button
+              onClick={() => navigate("/show-cards/new")}
+              className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
+            >
+              ADD SHOW CARD
+            </Button>
+          </div>
+          
+          {/* Mobile Filter Dropdown - only visible on mobile */}
+          <div className="md:hidden">
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="available">Available</SelectItem>
+                <SelectItem value="sold">Sold</SelectItem>
+                <SelectItem value="combined">Combined/Lost</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Filters */}
@@ -101,8 +125,8 @@ const ShowCards = () => {
               className="min-h-[44px] bg-card text-foreground border-border placeholder:text-muted-foreground"
             />
 
-            {/* Status Filter Tabs */}
-            <div className="flex gap-2 overflow-x-auto">
+            {/* Status Filter Tabs - hidden on mobile, visible on desktop */}
+            <div className="hidden md:flex gap-2 overflow-x-auto">
               {[
                 { value: "all", label: "All" },
                 { value: "available", label: "Available" },
