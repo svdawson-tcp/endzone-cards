@@ -21,7 +21,7 @@ export const SectionHeading = ({
   return (
     <div className={`flex items-center justify-between mb-4 ${className}`}>
       <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-        {Icon && <Icon className="h-5 w-5 text-foreground" />}
+        {Icon && <Icon className="h-5 w-5 text-yellow-500" />}
         {title}
       </h2>
       
@@ -46,7 +46,7 @@ export const SubsectionHeading = ({
   return (
     <div className={`flex items-center justify-between mb-3 ${className}`}>
       <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
-        {Icon && <Icon className="h-4 w-4 text-card-foreground" />}
+        {Icon && <Icon className="h-4 w-4 text-yellow-500" />}
         {title}
       </h3>
       

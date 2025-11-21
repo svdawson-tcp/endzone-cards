@@ -162,8 +162,8 @@ const Glossary = () => {
         {/* Introduction */}
         <Card className="p-6 bg-card border-border shadow-md">
           <div className="flex items-start gap-4">
-            <div className="bg-primary/10 p-3 rounded-lg shrink-0">
-              <FileText className="h-6 w-6 text-primary" />
+            <div className="bg-yellow-500/20 p-3 rounded-lg shrink-0">
+              <FileText className="h-6 w-6 text-yellow-500" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-card-foreground mb-2">
@@ -190,7 +190,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-yellow-500">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -213,7 +213,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-yellow-500">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -236,7 +236,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-yellow-500">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -259,7 +259,7 @@ const Glossary = () => {
                 <p className="text-sm text-card-foreground/80 mb-3">
                   {item.definition}
                 </p>
-                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-primary">
+                <div className="bg-primary/5 p-3 rounded-lg border-l-4 border-yellow-500">
                   <p className="text-sm text-card-foreground">
                     <span className="font-semibold text-card-foreground">Example: </span>
                     {item.example}
@@ -271,7 +271,7 @@ const Glossary = () => {
         </div>
 
         {/* Key Distinctions */}
-        <Card className="p-6 bg-card border-border shadow-md border-l-4 border-l-primary">
+        <Card className="p-6 bg-card border-border shadow-md border-l-4 border-l-yellow-500">
           <h3 className="text-lg font-bold text-card-foreground mb-3">
             Critical Distinction: Business Revenue vs. Personal Income
           </h3>
@@ -294,7 +294,7 @@ const Glossary = () => {
               </p>
             </div>
           </div>
-          <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+          <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-yellow-500/20">
             <p className="text-sm text-card-foreground font-medium">
               Example: If your goal is $4,000 monthly personal income, your business might need to generate 
               $8,000-$10,000 monthly revenue to cover inventory, expenses, taxes, and provide that income.
