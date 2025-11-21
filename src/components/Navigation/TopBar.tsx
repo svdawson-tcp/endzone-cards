@@ -43,7 +43,7 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
 
   return (
     <div 
-      className="fixed top-0 left-0 right-0 z-50 shadow-sm"
+      className="fixed top-0 left-0 right-0 z-50 shadow-sm animate-header-glow"
       style={{
         backgroundImage: 'url(/images/endzone-3d-header.png)',
         backgroundSize: 'cover',
@@ -52,7 +52,7 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
         minHeight: '80px'
       }}
     >
-      <div className="flex items-center justify-between h-20 px-4">
+      <div className="flex items-center justify-between h-20 md:h-28 px-4">
         {/* Left: Mobile menu button only */}
         <div className="flex items-center gap-3">
           {showMobileMenu && (
