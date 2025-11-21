@@ -152,42 +152,39 @@ export const AIActionSuggestions = ({
 
   return (
     <Card className="p-6 bg-card border-border">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-accent/20 rounded-lg">
-            <Lightbulb className="h-6 w-6 text-accent" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">AI Action Suggestions</h3>
-            <p className="text-sm text-muted-foreground">
-              Get personalized recommendations for each timeframe
-            </p>
-          </div>
+      <div className="flex items-start gap-3 mb-4">
+        <div className="p-2 bg-accent/20 rounded-lg">
+          <Lightbulb className="h-6 w-6 text-accent" />
         </div>
-        
-        <Button
-          onClick={generateSuggestions}
-          disabled={isGenerating}
-          size="sm"
-          className="gap-2"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Generating...
-            </>
-          ) : hasSuggestions ? (
-            <>
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </>
-          ) : (
-            <>
-              <Lightbulb className="h-4 w-4" />
-              Generate
-            </>
-          )}
-        </Button>
+        <div className="flex-1">
+          <h3 className="text-lg font-semibold text-foreground">AI Action Suggestions</h3>
+          <p className="text-sm text-muted-foreground mb-3">
+            Get personalized recommendations for each timeframe
+          </p>
+          <Button
+            onClick={generateSuggestions}
+            disabled={isGenerating}
+            size="sm"
+            className="gap-2"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating...
+              </>
+            ) : hasSuggestions ? (
+              <>
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </>
+            ) : (
+              <>
+                <Lightbulb className="h-4 w-4" />
+                Generate
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {hasSuggestions && (
