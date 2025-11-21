@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
+import { AccountSwitcher } from "@/components/AccountSwitcher";
 
 const BottomTabBar = () => {
   const location = useLocation();
@@ -39,6 +40,8 @@ const BottomTabBar = () => {
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
     { icon: BookText, label: "Business Glossary", route: "/glossary", description: "Learn business terms" },
+    { icon: User, label: "Profile", route: "/profile", description: "View your profile settings", disabled: true },
+    { icon: Users, label: "Switch Account", route: "/switch-account", description: "Switch to another user account", isAccountSwitcher: true },
   ];
 
   const quickAddItems = [
@@ -151,11 +154,36 @@ const BottomTabBar = () => {
                     <div className="grid gap-3">
                       {menuItems.map((item) => {
                         const ItemIcon = item.icon;
+                        
+                        // Special handling for AccountSwitcher
+                        if (item.isAccountSwitcher) {
+                          return (
+                            <div key={item.route} className="p-4 rounded-lg bg-primary/5">
+                              <div className="flex items-start gap-4 mb-2">
+                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                                  <ItemIcon className="text-primary-foreground" size={20} />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-semibold text-card-foreground">{item.label}</p>
+                                  <p className="text-sm text-card-foreground/70">{item.description}</p>
+                                </div>
+                              </div>
+                              <div className="pl-14">
+                                <AccountSwitcher />
+                              </div>
+                            </div>
+                          );
+                        }
+                        
                         return (
                           <button
                             key={item.route}
                             onClick={() => handleMenuClick(item.route)}
-                            className="flex items-start gap-4 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left min-h-[60px]"
+                            disabled={item.disabled}
+                            className={cn(
+                              "flex items-start gap-4 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left min-h-[60px]",
+                              item.disabled && "opacity-50 cursor-not-allowed"
+                            )}
                           >
                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                               <ItemIcon className="text-primary-foreground" size={20} />
