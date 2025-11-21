@@ -157,7 +157,7 @@ const PersonalGoals = () => {
               placeholder="Describe your vision for life after achieving financial independence... (e.g., travel with family, work on your own schedule, pursue hobbies)"
               value={lifeVision}
               onChange={(e) => setLifeVision(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] bg-card text-foreground border-border"
             />
           </div>
         </Card>
@@ -180,7 +180,7 @@ const PersonalGoals = () => {
               placeholder="What drives you to achieve financial independence? (e.g., freedom from corporate life, control over your time, building something of your own)"
               value={motivation}
               onChange={(e) => setMotivation(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] bg-card text-foreground border-border"
             />
           </div>
         </Card>
@@ -203,7 +203,7 @@ const PersonalGoals = () => {
               placeholder="Family considerations and goals... (e.g., more time with kids, financial security, supporting spouse's career)"
               value={familyGoals}
               onChange={(e) => setFamilyGoals(e.target.value)}
-              className="min-h-[100px]"
+              className="min-h-[100px] bg-card text-foreground border-border"
             />
           </div>
         </Card>
@@ -231,7 +231,7 @@ const PersonalGoals = () => {
                   type="number"
                   value={annualSalary}
                   onChange={(e) => setAnnualSalary(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Your current total annual compensation
@@ -245,7 +245,7 @@ const PersonalGoals = () => {
                   type="number"
                   value={taxRate}
                   onChange={(e) => setTaxRate(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Estimated combined tax rate (federal + state + self-employment)
@@ -259,7 +259,7 @@ const PersonalGoals = () => {
                   type="number"
                   value={healthInsurance}
                   onChange={(e) => setHealthInsurance(Number(e.target.value))}
-                  className="mt-1"
+                  className="mt-1 bg-card text-foreground border-border"
                 />
                 <p className="text-xs text-card-foreground/60 mt-1">
                   Estimated monthly cost for private health insurance
@@ -307,7 +307,7 @@ const PersonalGoals = () => {
                 type="date"
                 value={independenceDate}
                 onChange={(e) => setIndependenceDate(e.target.value)}
-                className="mt-1"
+                className="mt-1 bg-card text-foreground border-border"
               />
               <p className="text-xs text-card-foreground/60 mt-1">
                 Your target date to leave your current job
