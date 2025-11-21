@@ -42,31 +42,29 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
   };
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-300 shadow-sm">
-      <div className="flex items-center justify-between h-16 px-4">
-        {/* Left: Logo and mobile menu */}
+    <div 
+      className="fixed top-0 left-0 right-0 z-50 shadow-sm"
+      style={{
+        backgroundImage: 'url(/images/endzone-3d-header.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '80px'
+      }}
+    >
+      <div className="flex items-center justify-between h-20 px-4">
+        {/* Left: Mobile menu button only */}
         <div className="flex items-center gap-3">
           {showMobileMenu && (
             <Button 
               variant="ghost" 
               size="icon-sm"
               onClick={onMenuToggle}
-              className="lg:hidden"
+              className="lg:hidden text-white hover:bg-white/10"
             >
               <Menu className="w-5 h-5" />
             </Button>
           )}
-          
-          <button 
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#041E42] rounded px-2"
-          >
-            <img 
-              src={endzoneLogo} 
-              alt="EndZone - Your Gameplan to Profit" 
-              className="h-12 w-auto object-contain"
-            />
-          </button>
         </div>
 
         {/* Right: Account controls */}
@@ -78,11 +76,11 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
               <Button 
                 variant="ghost" 
                 size="icon"
-                className="relative"
+                className="relative text-white hover:bg-white/10"
               >
                 <User className="w-5 h-5" />
                 {isViewingAsMentor && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-warning rounded-full border-2 border-surface" />
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-warning rounded-full border-2 border-white" />
                 )}
               </Button>
             </DropdownMenuTrigger>
