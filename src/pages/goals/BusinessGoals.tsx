@@ -181,8 +181,8 @@ const BusinessGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Current Progress</h2>
@@ -221,7 +221,7 @@ const BusinessGoals = () => {
         <Card className="bg-card border-border shadow-sm">
           <div className="p-6">
             <div className="flex items-center gap-3 mb-4">
-              <Bot className="w-6 h-6 text-primary" />
+              <Bot className="w-6 h-6 text-yellow-500" />
               <h3 className="text-lg font-semibold card-foreground">AI Business Coach</h3>
             </div>
             
@@ -237,8 +237,8 @@ const BusinessGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <DollarSign className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <DollarSign className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Cash Requirements</h2>
@@ -281,8 +281,8 @@ const BusinessGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Target className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <Target className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Milestone Targets</h2>

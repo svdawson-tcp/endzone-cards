@@ -143,8 +143,8 @@ const PersonalGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Heart className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <Heart className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Life Vision</h2>
@@ -166,8 +166,8 @@ const PersonalGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Target className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <Target className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Motivation</h2>
@@ -189,8 +189,8 @@ const PersonalGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Heart className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <Heart className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Family Goals</h2>
@@ -212,8 +212,8 @@ const PersonalGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <DollarSign className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <DollarSign className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Financial Requirements</h2>
@@ -289,8 +289,8 @@ const PersonalGoals = () => {
         <Card className="p-6 bg-card border-border">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <Calendar className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg">
+                <Calendar className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h2 className="text-lg font-semibold card-foreground">Timeline</h2>
