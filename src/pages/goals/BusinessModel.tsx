@@ -32,8 +32,8 @@ const BusinessModel = () => {
         {/* Introduction */}
         <Card className="p-6 bg-card border-border shadow-md">
           <div className="flex items-start gap-4">
-            <div className="bg-primary/10 p-3 rounded-lg shrink-0">
-              <TrendingUp className="h-6 w-6 text-primary" />
+            <div className="bg-yellow-500/20 p-3 rounded-lg shrink-0">
+              <TrendingUp className="h-6 w-6 text-yellow-500" />
             </div>
           <div>
             <h2 className="text-xl font-bold text-foreground mb-2">
@@ -52,14 +52,14 @@ const BusinessModel = () => {
         {/* Revenue Streams */}
         <div>
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-foreground" />
+            <ShoppingCart className="h-5 w-5 text-yellow-500" />
             Revenue Streams
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="p-6 bg-card border-border shadow-md hover:shadow-lg transition-all">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <Award className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <Award className="h-5 w-5 text-yellow-500" />
                 </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Show Sales (Premium)</h3>
@@ -87,8 +87,8 @@ const BusinessModel = () => {
 
             <Card className="p-6 bg-card border-border shadow-md hover:shadow-lg transition-all">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <ShoppingCart className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <ShoppingCart className="h-5 w-5 text-yellow-500" />
                 </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Bulk Sales</h3>
@@ -116,8 +116,8 @@ const BusinessModel = () => {
 
           <Card className="p-6 bg-card border-border shadow-md hover:shadow-lg transition-all md:col-span-2">
             <div className="flex items-start gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                <Globe className="h-5 w-5 text-primary" />
+              <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                <Globe className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-foreground mb-2">Online Sales</h3>
@@ -152,7 +152,7 @@ const BusinessModel = () => {
         {/* Key Success Factors */}
         <div>
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Target className="h-5 w-5 text-foreground" />
+            <Target className="h-5 w-5 text-yellow-500" />
             Key Success Factors
           </h2>
           <div className="grid gap-4">
@@ -197,14 +197,14 @@ const BusinessModel = () => {
         {/* Growth Levers */}
         <div>
           <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-            <Zap className="h-5 w-5 text-foreground" />
+            <Zap className="h-5 w-5 text-yellow-500" />
             Growth Levers
           </h2>
           <div className="grid gap-4 md:grid-cols-2">
             <Card className="p-5 bg-card border-border shadow-md">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <Calendar className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <Calendar className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-2">Increase Show Frequency</h3>
@@ -218,8 +218,8 @@ const BusinessModel = () => {
 
             <Card className="p-5 bg-card border-border shadow-md">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <TrendingUp className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-2">Improve Average Sale Price</h3>
@@ -233,8 +233,8 @@ const BusinessModel = () => {
 
             <Card className="p-5 bg-card border-border shadow-md">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <MapPin className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <MapPin className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-foreground mb-2">Expand Geographic Market</h3>
@@ -248,8 +248,8 @@ const BusinessModel = () => {
 
             <Card className="p-5 bg-card border-border shadow-md">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <Globe className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <Globe className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold card-foreground mb-2">Expand Online Channels</h3>
@@ -263,8 +263,8 @@ const BusinessModel = () => {
 
             <Card className="p-5 bg-card border-border shadow-md md:col-span-2">
               <div className="flex items-start gap-3">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0">
-                  <Award className="h-5 w-5 text-primary" />
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0">
+                  <Award className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold card-foreground mb-2">Specialize in High-Value Niches</h3>
@@ -280,14 +280,14 @@ const BusinessModel = () => {
 
         {/* Business Phases */}
         <div>
-          <h2 className="text-xl font-bold foreground mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 foreground" />
+          <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5 text-yellow-500" />
             Typical Growth Phases
           </h2>
           <div className="space-y-4">
             <Card className="p-6 bg-card border-border shadow-md border-l-4 border-l-primary">
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0 text-primary font-bold">
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 text-yellow-500 font-bold">
                   1
                 </div>
                 <div>
@@ -305,7 +305,7 @@ const BusinessModel = () => {
 
             <Card className="p-6 bg-card border-border shadow-md border-l-4 border-l-primary">
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0 text-primary font-bold">
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 text-yellow-500 font-bold">
                   2
                 </div>
                 <div>
@@ -323,7 +323,7 @@ const BusinessModel = () => {
 
             <Card className="p-6 bg-card border-border shadow-md border-l-4 border-l-primary">
               <div className="flex items-start gap-4">
-                <div className="bg-primary/10 p-2 rounded-lg shrink-0 text-primary font-bold">
+                <div className="bg-yellow-500/20 p-2 rounded-lg shrink-0 text-yellow-500 font-bold">
                   3
                 </div>
                 <div>
