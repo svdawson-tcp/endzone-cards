@@ -165,7 +165,7 @@ export const AIActionSuggestions = ({
             onClick={generateSuggestions}
             disabled={isGenerating}
             size="sm"
-            className="gap-2"
+            className="gap-2 bg-accent hover:bg-accent/90 text-background"
           >
             {isGenerating ? (
               <>
