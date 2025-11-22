@@ -49,7 +49,7 @@ const DesktopSidebar = () => {
   };
 
   return (
-    <aside className="hidden md:block fixed left-0 top-16 h-[calc(100vh-4rem)] w-60 bg-[hsl(var(--nav-bg))] border-r border-[hsl(var(--border-strong))] z-30">
+    <aside className="hidden md:block fixed left-0 top-20 md:top-28 h-[calc(100vh-5rem)] md:h-[calc(100vh-7rem)] w-60 bg-[hsl(var(--nav-bg))] border-r border-[hsl(var(--border-strong))] z-30">
       <div className="flex flex-col h-full">
         {/* Scrollable Navigation Content */}
         <div className="flex-1 overflow-y-auto">
