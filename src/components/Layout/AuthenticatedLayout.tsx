@@ -17,7 +17,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
         <TopBar />
         <MentorModeBanner />
         <DesktopSidebar />
-        <main className="flex-1 pb-20 pt-16 md:ml-60 md:pb-8">
+        <main className="flex-1 pb-20 pt-24 md:pt-32 md:ml-60 md:pb-8">
           {children}
         </main>
         <BottomTabBar />
