@@ -43,7 +43,7 @@ const TopBar = ({ onMenuToggle, showMobileMenu = false }: TopBarProps) => {
 
   return (
     <div 
-      className="fixed top-0 left-0 right-0 z-50 shadow-sm animate-header-glow h-20 md:h-28 bg-[url('/images/endzone-3d-header.png')] md:bg-[url('/images/desktop-header-bg.png')] bg-cover md:bg-contain bg-center bg-no-repeat"
+      className="fixed top-0 left-0 right-0 z-50 shadow-sm animate-header-glow h-20 md:h-28 bg-[url('/images/endzone-3d-header.png')] md:bg-[url('/images/endzone-3d-header-desktop.png')] bg-cover md:bg-[length:auto_100%] md:bg-left bg-center bg-no-repeat"
     >
       <div className="relative flex items-center justify-between h-full px-4">
         {/* Left: Mobile menu button only */}
