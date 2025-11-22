@@ -11,7 +11,9 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
           $
         </span>
         <Input
-          type="number"
+          type="text"
+          inputMode="decimal"
+          pattern="^\d*\.?\d{0,2}$"
           step={step}
           className={`pl-8 min-h-[44px] ${className || ""}`}
           ref={ref}
