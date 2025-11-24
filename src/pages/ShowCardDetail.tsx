@@ -108,7 +108,7 @@ const ShowCardDetail = () => {
 
   if (cardLoading) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+      <div className="bg-slate-100 flex items-center justify-center">
         <div className="text-muted-foreground">Loading card details...</div>
       </div>
     );
@@ -116,14 +116,14 @@ const ShowCardDetail = () => {
 
   if (!card) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+      <div className="bg-slate-100 flex items-center justify-center">
         <div className="text-muted-foreground">Card not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="bg-slate-100">
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

@@ -151,7 +151,7 @@ const Glossary = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-4 pb-24 md:pb-8">
+    <div className="bg-background p-4 pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <PageHeader
           title="Business Glossary"

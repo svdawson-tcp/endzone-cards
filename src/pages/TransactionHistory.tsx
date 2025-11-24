@@ -319,7 +319,7 @@ export default function TransactionHistory() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
+    <div className="bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
