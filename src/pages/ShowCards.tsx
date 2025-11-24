@@ -77,14 +77,14 @@ const ShowCards = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[hsl(var(--bg-page))] flex items-center justify-center">
+      <div className="bg-[hsl(var(--bg-page))] flex items-center justify-center">
         <div className="text-[hsl(var(--text-body))]">Loading show cards...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
+    <div className="bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-6 mb-8">
