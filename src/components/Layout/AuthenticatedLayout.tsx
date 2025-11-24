@@ -16,10 +16,12 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
       <div className="h-screen overflow-hidden flex flex-col">
         <TopBar />
         <MentorModeBanner />
-        <DesktopSidebar />
-        <main className="flex-1 overflow-y-auto pb-20 pt-20 md:pt-28 md:ml-60 md:pb-8">
-          {children}
-        </main>
+        <div className="flex flex-1 overflow-hidden">
+          <DesktopSidebar />
+          <main className="flex-1 overflow-y-auto pb-20 md:pb-8">
+            {children}
+          </main>
+        </div>
         <BottomTabBar />
         <MentorAccessNotification />
       </div>
