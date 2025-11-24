@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 const EXPENSE_CATEGORIES = [
   "Booth Fee",
@@ -28,36 +29,28 @@ const EXPENSE_CATEGORIES = [
   "Other",
 ] as const;
 
-type ExpenseCategory = typeof EXPENSE_CATEGORIES[number];
+type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export default function CreateExpense() {
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Default date: today
-  const defaultDateStr = format(new Date(), "yyyy-MM-dd");
-
   const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState<ExpenseCategory | "">("");
-  const [selectedShowId, setSelectedShowId] = useState("");
-  const [expenseDate, setExpenseDate] = useState(defaultDateStr);
+  const [category, setCategory] = useState<string>("");
+  const [selectedShowId, setSelectedShowId] = useState<string>("");
+  const [expenseDate, setExpenseDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [receiptPhoto, setReceiptPhoto] = useState<File | null>(null);
-  const [receiptPhotoUrl, setReceiptPhotoUrl] = useState<string | null>(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch all shows for dropdown
-  const { data: shows = [], isLoading: loadingShows } = useQuery({
-    queryKey: ["shows"],
+  const { data: shows, isLoading: loadingShows } = useQuery({
+    queryKey: ["active-shows-for-expenses"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
       const { data, error } = await supabase
         .from("shows")
-        .select("id, name, show_date, status")
-        .eq("user_id", user.id)
+        .select("id, name, show_date")
+        .in("status", ["planned", "active", "completed"])
         .order("show_date", { ascending: false });
 
       if (error) throw error;
@@ -65,64 +58,57 @@ export default function CreateExpense() {
     },
   });
 
-  const [errors, setErrors] = useState({
-    amount: "",
-    category: "",
-    expenseDate: "",
-  });
-
   const validateForm = () => {
-    const newErrors = {
-      amount: "",
-      category: "",
-      expenseDate: "",
-    };
-
-    let isValid = true;
+    const newErrors: Record<string, string> = {};
 
     if (!amount || parseFloat(amount) <= 0) {
       newErrors.amount = "Amount must be greater than 0";
-      isValid = false;
     }
 
     if (!category) {
-      newErrors.category = "Category is required";
-      isValid = false;
+      newErrors.category = "Please select a category";
     }
 
     if (!expenseDate) {
-      newErrors.expenseDate = "Expense date is required";
-      isValid = false;
+      newErrors.expenseDate = "Please select a date";
     }
 
     setErrors(newErrors);
-    return isValid;
+    return Object.keys(newErrors).length === 0;
   };
 
   const isFormValid = () => {
-    return (
-      amount !== "" &&
-      parseFloat(amount) > 0 &&
-      category !== "" &&
-      expenseDate !== ""
-    );
+    return amount && parseFloat(amount) > 0 && category && expenseDate;
+  };
+
+  const handlePhotoCapture = (file: File) => {
+    setReceiptPhoto(file);
+    setShowCamera(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setReceiptPhoto(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return;
+    }
 
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
-      let photoUrl: string | null = null;
+      let receiptPhotoUrl: string | null = null;
 
       // Upload receipt photo if provided
       if (receiptPhoto) {
@@ -130,7 +116,7 @@ export default function CreateExpense() {
         const fileName = `${user.id}/${Date.now()}_receipt.webp`;
 
         const { error: uploadError } = await supabase.storage
-          .from("expense_receipts")
+          .from("receipts")
           .upload(fileName, compressedPhoto, {
             contentType: "image/webp",
             upsert: false,
@@ -140,37 +126,32 @@ export default function CreateExpense() {
 
         const {
           data: { publicUrl },
-        } = supabase.storage.from("expense_receipts").getPublicUrl(fileName);
+        } = supabase.storage.from("receipts").getPublicUrl(fileName);
 
-        photoUrl = publicUrl;
+        receiptPhotoUrl = publicUrl;
       }
 
-      // Insert expense record
-      const { error } = await supabase.from("expenses").insert({
+      // Insert expense
+      const { error: insertError } = await supabase.from("expenses").insert({
         user_id: user.id,
-        amount: amount as any,
-        category,
+        amount: parseFloat(amount),
+        category: category as ExpenseCategory,
         show_id: selectedShowId || null,
         expense_date: expenseDate,
-        notes: notes.trim() || null,
-        receipt_photo_url: photoUrl,
+        notes: notes || null,
+        receipt_photo_url: receiptPhotoUrl,
       });
 
-      if (error) throw error;
+      if (insertError) throw insertError;
 
       toast({
-        title: "Expense recorded!",
-        description: `$${parseFloat(amount).toFixed(2)} for ${category}`,
+        title: "Expense recorded",
+        description: `$${parseFloat(amount).toFixed(2)} ${category} expense added`,
       });
 
-      // Context-aware navigation
-      if (selectedShowId) {
-        navigate(`/shows/${selectedShowId}`);
-      } else {
-        navigate("/dashboard");
-      }
+      navigate("/dashboard");
     } catch (error: any) {
-      console.error("Error creating expense:", error);
+      console.error("Create expense error:", error);
       toast({
         title: "Error recording expense",
         description: error.message || "Please try again",
@@ -182,230 +163,207 @@ export default function CreateExpense() {
   };
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          {/* Page Title - Uses page-title class for white text on dark background */}
-          <h1 className="text-h1 mb-2">RECORD EXPENSE</h1>
-          <p className="text-muted-foreground">
-            Track business expenses for accounting and tax purposes
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-6">
-          {/* Amount Field */}
-          <FormField
-            label="Amount"
-            htmlFor="amount"
-            required
-            error={errors.amount}
-            helperText="Enter the total expense amount"
-          >
-            <CurrencyInput
-              id="amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="h-11"
-            />
-          </FormField>
-
-          {/* Category Field */}
-          <FormField
-            label="Category"
-            htmlFor="category"
-            required
-            error={errors.category}
-            helperText="Select the type of expense"
-          >
-            <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory)}>
-              <SelectTrigger id="category" className="h-11 bg-white text-gray-900">
-                <SelectValue placeholder="Select expense category" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {EXPENSE_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat} className="text-gray-900">
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          {/* Show Field (Optional) */}
-          <FormField
-            label="Show (Optional)"
-            htmlFor="show"
-            helperText="Associate expense with a specific show, or leave blank for general business expense"
-          >
-            <Select value={selectedShowId} onValueChange={setSelectedShowId}>
-              <SelectTrigger id="show" className="h-11 bg-white text-gray-900">
-                <SelectValue placeholder="Select show (optional)" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {loadingShows ? (
-                  <SelectItem value="loading" disabled className="text-gray-900">
-                    Loading shows...
-                  </SelectItem>
-                ) : shows && shows.length > 0 ? (
-                  shows.map((show) => (
-                    <SelectItem key={show.id} value={show.id} className="text-gray-900">
-                      {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="none" disabled className="text-gray-900">
-                    No shows available
-                  </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          {/* Expense Date Field */}
-          <FormField
-            label="Expense Date"
-            htmlFor="expenseDate"
-            required
-            error={errors.expenseDate}
-            helperText="When did this expense occur?"
-          >
-            <DateInput
-              id="expenseDate"
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-              className="h-11"
-            />
-          </FormField>
-
-          {/* Notes Field */}
-          <FormField
-            label="Description / Notes"
-            htmlFor="notes"
-            helperText={`${notes.length}/500 characters`}
-          >
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => {
-                if (e.target.value.length <= 500) {
-                  setNotes(e.target.value);
-                }
-              }}
-              placeholder="Add any additional details about this expense..."
-              className="min-h-[100px] bg-white text-gray-900 placeholder:text-gray-500 resize-none"
-              maxLength={500}
-            />
-          </FormField>
-
-          {/* Receipt Photo Field */}
-          <FormField
-            label="Receipt Photo (Optional)"
-            htmlFor="receipt-photo"
-            helperText="Capture or upload a photo of your receipt for record keeping"
-          >
-            <div className="space-y-3">
-              {/* Camera Capture */}
-              {showCamera ? (
-                <div className="space-y-3">
-                  <CameraCapture
-                    onCapture={(file) => {
-                      setReceiptPhoto(file);
-                      setReceiptPhotoUrl(URL.createObjectURL(file));
-                      setShowCamera(false);
-                    }}
-                    onClose={() => setShowCamera(false)}
-                  />
-                </div>
-              ) : receiptPhotoUrl ? (
-                /* Photo Preview */
-                <div className="relative">
-                  <img
-                    src={receiptPhotoUrl}
-                    alt="Receipt preview"
-                    className="w-full h-48 object-cover rounded-lg border border-border"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={() => {
-                      setReceiptPhoto(null);
-                      setReceiptPhotoUrl(null);
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                /* Upload Options */
-                <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 h-11"
-                    onClick={() => setShowCamera(true)}
-                  >
-                    <Receipt className="h-4 w-4 mr-2" />
-                    Capture Photo
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 h-11"
-                    onClick={() => {
-                      const input = document.createElement("input");
-                      input.type = "file";
-                      input.accept = "image/*";
-                      input.onchange = (e) => {
-                        const file = (e.target as HTMLInputElement).files?.[0];
-                        if (file) {
-                          setReceiptPhoto(file);
-                          setReceiptPhotoUrl(URL.createObjectURL(file));
-                        }
-                      };
-                      input.click();
-                    }}
-                  >
-                    <Receipt className="h-4 w-4 mr-2" />
-                    Select File
-                  </Button>
-                </div>
-              )}
-            </div>
-          </FormField>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/shows")}
-              className="flex-1"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
-              disabled={!isFormValid() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Recording...
-                </>
-              ) : (
-                "RECORD EXPENSE"
-              )}
-            </Button>
-          </div>
-        </form>
+    <PageContainer maxWidth="2xl">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-h1 mb-2">RECORD EXPENSE</h1>
+        <p className="text-muted-foreground">
+          Track business expenses for accounting and tax purposes
+        </p>
       </div>
-    </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-6">
+        {/* Amount Field */}
+        <FormField
+          label="Amount"
+          htmlFor="amount"
+          required
+          error={errors.amount}
+          helperText="Enter the total expense amount"
+        >
+          <CurrencyInput
+            id="amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            className="h-11"
+          />
+        </FormField>
+
+        {/* Category Field */}
+        <FormField
+          label="Category"
+          htmlFor="category"
+          required
+          error={errors.category}
+          helperText="Select the type of expense"
+        >
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger id="category" className="h-11">
+              <SelectValue placeholder="Select expense category" />
+            </SelectTrigger>
+            <SelectContent>
+              {EXPENSE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {/* Show Field (Optional) */}
+        <FormField
+          label="Show (Optional)"
+          htmlFor="show"
+          helperText="Associate expense with a specific show, or leave blank for general business expense"
+        >
+          <Select 
+            value={selectedShowId || "none"} 
+            onValueChange={(value) => setSelectedShowId(value === "none" ? "" : value)}
+          >
+            <SelectTrigger id="show" className="h-11" disabled={loadingShows}>
+              <SelectValue placeholder="Select show (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No specific show</SelectItem>
+              {shows?.map((show) => (
+                <SelectItem key={show.id} value={show.id}>
+                  {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+
+        {/* Expense Date */}
+        <FormField
+          label="Expense Date"
+          htmlFor="expense-date"
+          required
+          error={errors.expenseDate}
+          helperText="When did this expense occur?"
+        >
+          <DateInput
+            id="expense-date"
+            value={expenseDate}
+            onChange={(e) => setExpenseDate(e.target.value)}
+            max={format(new Date(), "yyyy-MM-dd")}
+            className="h-11"
+          />
+        </FormField>
+
+        {/* Notes */}
+        <FormField
+          label="Description / Notes"
+          htmlFor="notes"
+          helperText="Add any additional details about this expense"
+        >
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Add any additional details about this expense..."
+            maxLength={500}
+            rows={3}
+            className="resize-none"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            {notes.length}/500 characters
+          </p>
+        </FormField>
+
+        {/* Receipt Photo */}
+        <FormField
+          label="Receipt Photo (Optional)"
+          htmlFor="receipt-photo"
+          helperText="Capture or upload a photo of your receipt for record keeping"
+        >
+          {!receiptPhoto ? (
+            <div className="space-y-3">
+              <Button
+                type="button"
+                onClick={() => setShowCamera(true)}
+                variant="outline"
+                className="w-full h-11"
+              >
+                <Receipt className="mr-2 h-4 w-4" />
+                Capture Photo
+              </Button>
+              <Button
+                type="button"
+                onClick={() => document.getElementById("file-upload")?.click()}
+                variant="outline"
+                className="w-full h-11"
+              >
+                <Receipt className="mr-2 h-4 w-4" />
+                Select File
+              </Button>
+              <input
+                id="file-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+            </div>
+          ) : (
+            <div className="relative">
+              <div className="bg-muted rounded-lg p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm truncate">{receiptPhoto.name}</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReceiptPhoto(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </FormField>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/dashboard")}
+            disabled={isSubmitting}
+            className="flex-1 h-11"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={!isFormValid() || isSubmitting}
+            className="flex-1 h-11 bg-primary hover:bg-primary/90"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Recording...
+              </>
+            ) : (
+              "RECORD EXPENSE"
+            )}
+          </Button>
+        </div>
+      </form>
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handlePhotoCapture}
+          onClose={() => setShowCamera(false)}
+          facingMode="environment"
+        />
+      )}
+    </PageContainer>
   );
 }

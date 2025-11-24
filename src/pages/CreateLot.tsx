@@ -12,6 +12,7 @@ import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { FormField } from "@/components/forms/FormField";
 import { format } from "date-fns";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 export default function CreateLot() {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ export default function CreateLot() {
   const { id } = useParams();
   const isEditMode = !!id;
 
-  // Default to today
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
   const [purchaseDate, setPurchaseDate] = useState(todayStr);
@@ -28,7 +28,6 @@ export default function CreateLot() {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load existing lot data in edit mode
   const { data: existingLot, isLoading: loadingLot } = useQuery({
     queryKey: ["lot", id],
     queryFn: async () => {
@@ -44,7 +43,6 @@ export default function CreateLot() {
     enabled: !!id,
   });
 
-  // Pre-populate form fields when existing lot loads
   useEffect(() => {
     if (existingLot) {
       setPurchaseDate(existingLot.purchase_date);
@@ -54,7 +52,6 @@ export default function CreateLot() {
     }
   }, [existingLot]);
 
-  // Handle load errors
   useEffect(() => {
     if (isEditMode && !loadingLot && !existingLot) {
       toast({
@@ -137,7 +134,6 @@ export default function CreateLot() {
       };
 
       if (isEditMode) {
-        // Update existing lot (do NOT trigger cash_transaction)
         const { error } = await supabase
           .from("lots")
           .update(lotData)
@@ -150,7 +146,6 @@ export default function CreateLot() {
           description: `${source} has been updated successfully`,
         });
       } else {
-        // Create new lot (database trigger will create cash_transaction)
         const { data: lot, error: lotError } = await supabase
           .from("lots")
           .insert({
@@ -186,142 +181,134 @@ export default function CreateLot() {
     navigate("/lots");
   };
 
-  // Show loading spinner while fetching existing lot data
   if (isEditMode && loadingLot) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Loading lot data...</p>
+      <PageContainer maxWidth="2xl">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">Loading lot data...</p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="bg-slate-100">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          {/* Page Title - Uses page-title class for white text on dark background */}
-          <h1 className="page-title mb-2">{isEditMode ? "EDIT LOT" : "CREATE LOT"}</h1>
-          <p className="text-muted-foreground">Record a new purchase</p>
+    <PageContainer maxWidth="2xl">
+      <div className="mb-6">
+        <h1 className="page-title mb-2">{isEditMode ? "EDIT LOT" : "CREATE LOT"}</h1>
+        <p className="text-muted-foreground">Record a new purchase</p>
+      </div>
+
+      {!isEditMode && (
+        <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
+          <Info className="h-5 w-5 text-blue-500" />
+          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
+            Lots are purchase containers. After creating a lot, you can add individual show
+            cards to it for detailed tracking.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
+        <FormField
+          label="Purchase Date"
+          required
+          error={errors.purchaseDate}
+          htmlFor="purchase-date"
+        >
+          <DateInput
+            id="purchase-date"
+            value={purchaseDate}
+            onChange={(e) => {
+              setPurchaseDate(e.target.value);
+              if (errors.purchaseDate) setErrors({ ...errors, purchaseDate: "" });
+            }}
+            max={format(new Date(), "yyyy-MM-dd")}
+          />
+        </FormField>
+
+        <div>
+          <label htmlFor="source" className="form-label">Source *</label>
+          <Input
+            id="source"
+            type="text"
+            value={source}
+            onChange={(e) => {
+              setSource(e.target.value);
+              if (errors.source) setErrors({ ...errors, source: "" });
+            }}
+            placeholder="eBay, Facebook Marketplace, Local Store, etc."
+            maxLength={100}
+            className="mt-2 min-h-[44px]"
+          />
+          <p className="text-xs text-gray-600 mt-1">
+            Where did you buy this lot?
+          </p>
+          {errors.source && (
+            <p className="text-destructive text-sm mt-1">{errors.source}</p>
+          )}
         </div>
 
-        {/* Info Callout - only show in create mode */}
-        {!isEditMode && (
-          <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
-            <Info className="h-5 w-5 text-blue-500" />
-            <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
-              Lots are purchase containers. After creating a lot, you can add individual show
-              cards to it for detailed tracking.
-            </AlertDescription>
-          </Alert>
-        )}
+        <FormField
+          label="Total Cost"
+          required
+          error={errors.totalCost}
+          helperText="Total amount paid for this purchase"
+          htmlFor="total-cost"
+        >
+          <CurrencyInput
+            id="total-cost"
+            value={totalCost}
+            onChange={(e) => {
+              setTotalCost(e.target.value);
+              if (errors.totalCost) setErrors({ ...errors, totalCost: "" });
+            }}
+            placeholder="0.00"
+            min={0.01}
+            step={0.01}
+          />
+        </FormField>
 
-        <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
-          {/* Purchase Date */}
-          <FormField
-            label="Purchase Date"
-            required
-            error={errors.purchaseDate}
-            htmlFor="purchase-date"
+        <div>
+          <label htmlFor="notes" className="form-label">Notes (Optional)</label>
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Details about the purchase, what's included, condition notes..."
+            maxLength={500}
+            rows={4}
+            className="mt-2"
+          />
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <Button
+            type="button"
+            onClick={handleCancel}
+            variant="outline"
+            className="flex-1 min-h-[44px]"
           >
-            <DateInput
-              id="purchase-date"
-              value={purchaseDate}
-              onChange={(e) => {
-                setPurchaseDate(e.target.value);
-                if (errors.purchaseDate) setErrors({ ...errors, purchaseDate: "" });
-              }}
-              max={format(new Date(), "yyyy-MM-dd")}
-            />
-          </FormField>
-
-          {/* Source */}
-          <div>
-            <label htmlFor="source" className="form-label">Source *</label>
-            <Input
-              id="source"
-              type="text"
-              value={source}
-              onChange={(e) => {
-                setSource(e.target.value);
-                if (errors.source) setErrors({ ...errors, source: "" });
-              }}
-              placeholder="eBay, Facebook Marketplace, Local Store, etc."
-              maxLength={100}
-              className="mt-2 min-h-[44px]"
-            />
-            <p className="text-xs text-gray-600 mt-1">
-              Where did you buy this lot?
-            </p>
-            {errors.source && (
-              <p className="text-destructive text-sm mt-1">{errors.source}</p>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={!isFormValid() || isSubmitting}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              isEditMode ? "UPDATE LOT" : "CREATE LOT"
             )}
-          </div>
-
-          {/* Total Cost */}
-          <FormField
-            label="Total Cost"
-            required
-            error={errors.totalCost}
-            helperText="Total amount paid for this purchase"
-            htmlFor="total-cost"
-          >
-            <CurrencyInput
-              id="total-cost"
-              value={totalCost}
-              onChange={(e) => {
-                setTotalCost(e.target.value);
-                if (errors.totalCost) setErrors({ ...errors, totalCost: "" });
-              }}
-              placeholder="0.00"
-              min={0.01}
-              step={0.01}
-            />
-          </FormField>
-
-          {/* Notes */}
-          <div>
-            <label htmlFor="notes" className="form-label">Notes (Optional)</label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Details about the purchase, what's included, condition notes..."
-              maxLength={500}
-              rows={4}
-              className="mt-2"
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3 mt-6">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              variant="outline"
-              className="flex-1 min-h-[44px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!isFormValid() || isSubmitting}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditMode ? "Updating..." : "Creating..."}
-                </>
-              ) : (
-                isEditMode ? "UPDATE LOT" : "CREATE LOT"
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </Button>
+        </div>
+      </form>
+    </PageContainer>
   );
 }

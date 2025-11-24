@@ -11,6 +11,7 @@ import { FormField } from "@/components/forms/FormField";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { format } from "date-fns";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 export default function CreateShow() {
   const navigate = useNavigate();
@@ -18,7 +19,6 @@ export default function CreateShow() {
   const { id } = useParams();
   const isEditMode = !!id;
 
-  // Default date: 7 days from today
   const defaultDate = new Date();
   defaultDate.setDate(defaultDate.getDate() + 7);
   const defaultDateStr = format(defaultDate, "yyyy-MM-dd");
@@ -32,7 +32,6 @@ export default function CreateShow() {
   const [showStatus, setShowStatus] = useState<"planned" | "active" | "completed">("planned");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load existing show data in edit mode
   const { data: existingShow, isLoading: loadingShow } = useQuery({
     queryKey: ["show", id],
     queryFn: async () => {
@@ -48,7 +47,6 @@ export default function CreateShow() {
     enabled: !!id,
   });
 
-  // Pre-populate form fields when existing show loads
   useEffect(() => {
     if (existingShow) {
       setShowName(existingShow.name);
@@ -61,7 +59,6 @@ export default function CreateShow() {
     }
   }, [existingShow]);
 
-  // Handle load errors
   useEffect(() => {
     if (isEditMode && !loadingShow && !existingShow) {
       toast({
@@ -99,7 +96,6 @@ export default function CreateShow() {
       newErrors.showDate = "Date is required";
       isValid = false;
     } else if (!isEditMode || showStatus === "planned") {
-      // Only validate future dates for new shows or planned shows in edit mode
       const selectedDate = new Date(showDate);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -131,7 +127,6 @@ export default function CreateShow() {
       tableCost !== "" &&
       parseFloat(tableCost) >= 0;
     
-    // Date validation: only check future dates for new shows or planned shows
     if (!isEditMode || showStatus === "planned") {
       return basicValidation && new Date(showDate) >= new Date(new Date().setHours(0, 0, 0, 0));
     }
@@ -160,7 +155,6 @@ export default function CreateShow() {
       };
 
       if (isEditMode) {
-        // Update existing show
         const { error } = await supabase
           .from("shows")
           .update(showData)
@@ -173,7 +167,6 @@ export default function CreateShow() {
           description: `${showName} has been updated successfully`,
         });
       } else {
-        // Create new show
         const { error } = await supabase.from("shows").insert({
           ...showData,
           user_id: user.id,
@@ -205,165 +198,156 @@ export default function CreateShow() {
     navigate("/shows");
   };
 
-  // Show loading spinner while fetching existing show data
   if (isEditMode && loadingShow) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Loading show data...</p>
+      <PageContainer maxWidth="2xl">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">Loading show data...</p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="bg-slate-100">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          {/* Page Title - Uses page-title class for white text on dark background */}
-          <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW" : "CREATE SHOW"}</h1>
-          <p className="text-muted-foreground">Plan your next card show event</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
-          {/* Show Name */}
-          <FormField
-            label="Show Name"
-            required
-            error={errors.showName}
-            htmlFor="show-name"
-          >
-            <Input
-              id="show-name"
-              type="text"
-              value={showName}
-              onChange={(e) => {
-                setShowName(e.target.value);
-                if (errors.showName) setErrors({ ...errors, showName: "" });
-              }}
-              placeholder="Dallas Sports Card Show"
-              maxLength={100}
-              className="min-h-[44px]"
-            />
-          </FormField>
-
-          {/* Show Date */}
-          <FormField
-            label="Date"
-            required
-            error={errors.showDate}
-            htmlFor="show-date"
-          >
-            <DateInput
-              id="show-date"
-              value={showDate}
-              onChange={(e) => {
-                setShowDate(e.target.value);
-                if (errors.showDate) setErrors({ ...errors, showDate: "" });
-              }}
-              min={format(new Date(), "yyyy-MM-dd")}
-            />
-          </FormField>
-
-          {/* Location */}
-          <FormField
-            label="Location"
-            required
-            error={errors.location}
-            htmlFor="location"
-          >
-            <Input
-              id="location"
-              type="text"
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                if (errors.location) setErrors({ ...errors, location: "" });
-              }}
-              placeholder="Dallas Convention Center"
-              maxLength={200}
-              className="min-h-[44px]"
-            />
-          </FormField>
-
-          {/* Table Cost */}
-          <FormField
-            label="Table Cost"
-            required
-            error={errors.tableCost}
-            htmlFor="table-cost"
-          >
-            <CurrencyInput
-              id="table-cost"
-              value={tableCost}
-              onChange={(e) => {
-                setTableCost(e.target.value);
-                if (errors.tableCost) setErrors({ ...errors, tableCost: "" });
-              }}
-              placeholder="0.00"
-              min="0"
-            />
-          </FormField>
-
-          {/* Booth Number */}
-          <FormField
-            label="Booth Number"
-            htmlFor="booth-number"
-          >
-            <Input
-              id="booth-number"
-              type="text"
-              value={boothNumber}
-              onChange={(e) => setBoothNumber(e.target.value)}
-              placeholder="A-123"
-              maxLength={20}
-              className="min-h-[44px]"
-            />
-          </FormField>
-
-          {/* Notes */}
-          <FormField
-            label="Notes"
-            htmlFor="notes"
-          >
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Additional details about the show..."
-              maxLength={500}
-              rows={4}
-            />
-          </FormField>
-
-          {/* Buttons */}
-          <div className="flex gap-3 mt-6">
-            <Button
-              type="button"
-              onClick={handleCancel}
-              variant="outline"
-              className="flex-1 min-h-[44px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={!isFormValid() || isSubmitting}
-              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isEditMode ? "Updating..." : "Creating..."}
-                </>
-              ) : (
-                isEditMode ? "UPDATE SHOW" : "CREATE SHOW"
-              )}
-            </Button>
-          </div>
-        </form>
+    <PageContainer maxWidth="2xl">
+      <div className="mb-6">
+        <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW" : "CREATE SHOW"}</h1>
+        <p className="text-muted-foreground">Plan your next card show event</p>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4">
+        <FormField
+          label="Show Name"
+          required
+          error={errors.showName}
+          htmlFor="show-name"
+        >
+          <Input
+            id="show-name"
+            type="text"
+            value={showName}
+            onChange={(e) => {
+              setShowName(e.target.value);
+              if (errors.showName) setErrors({ ...errors, showName: "" });
+            }}
+            placeholder="Dallas Sports Card Show"
+            maxLength={100}
+            className="min-h-[44px]"
+          />
+        </FormField>
+
+        <FormField
+          label="Date"
+          required
+          error={errors.showDate}
+          htmlFor="show-date"
+        >
+          <DateInput
+            id="show-date"
+            value={showDate}
+            onChange={(e) => {
+              setShowDate(e.target.value);
+              if (errors.showDate) setErrors({ ...errors, showDate: "" });
+            }}
+            min={format(new Date(), "yyyy-MM-dd")}
+          />
+        </FormField>
+
+        <FormField
+          label="Location"
+          required
+          error={errors.location}
+          htmlFor="location"
+        >
+          <Input
+            id="location"
+            type="text"
+            value={location}
+            onChange={(e) => {
+              setLocation(e.target.value);
+              if (errors.location) setErrors({ ...errors, location: "" });
+            }}
+            placeholder="Dallas Convention Center"
+            maxLength={200}
+            className="min-h-[44px]"
+          />
+        </FormField>
+
+        <FormField
+          label="Table Cost"
+          required
+          error={errors.tableCost}
+          htmlFor="table-cost"
+        >
+          <CurrencyInput
+            id="table-cost"
+            value={tableCost}
+            onChange={(e) => {
+              setTableCost(e.target.value);
+              if (errors.tableCost) setErrors({ ...errors, tableCost: "" });
+            }}
+            placeholder="0.00"
+            min="0"
+          />
+        </FormField>
+
+        <FormField
+          label="Booth Number"
+          htmlFor="booth-number"
+        >
+          <Input
+            id="booth-number"
+            type="text"
+            value={boothNumber}
+            onChange={(e) => setBoothNumber(e.target.value)}
+            placeholder="A-123"
+            maxLength={20}
+            className="min-h-[44px]"
+          />
+        </FormField>
+
+        <FormField
+          label="Notes"
+          htmlFor="notes"
+        >
+          <Textarea
+            id="notes"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Additional details about the show..."
+            maxLength={500}
+            rows={4}
+          />
+        </FormField>
+
+        <div className="flex gap-3 mt-6">
+          <Button
+            type="button"
+            onClick={handleCancel}
+            variant="outline"
+            className="flex-1 min-h-[44px]"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={!isFormValid() || isSubmitting}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Creating..."}
+              </>
+            ) : (
+              isEditMode ? "UPDATE SHOW" : "CREATE SHOW"
+            )}
+          </Button>
+        </div>
+      </form>
+    </PageContainer>
   );
 }

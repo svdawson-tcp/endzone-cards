@@ -12,6 +12,7 @@ import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 const ManualCashTransaction = () => {
   const navigate = useNavigate();
@@ -168,9 +169,7 @@ const ManualCashTransaction = () => {
   const currentConfig = config[type];
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Back Button */}
+    <PageContainer maxWidth="2xl">
       <Button
         variant="ghost"
         onClick={() => navigate("/dashboard")}
@@ -180,114 +179,103 @@ const ManualCashTransaction = () => {
         Back to Dashboard
       </Button>
 
-      {/* Page Title - Uses page-title class for white text on dark background */}
       <h1 className="text-h1 mb-2">{currentConfig.title}</h1>
       <p className="text-muted-foreground mb-6">{currentConfig.subtitle}</p>
 
-      {/* Form Card */}
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-card shadow-card-shadow rounded-lg p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Transaction Type Badge */}
-            <div>
-              <Badge className={currentConfig.badge.className}>
-                {currentConfig.badge.label}
-              </Badge>
-            </div>
+      <div className="bg-card shadow-card-shadow rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <Badge className={currentConfig.badge.className}>
+              {currentConfig.badge.label}
+            </Badge>
+          </div>
 
-            {/* Adjustment Direction (only for adjustment type) */}
-            {type === "adjustment" && (
-              <FormField
-                label="Direction"
-                required
-                htmlFor="direction"
-                helperText="Select whether to add or remove cash from balance"
-              >
-                <RadioGroup
-                  value={adjustmentDirection}
-                  onValueChange={(value: "add" | "remove") => setAdjustmentDirection(value)}
-                  className="flex gap-4"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="add" id="add" />
-                    <Label htmlFor="add" className="cursor-pointer text-gray-900">Add Cash (+)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="remove" id="remove" />
-                    <Label htmlFor="remove" className="cursor-pointer text-gray-900">Remove Cash (-)</Label>
-                  </div>
-                </RadioGroup>
-              </FormField>
-            )}
-
-            {/* Amount */}
+          {type === "adjustment" && (
             <FormField
-              label="Amount"
+              label="Direction"
               required
-              htmlFor="amount"
-              helperText="Enter amount as a positive number"
+              htmlFor="direction"
+              helperText="Select whether to add or remove cash from balance"
             >
-              <CurrencyInput
-                id="amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
-                required
-              />
+              <RadioGroup
+                value={adjustmentDirection}
+                onValueChange={(value: "add" | "remove") => setAdjustmentDirection(value)}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="add" id="add" />
+                  <Label htmlFor="add" className="cursor-pointer text-gray-900">Add Cash (+)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="remove" id="remove" />
+                  <Label htmlFor="remove" className="cursor-pointer text-gray-900">Remove Cash (-)</Label>
+                </div>
+              </RadioGroup>
             </FormField>
+          )}
 
-            {/* Transaction Date */}
-            <FormField
-              label="Transaction Date"
+          <FormField
+            label="Amount"
+            required
+            htmlFor="amount"
+            helperText="Enter amount as a positive number"
+          >
+            <CurrencyInput
+              id="amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
               required
-              htmlFor="transactionDate"
-            >
-              <DateInput
-                id="transactionDate"
-                value={transactionDate}
-                onChange={(e) => setTransactionDate(e.target.value)}
-                required
-              />
-            </FormField>
+            />
+          </FormField>
 
-            {/* Notes */}
-            <FormField
-              label="Notes (Optional)"
-              htmlFor="notes"
-              helperText="Reason for this transaction"
-            >
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Reason for this transaction..."
-                rows={3}
-              />
-            </FormField>
+          <FormField
+            label="Transaction Date"
+            required
+            htmlFor="transactionDate"
+          >
+            <DateInput
+              id="transactionDate"
+              value={transactionDate}
+              onChange={(e) => setTransactionDate(e.target.value)}
+              required
+            />
+          </FormField>
 
-            {/* Action Buttons */}
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/dashboard")}
-                className="flex-1"
-              >
-                CANCEL
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white"
-                disabled={insertMutation.isPending}
-              >
-                {insertMutation.isPending ? "RECORDING..." : currentConfig.buttonText}
-              </Button>
-            </div>
-          </form>
-        </div>
+          <FormField
+            label="Notes (Optional)"
+            htmlFor="notes"
+            helperText="Reason for this transaction"
+          >
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Reason for this transaction..."
+              rows={3}
+            />
+          </FormField>
+
+          <div className="flex gap-4 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/dashboard")}
+              className="flex-1"
+            >
+              CANCEL
+            </Button>
+            <Button
+              type="submit"
+              className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white"
+              disabled={insertMutation.isPending}
+            >
+              {insertMutation.isPending ? "RECORDING..." : currentConfig.buttonText}
+            </Button>
+          </div>
+        </form>
       </div>
-    </div>
-    </div>
+    </PageContainer>
   );
 };
 
