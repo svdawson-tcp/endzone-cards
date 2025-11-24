@@ -181,7 +181,7 @@ export default function Lots() {
             <Button
               key={tab}
               variant={filterTab === tab ? "default" : "outline"}
-              onClick={() => setFilterTab(tab)}
+              onClick={() => setFilterTab(tab as FilterTab)}
               className="flex-shrink-0 capitalize"
             >
               {tab === "all" ? "All" : tab}
@@ -223,7 +223,7 @@ export default function Lots() {
                     <Package className="h-5 w-5 text-primary" />
                     <h3 className="font-bold text-lg text-foreground">{lot.source}</h3>
                   </div>
-                  <Badge variant={getStatusBadgeVariant(lot.status)} className="capitalize">
+                  <Badge variant={getStatusBadgeVariant(lot.status as LotStatus)} className="capitalize">
                     {lot.status}
                   </Badge>
                 </div>

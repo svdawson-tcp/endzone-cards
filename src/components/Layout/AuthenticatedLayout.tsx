@@ -13,11 +13,11 @@ interface AuthenticatedLayoutProps {
 const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
   return (
     <MentorAccessProvider>
-      <div className="flex flex-col h-screen overflow-hidden">
+      <div className="h-screen overflow-hidden flex flex-col">
         <TopBar />
         <MentorModeBanner />
         <DesktopSidebar />
-        <main className="flex-1 overflow-y-auto pb-20 pt-24 md:pt-32 md:ml-60 md:pb-8">
+        <main className="flex-1 overflow-y-auto pb-20 pt-16 md:ml-60 md:pb-8">
           {children}
         </main>
         <BottomTabBar />
