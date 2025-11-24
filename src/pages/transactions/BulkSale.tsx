@@ -207,8 +207,8 @@ export default function BulkSale() {
           <CurrencyInput
             id="revenue"
             value={revenue}
-            onChange={(value) => {
-              setRevenue(value);
+            onChange={(e) => {
+              setRevenue(e.target.value);
               setErrors((prev) => ({ ...prev, revenue: "" }));
             }}
             placeholder="0.00"
