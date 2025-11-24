@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tantml:function_calls";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { DollarSign, Calendar, FileText, Loader2, Package, Image as ImageIcon } from "lucide-react";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 interface ShowCard {
   id: string;
@@ -214,9 +215,8 @@ export default function ShowCardSale() {
   }
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="container max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
+    <PageContainer maxWidth="2xl">
+      <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
         {/* Header */}
         <h1 className="text-h1 mb-2">RECORD SALE</h1>
         <p className="text-gray-600 mb-6">Complete the sale transaction</p>
@@ -414,7 +414,6 @@ export default function ShowCardSale() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      </div>
-    </div>
+    </PageContainer>
   );
 }

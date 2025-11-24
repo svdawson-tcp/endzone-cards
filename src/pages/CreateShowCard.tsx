@@ -434,12 +434,11 @@ export default function CreateShowCard() {
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               Create a Lot
-            </Button>
-          </div>
+          </Button>
         </div>
-      </div>
-    );
-  }
+    </PageContainer>
+  );
+}
 
   return (
     <div className="bg-background pb-32 md:pb-8">
