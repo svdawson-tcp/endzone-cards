@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 export default function CreateShowCard() {
   const navigate = useNavigate();
@@ -405,67 +406,67 @@ export default function CreateShowCard() {
 
   if (loadingLots || (isEditMode && loadingCard)) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground">
-            {isEditMode ? "Loading show card data..." : "Loading..."}
-          </p>
+      <PageContainer maxWidth="2xl">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">
+              {isEditMode ? "Loading show card data..." : "Loading..."}
+            </p>
+          </div>
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!isEditMode && (!lots || lots.length === 0)) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="max-w-2xl mx-auto px-4 py-8">
-          <h1 className="text-h1 mb-2">ADD SHOW CARD</h1>
-          <Alert className="mt-6 bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500">
-            <Info className="h-5 w-5 text-yellow-500" />
-            <AlertDescription className="ml-2">
-              No active lots found. You need to create a lot first before adding show
-              cards.
-            </AlertDescription>
-          </Alert>
-          <div className="mt-6">
-            <Button
-              onClick={() => navigate("/lots/new")}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Create a Lot
+      <PageContainer maxWidth="2xl">
+        <h1 className="text-h1 mb-2">ADD SHOW CARD</h1>
+        <Alert className="mt-6 bg-yellow-50 dark:bg-yellow-950/20 border-l-4 border-yellow-500">
+          <Info className="h-5 w-5 text-yellow-500" />
+          <AlertDescription className="ml-2">
+            No active lots found. You need to create a lot first before adding show
+            cards.
+          </AlertDescription>
+        </Alert>
+        <div className="mt-6">
+          <Button
+            onClick={() => navigate("/lots/new")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            Create a Lot
           </Button>
         </div>
-    </PageContainer>
-  );
-}
+      </PageContainer>
+    );
+  }
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          {/* Page Title - Uses page-title class for white text on dark background */}
-          <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
-          <p className="text-muted-foreground">
-            {isEditMode ? "Update card details" : "Add a premium card to your inventory"}
-          </p>
-        </div>
+    <PageContainer maxWidth="2xl">
+      <div className="mb-6">
+        {/* Page Title - Uses page-title class for white text on dark background */}
+        <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
+        <p className="text-muted-foreground">
+          {isEditMode ? "Update card details" : "Add a premium card to your inventory"}
+        </p>
+      </div>
 
-        {/* Info Callout - only show in create mode */}
-        {!isEditMode && (
-          <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
-            <Info className="h-5 w-5 text-blue-500" />
-            <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
-              Show cards are premium inventory items that you photograph and track
-              individually. These are your best cards that you'll showcase at shows.
-            </AlertDescription>
-          </Alert>
-        )}
+      {/* Info Callout - only show in create mode */}
+      {!isEditMode && (
+        <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
+          <Info className="h-5 w-5 text-blue-500" />
+          <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
+            Show cards are premium inventory items that you photograph and track
+            individually. These are your best cards that you'll showcase at shows.
+          </AlertDescription>
+        </Alert>
+      )}
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4"
-        >
+      <form
+        onSubmit={handleSubmit}
+        className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4"
+      >
           {/* Select Lot */}
           <div>
             <label htmlFor="lot" className="form-label">Lot *</label>
@@ -798,26 +799,25 @@ export default function CreateShowCard() {
                 isEditMode ? "UPDATE SHOW CARD" : "ADD SHOW CARD"
               )}
             </Button>
-          </div>
-        </form>
+        </div>
+      </form>
 
-        {/* Camera Modals */}
-        {showFrontCamera && (
-          <CameraCapture
-            onCapture={handleFrontCameraCapture}
-            onClose={() => setShowFrontCamera(false)}
-            facingMode="environment"
-          />
-        )}
+      {/* Camera Modals */}
+      {showFrontCamera && (
+        <CameraCapture
+          onCapture={handleFrontCameraCapture}
+          onClose={() => setShowFrontCamera(false)}
+          facingMode="environment"
+        />
+      )}
 
-        {showBackCamera && (
-          <CameraCapture
-            onCapture={handleBackCameraCapture}
-            onClose={() => setShowBackCamera(false)}
-            facingMode="environment"
-          />
-        )}
-      </div>
-    </div>
+      {showBackCamera && (
+        <CameraCapture
+          onCapture={handleBackCameraCapture}
+          onClose={() => setShowBackCamera(false)}
+          facingMode="environment"
+        />
+      )}
+    </PageContainer>
   );
 }
