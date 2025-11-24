@@ -129,7 +129,7 @@ export default function CreateLot() {
       const lotData = {
         purchase_date: purchaseDate,
         source: source.trim(),
-        total_cost: totalCost as any,
+        total_cost: parseFloat(totalCost) || 0,
         notes: notes.trim() || null,
       };
 
