@@ -221,15 +221,15 @@ export default function BulkSale() {
         <div>
           <label htmlFor="show-select" className="form-label">Show (Optional)</label>
           <Select
-            value={selectedShowId}
-            onValueChange={setSelectedShowId}
+            value={selectedShowId || "none"}
+            onValueChange={(value) => setSelectedShowId(value === "none" ? "" : value)}
             disabled={showsLoading}
           >
             <SelectTrigger className="w-full min-h-[44px]">
               <SelectValue placeholder={showsLoading ? "Loading shows..." : "Select show (optional)"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">No show</SelectItem>
+              <SelectItem value="none">No show</SelectItem>
               {shows.map((show) => (
                 <SelectItem key={show.id} value={show.id}>
                   {show.name} - {format(new Date(show.show_date), "MMM d, yyyy")}
