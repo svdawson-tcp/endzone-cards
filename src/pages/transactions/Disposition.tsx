@@ -201,15 +201,15 @@ export default function Disposition() {
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {loadingLots ? (
-                  <SelectItem value="loading" disabled>Loading lots...</SelectItem>
+                  <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
                 ) : lots && lots.length > 0 ? (
                   lots.map((lot) => (
-                    <SelectItem key={lot.id} value={lot.id}>
+                    <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
                       {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="none" disabled>No active lots available</SelectItem>
+                  <SelectItem value="none" disabled className="text-gray-900">No active lots available</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -332,17 +332,17 @@ export default function Disposition() {
                 </SelectTrigger>
                 <SelectContent className="bg-white z-50">
                   {loadingLots ? (
-                    <SelectItem value="loading" disabled>Loading lots...</SelectItem>
+                    <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
                   ) : lots && lots.length > 0 ? (
                     lots
                       .filter(lot => lot.id !== selectedLotId) // Exclude source lot
                       .map((lot) => (
-                        <SelectItem key={lot.id} value={lot.id}>
+                        <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
                           {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
                         </SelectItem>
                       ))
                   ) : (
-                    <SelectItem value="none" disabled>No other lots available</SelectItem>
+                    <SelectItem value="none" disabled className="text-gray-900">No other lots available</SelectItem>
                   )}
                 </SelectContent>
               </Select>
