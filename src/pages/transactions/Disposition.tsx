@@ -251,24 +251,24 @@ export default function Disposition() {
               <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="discarded" id="discarded" className="mt-1" />
                 <Label htmlFor="discarded" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-gray-900">Discarded</div>
-                  <div className="text-sm text-muted-foreground">Intentionally thrown away (damaged, worthless)</div>
+                  <div className="font-semibold text-foreground">Discarded</div>
+                  <div className="text-sm text-gray-400">Intentionally thrown away (damaged, worthless)</div>
                 </Label>
               </div>
 
               <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="lost" id="lost" className="mt-1" />
                 <Label htmlFor="lost" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-gray-900">Lost</div>
-                  <div className="text-sm text-muted-foreground">Unintentionally missing (theft, misplaced)</div>
+                  <div className="font-semibold text-foreground">Lost</div>
+                  <div className="text-sm text-gray-400">Unintentionally missing (theft, misplaced)</div>
                 </Label>
               </div>
 
               <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
                 <RadioGroupItem value="combined" id="combined" className="mt-1" />
                 <Label htmlFor="combined" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-gray-900">Combined</div>
-                  <div className="text-sm text-muted-foreground">Moved to another lot for organization</div>
+                  <div className="font-semibold text-foreground">Combined</div>
+                  <div className="text-sm text-gray-400">Moved to another lot for organization</div>
                 </Label>
               </div>
             </RadioGroup>
