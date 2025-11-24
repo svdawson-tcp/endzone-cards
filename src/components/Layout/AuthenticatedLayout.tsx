@@ -17,7 +17,7 @@ const AuthenticatedLayout = ({ children }: AuthenticatedLayoutProps) => {
         <TopBar />
         <MentorModeBanner />
         <DesktopSidebar />
-        <main className="flex-1 overflow-y-auto pb-20 pt-16 md:ml-60 md:pb-8">
+        <main className="flex-1 overflow-y-auto pb-20 pt-20 md:pt-28 md:ml-60 md:pb-8">
           {children}
         </main>
         <BottomTabBar />
