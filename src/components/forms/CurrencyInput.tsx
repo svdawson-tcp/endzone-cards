@@ -7,7 +7,7 @@ export const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputPro
   ({ step = "0.01", className, ...props }, ref) => {
     return (
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
           $
         </span>
         <Input
