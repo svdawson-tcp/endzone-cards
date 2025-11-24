@@ -168,7 +168,7 @@ const ManualCashTransaction = () => {
   const currentConfig = config[type];
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA]">
+    <div className="min-h-screen bg-background pb-32 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-8">
       {/* Back Button */}
       <Button
@@ -182,11 +182,11 @@ const ManualCashTransaction = () => {
 
       {/* Page Title - Uses page-title class for white text on dark background */}
       <h1 className="text-h1 mb-2">{currentConfig.title}</h1>
-      <p className="text-gray-600 mb-6">{currentConfig.subtitle}</p>
+      <p className="text-muted-foreground mb-6">{currentConfig.subtitle}</p>
 
       {/* Form Card */}
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white border border-gray-200 shadow-md rounded-lg p-6">
+        <div className="bg-card shadow-card-shadow rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Transaction Type Badge */}
             <div>
