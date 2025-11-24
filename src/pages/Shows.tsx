@@ -246,7 +246,7 @@ export default function Shows() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--bg-page))]">
+    <div className="bg-[hsl(var(--bg-page))]">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col gap-6 mb-8">

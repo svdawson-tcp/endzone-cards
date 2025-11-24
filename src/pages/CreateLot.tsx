@@ -199,7 +199,7 @@ export default function CreateLot() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100">
+    <div className="bg-slate-100">
       <div className="max-w-2xl mx-auto px-4 py-8">
         <div className="mb-6">
           {/* Page Title - Uses page-title class for white text on dark background */}
