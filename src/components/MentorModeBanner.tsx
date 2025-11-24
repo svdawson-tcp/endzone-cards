@@ -8,7 +8,7 @@ export function MentorModeBanner() {
   if (!isViewingAsMentor) return null;
 
   return (
-    <div className="sticky top-20 md:top-28 z-40 bg-amber-500/90 backdrop-blur-sm border-b border-amber-600">
+    <div className="z-40 bg-amber-500/90 backdrop-blur-sm border-b border-amber-600">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between py-2">
           <div className="flex items-center gap-3">
