@@ -174,9 +174,9 @@ export default function Disposition() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA]">
+    <div className="min-h-screen bg-background pb-32 md:pb-8">
       <div className="container max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-white border border-gray-200 rounded-lg shadow-md p-6 md:p-8">
+        <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
         {/* Header */}
         <h1 className="text-h1 mb-2">RECORD DISPOSITION</h1>
         <p className="text-gray-600 mb-6">Mark cards as discarded, lost, or combined</p>
