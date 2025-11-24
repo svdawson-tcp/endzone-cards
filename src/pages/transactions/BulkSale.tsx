@@ -184,7 +184,7 @@ export default function BulkSale() {
             >
               <SelectTrigger 
                 id="lot-select" 
-                className="mt-2 min-h-[44px] bg-white text-card-foreground"
+                className="mt-2 min-h-[44px] bg-white text-gray-900"
               >
                 <SelectValue placeholder="Select lot for bulk sale" />
               </SelectTrigger>
@@ -228,7 +228,7 @@ export default function BulkSale() {
                 min={1}
                 step={1}
                 autoFocus
-                className="pl-10 min-h-[44px] bg-white text-card-foreground"
+                className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -275,7 +275,7 @@ export default function BulkSale() {
             >
               <SelectTrigger 
                 id="show-select" 
-                className="mt-2 min-h-[44px] bg-white text-card-foreground"
+                className="mt-2 min-h-[44px] bg-white text-gray-900"
               >
                 <SelectValue placeholder="Select show where sold" />
               </SelectTrigger>
@@ -312,7 +312,7 @@ export default function BulkSale() {
                 value={saleDate}
                 onChange={(e) => setSaleDate(e.target.value)}
                 max={format(new Date(), "yyyy-MM-dd")}
-                className="pl-10 min-h-[44px] bg-white text-card-foreground"
+                className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
           </div>
@@ -329,7 +329,7 @@ export default function BulkSale() {
                 placeholder="e.g., Also included 15 cards from Lot #457, 10 from Lot #458"
                 maxLength={500}
                 rows={4}
-                className="pl-10 bg-white text-card-foreground placeholder:opacity-50 resize-none"
+                className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
