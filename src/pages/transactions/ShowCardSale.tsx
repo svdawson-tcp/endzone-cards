@@ -278,7 +278,7 @@ export default function ShowCardSale() {
               autoFocus
               className="mt-2"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Final sale price for this card
             </p>
             {errors.salePrice && (
@@ -319,7 +319,7 @@ export default function ShowCardSale() {
             {errors.show && (
               <p className="text-destructive text-sm mt-1">{errors.show}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Select show if sold at an event, leave blank for online/personal sales
             </p>
           </div>
@@ -355,7 +355,7 @@ export default function ShowCardSale() {
                 className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               {notes.length}/500 characters
             </p>
           </div>

@@ -216,7 +216,7 @@ export default function Disposition() {
             {errors.lot && (
               <p className="text-destructive text-sm mt-1">{errors.lot}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Which lot are these cards from?
             </p>
           </div>
@@ -232,7 +232,7 @@ export default function Disposition() {
               max={format(new Date(), "yyyy-MM-dd")}
               className="mt-2 min-h-[44px] bg-white text-gray-900"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Date when this disposition occurred
             </p>
           </div>
@@ -297,7 +297,7 @@ export default function Disposition() {
                 className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Number of cards in this disposition
             </p>
             {errors.quantity && (
@@ -367,7 +367,7 @@ export default function Disposition() {
                 className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Additional context for this disposition • {notes.length}/500 characters
             </p>
           </div>

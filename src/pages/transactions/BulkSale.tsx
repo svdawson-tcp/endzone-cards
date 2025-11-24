@@ -205,7 +205,7 @@ export default function BulkSale() {
             {errors.lot && (
               <p className="text-destructive text-sm mt-1">{errors.lot}</p>
             )}
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-gray-400 mt-2">
               Select the primary lot for this sale. Cards sold should be deducted from this lot's inventory.
             </p>
           </div>
@@ -231,7 +231,7 @@ export default function BulkSale() {
                 className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Total number of cards sold
             </p>
             {errors.quantity && (
@@ -255,7 +255,7 @@ export default function BulkSale() {
               step={0.01}
               className="mt-2"
             />
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Total revenue from this bulk sale
             </p>
             {errors.revenue && (
@@ -296,7 +296,7 @@ export default function BulkSale() {
             {errors.show && (
               <p className="text-destructive text-sm mt-1">{errors.show}</p>
             )}
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Select show if sold at an event, leave blank for online/personal sales
             </p>
           </div>
@@ -332,7 +332,7 @@ export default function BulkSale() {
                 className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Document cards from multiple lots for accurate tracking • {notes.length}/500 characters
             </p>
           </div>
