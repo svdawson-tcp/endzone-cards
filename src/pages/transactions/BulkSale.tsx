@@ -17,6 +17,7 @@ import {
 import { format } from "date-fns";
 import { DollarSign, Calendar, FileText, Loader2, Package, Hash, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 export default function BulkSale() {
   const navigate = useNavigate();
@@ -29,90 +30,83 @@ export default function BulkSale() {
   const [selectedShowId, setSelectedShowId] = useState<string>("");
   const [saleDate, setSaleDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
-  const [errors, setErrors] = useState<{ 
-    lot?: string; 
-    quantity?: string; 
-    revenue?: string; 
-    show?: string;
-  }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch active lots
-  const { data: lots, isLoading: loadingLots } = useQuery({
+  const { data: lots = [], isLoading: lotsLoading } = useQuery({
     queryKey: ["active-lots"],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("lots")
-        .select("id, source, purchase_date")
+        .select("*")
+        .eq("user_id", user.user.id)
         .eq("status", "active")
         .order("purchase_date", { ascending: false });
-      
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  // Fetch active/planned shows
-  const { data: shows, isLoading: loadingShows } = useQuery({
-    queryKey: ["active-shows"],
+  const { data: shows = [], isLoading: showsLoading } = useQuery({
+    queryKey: ["active-planned-shows"],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("shows")
-        .select("id, name, show_date")
-        .in("status", ["planned", "active"])
+        .select("*")
+        .eq("user_id", user.user.id)
+        .in("status", ["active", "planned"])
         .order("show_date", { ascending: false });
-      
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  // Submit mutation
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const quantityNum = parseInt(quantity);
-      const revenueNum = revenue as any;
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
 
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("User not authenticated");
+      const transactionData = {
+        user_id: user.user.id,
+        transaction_type: "bulk_sale",
+        lot_id: selectedLotId,
+        quantity: parseInt(quantity),
+        revenue: parseFloat(revenue),
+        show_id: selectedShowId || null,
+        transaction_date: saleDate,
+        notes: notes.trim() || null,
+      };
 
-      // Insert transaction
-      const { data: transaction, error: txError } = await supabase
+      const { data, error } = await supabase
         .from("transactions")
-        .insert({
-          user_id: user.id,
-          transaction_type: "bulk_sale",
-          lot_id: selectedLotId,
-          show_id: selectedShowId || null,
-          quantity: quantityNum,
-          revenue: revenueNum,
-          notes: notes || null,
-          transaction_date: saleDate,
-        })
-        .select()
-        .single();
+        .insert(transactionData)
+        .select();
 
-      if (txError) throw txError;
-
-      return transaction;
+      if (error) throw error;
+      return data;
     },
-    onSuccess: () => {
-      toast({
-        title: "Bulk sale recorded!",
-        description: "The sale has been successfully recorded.",
-      });
-      
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["lots"] });
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["cash_transactions"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["active-lots"] });
+
+      toast({
+        title: "Bulk sale recorded",
+        description: "Transaction has been saved successfully",
+      });
+
       navigate("/lots");
     },
     onError: (error: any) => {
       toast({
-        title: "Error recording sale",
-        description: error.message || "Failed to record sale. Please try again.",
+        title: "Error recording bulk sale",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     },
@@ -120,33 +114,22 @@ export default function BulkSale() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Clear previous errors
-    setErrors({});
-    
-    const quantityNum = parseInt(quantity);
-    const revenueNum = parseFloat(revenue);
-    const validationErrors: { 
-      lot?: string; 
-      quantity?: string; 
-      revenue?: string; 
-      show?: string;
-    } = {};
-    
-    // VALIDATE ALL REQUIRED FIELDS
-    if (!selectedLotId) {
-      validationErrors.lot = "Lot selection is required";
-    }
-    if (!quantityNum || quantityNum < 1) {
-      validationErrors.quantity = "Quantity must be at least 1";
-    }
-    if (!revenueNum || revenueNum <= 0) {
-      validationErrors.revenue = "Revenue must be greater than 0";
-    }
-    
-    // If validation errors exist, show them and stop
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+
+    // Client-side validation
+    const newErrors: Record<string, string> = {};
+
+    if (!selectedLotId) newErrors.lot = "Please select a lot";
+    if (!quantity || parseInt(quantity) <= 0) newErrors.quantity = "Please enter a valid quantity";
+    if (!revenue || parseFloat(revenue) <= 0) newErrors.revenue = "Please enter valid revenue";
+    if (!saleDate) newErrors.date = "Please select a date";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields correctly",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -155,220 +138,172 @@ export default function BulkSale() {
   };
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="container max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
-        {/* Header */}
-        <h1 className="text-h1 mb-2">RECORD BULK SALE</h1>
-        <p className="text-gray-600 mb-6">Record sale of common cards from inventory</p>
+    <PageContainer maxWidth="2xl">
+      <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
+      {/* Header */}
+      <h1 className="text-h1 mb-2">RECORD BULK SALE</h1>
+      <p className="text-gray-600 mb-6">Record sale of common cards from inventory</p>
 
-        {/* Informational Alert */}
-        <Alert className="mb-6">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            Recording bulk sales for multiple lots? Record each lot sale separately to maintain accurate per-lot profit tracking.
-          </AlertDescription>
-        </Alert>
+      {/* Informational Alert */}
+      <Alert className="mb-6">
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          Recording bulk sales for multiple lots? Record each lot sale separately to maintain accurate per-lot profit tracking.
+        </AlertDescription>
+      </Alert>
 
-        {/* Bulk Sale Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Primary Lot Selection */}
-          <div>
-            <label htmlFor="lot-select" className="form-label">Primary Lot *</label>
-            <Select
-              value={selectedLotId}
-              onValueChange={(value) => {
-                setSelectedLotId(value);
-                if (errors.lot) setErrors({ ...errors, lot: "" });
-              }}
-            >
-              <SelectTrigger 
-                id="lot-select" 
-                className="mt-2 min-h-[44px] bg-white text-gray-900"
-              >
-                <SelectValue placeholder="Select lot for bulk sale" />
-              </SelectTrigger>
-              <SelectContent className="bg-white">
-                {loadingLots ? (
-                  <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
-                ) : lots && lots.length > 0 ? (
-                  lots.map((lot) => (
-                    <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
-                      {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="none" disabled className="text-gray-900">No active lots available</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-            {errors.lot && (
-              <p className="text-destructive text-sm mt-1">{errors.lot}</p>
-            )}
-            <p className="text-sm text-gray-400 mt-2">
-              Select the primary lot for this sale. Cards sold should be deducted from this lot's inventory.
-            </p>
-          </div>
+      {/* Bulk Sale Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Primary Lot Selection */}
+        <div>
+          <label htmlFor="lot-select" className="form-label">Primary Lot *</label>
+          <Select
+            value={selectedLotId}
+            onValueChange={(value) => {
+              setSelectedLotId(value);
+              setErrors((prev) => ({ ...prev, lot: "" }));
+            }}
+            disabled={lotsLoading}
+          >
+            <SelectTrigger className={`w-full min-h-[44px] ${errors.lot ? "border-red-500" : ""}`}>
+              <SelectValue placeholder={lotsLoading ? "Loading lots..." : "Select lot"} />
+            </SelectTrigger>
+            <SelectContent>
+              {lots.map((lot) => (
+                <SelectItem key={lot.id} value={lot.id}>
+                  {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.lot && <p className="text-sm text-red-500 mt-1">{errors.lot}</p>}
+        </div>
 
-          {/* Quantity */}
-          <div>
-            <label htmlFor="quantity" className="form-label">Quantity *</label>
-            <div className="relative mt-2">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                id="quantity"
-                type="number"
-                value={quantity}
-                onChange={(e) => {
-                  setQuantity(e.target.value);
-                  if (errors.quantity) setErrors({ ...errors, quantity: "" });
-                }}
-                placeholder="10"
-                required
-                min={1}
-                step={1}
-                autoFocus
-                className="pl-10 min-h-[44px] bg-white text-gray-900"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Total number of cards sold
-            </p>
-            {errors.quantity && (
-              <p className="text-destructive text-sm mt-1">{errors.quantity}</p>
-            )}
-          </div>
-
-          {/* Revenue */}
-          <div>
-            <label htmlFor="revenue" className="form-label">Revenue *</label>
-            <CurrencyInput
-              id="revenue"
-              value={revenue}
+        {/* Quantity */}
+        <div>
+          <label htmlFor="quantity" className="form-label">Quantity Sold *</label>
+          <div className="relative">
+            <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+            <Input
+              id="quantity"
+              type="number"
+              min="1"
+              step="1"
+              value={quantity}
               onChange={(e) => {
-                setRevenue(e.target.value);
-                if (errors.revenue) setErrors({ ...errors, revenue: "" });
+                setQuantity(e.target.value);
+                setErrors((prev) => ({ ...prev, quantity: "" }));
               }}
-              placeholder="50.00"
-              required
-              min={0.01}
-              step={0.01}
-              className="mt-2"
+              placeholder="Enter number of cards sold"
+              className={`pl-10 min-h-[44px] ${errors.quantity ? "border-red-500" : ""}`}
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Total revenue from this bulk sale
-            </p>
-            {errors.revenue && (
-              <p className="text-destructive text-sm mt-1">{errors.revenue}</p>
-            )}
           </div>
+          {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity}</p>}
+        </div>
 
-          {/* Show Selection */}
-          <div>
-            <label htmlFor="show-select" className="form-label">Show (Optional)</label>
-            <Select
-              value={selectedShowId}
-              onValueChange={(value) => {
-                setSelectedShowId(value);
-                if (errors.show) setErrors({ ...errors, show: "" });
+        {/* Revenue */}
+        <div>
+          <label htmlFor="revenue" className="form-label">Total Revenue *</label>
+          <CurrencyInput
+            id="revenue"
+            value={revenue}
+            onChange={(value) => {
+              setRevenue(value);
+              setErrors((prev) => ({ ...prev, revenue: "" }));
+            }}
+            placeholder="0.00"
+            className={errors.revenue ? "border-red-500" : ""}
+          />
+          {errors.revenue && <p className="text-sm text-red-500 mt-1">{errors.revenue}</p>}
+        </div>
+
+        {/* Show Selection (Optional) */}
+        <div>
+          <label htmlFor="show-select" className="form-label">Show (Optional)</label>
+          <Select
+            value={selectedShowId}
+            onValueChange={setSelectedShowId}
+            disabled={showsLoading}
+          >
+            <SelectTrigger className="w-full min-h-[44px]">
+              <SelectValue placeholder={showsLoading ? "Loading shows..." : "Select show (optional)"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No show</SelectItem>
+              {shows.map((show) => (
+                <SelectItem key={show.id} value={show.id}>
+                  {show.name} - {format(new Date(show.show_date), "MMM d, yyyy")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Sale Date */}
+        <div>
+          <label htmlFor="sale-date" className="form-label">Sale Date *</label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
+            <Input
+              id="sale-date"
+              type="date"
+              value={saleDate}
+              onChange={(e) => {
+                setSaleDate(e.target.value);
+                setErrors((prev) => ({ ...prev, date: "" }));
               }}
-            >
-              <SelectTrigger 
-                id="show-select" 
-                className="mt-2 min-h-[44px] bg-white text-gray-900"
-              >
-                <SelectValue placeholder="Select show where sold" />
-              </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {loadingShows ? (
-                  <SelectItem value="loading" disabled className="text-gray-900">Loading shows...</SelectItem>
-                ) : shows && shows.length > 0 ? (
-                  shows.map((show) => (
-                    <SelectItem key={show.id} value={show.id} className="text-gray-900">
-                      {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="none" disabled className="text-gray-900">No shows available</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-            {errors.show && (
-              <p className="text-destructive text-sm mt-1">{errors.show}</p>
+              max={format(new Date(), "yyyy-MM-dd")}
+              className={`pl-10 min-h-[44px] ${errors.date ? "border-red-500" : ""}`}
+            />
+          </div>
+          {errors.date && <p className="text-sm text-red-500 mt-1">{errors.date}</p>}
+        </div>
+
+        {/* Notes */}
+        <div>
+          <label htmlFor="notes" className="form-label">Notes (Optional)</label>
+          <div className="relative">
+            <FileText className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any additional notes..."
+              className="pl-10 min-h-[100px]"
+            />
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/lots")}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={submitMutation.isPending}
+            className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white"
+          >
+            {submitMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Recording...
+              </>
+            ) : (
+              <>
+                <DollarSign className="mr-2 h-4 w-4" />
+                RECORD SALE
+              </>
             )}
-            <p className="text-xs text-gray-400 mt-1">
-              Select show if sold at an event, leave blank for online/personal sales
-            </p>
-          </div>
-
-          {/* Sale Date */}
-          <div>
-            <label htmlFor="sale-date" className="form-label">Sale Date *</label>
-            <div className="relative mt-2">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Input
-                id="sale-date"
-                type="date"
-                value={saleDate}
-                onChange={(e) => setSaleDate(e.target.value)}
-                max={format(new Date(), "yyyy-MM-dd")}
-                className="pl-10 min-h-[44px] bg-white text-gray-900"
-              />
-            </div>
-          </div>
-
-          {/* Notes - Prominent for multi-lot tracking */}
-          <div>
-            <label htmlFor="notes" className="form-label">Notes (Multi-Lot Documentation)</label>
-            <div className="relative mt-2">
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g., Also included 15 cards from Lot #457, 10 from Lot #458"
-                maxLength={500}
-                rows={4}
-                className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Document cards from multiple lots for accurate tracking • {notes.length}/500 characters
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate("/lots")}
-              disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white"
-            >
-              {submitMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Recording Sale...
-                </>
-              ) : (
-                <>
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  RECORD SALE
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
-      </div>
-      </div>
+          </Button>
+        </div>
+      </form>
     </div>
+    </PageContainer>
   );
 }

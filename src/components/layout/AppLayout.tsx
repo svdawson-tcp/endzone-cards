@@ -49,15 +49,35 @@ export const AppLayout = ({
   );
 };
 
-/* Page container for consistent spacing */
+/**
+ * PageContainer - Standardized page wrapper for authenticated pages
+ * 
+ * Prevents content from scrolling into fixed header by avoiding min-h-screen.
+ * Provides consistent dark theme background, responsive padding, and centered content.
+ * 
+ * @param children - Page content to render
+ * @param maxWidth - Maximum width constraint (default: "7xl" for list pages, use "2xl" for forms)
+ * @param className - Additional CSS classes for spacing overrides
+ * @param background - Background color override (default: "bg-background" for dark theme)
+ * 
+ * @example
+ * ```tsx
+ * <PageContainer maxWidth="2xl">
+ *   <h1>My Form Page</h1>
+ *   {formContent}
+ * </PageContainer>
+ * ```
+ */
 export const PageContainer = ({ 
   children, 
   className,
-  maxWidth = "7xl"
+  maxWidth = "7xl",
+  background = "bg-background"
 }: { 
   children: ReactNode; 
   className?: string;
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl";
+  background?: string;
 }) => {
   const maxWidthClasses = {
     sm: "max-w-sm",
@@ -74,11 +94,22 @@ export const PageContainer = ({
 
   return (
     <div className={cn(
-      "container mx-auto px-4 py-6 lg:px-6 lg:py-8",
-      maxWidthClasses[maxWidth],
-      className
+      // Consistent dark theme background
+      background,
+      // Critical: No min-h-screen to prevent header overlap
+      "w-full"
     )}>
-      {children}
+      <div className={cn(
+        "container mx-auto px-4",
+        maxWidthClasses[maxWidth],
+        // Consistent vertical spacing
+        "py-6 lg:py-8",
+        // Mobile bottom navigation spacing (increased on mobile for clearance)
+        "pb-32 md:pb-8",
+        className
+      )}>
+        {children}
+      </div>
     </div>
   );
 };
