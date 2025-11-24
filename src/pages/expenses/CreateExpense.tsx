@@ -182,7 +182,7 @@ export default function CreateExpense() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32 md:pb-8">
+    <div className="bg-background pb-32 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">

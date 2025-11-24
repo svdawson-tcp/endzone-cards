@@ -155,7 +155,7 @@ export default function BulkSale() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-32 md:pb-8">
+    <div className="bg-background pb-32 md:pb-8">
       <div className="container max-w-2xl mx-auto px-4 py-8">
         <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
         {/* Header */}
