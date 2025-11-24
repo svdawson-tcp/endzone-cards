@@ -25,7 +25,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       </label>
       <div className="mt-2">{children}</div>
       {helperText && (
-        <p className="text-xs text-muted-foreground mt-1">{helperText}</p>
+        <p className="text-xs text-gray-400 mt-1">{helperText}</p>
       )}
       {error && <p className="text-sm text-destructive mt-1">{error}</p>}
     </div>
