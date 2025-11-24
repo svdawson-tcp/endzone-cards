@@ -226,7 +226,7 @@ export default function CreateExpense() {
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {EXPENSE_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
+                  <SelectItem key={cat} value={cat} className="text-gray-900">
                     {cat}
                   </SelectItem>
                 ))}
@@ -246,17 +246,17 @@ export default function CreateExpense() {
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {loadingShows ? (
-                  <SelectItem value="loading" disabled>
+                  <SelectItem value="loading" disabled className="text-gray-900">
                     Loading shows...
                   </SelectItem>
                 ) : shows && shows.length > 0 ? (
                   shows.map((show) => (
-                    <SelectItem key={show.id} value={show.id}>
+                    <SelectItem key={show.id} value={show.id} className="text-gray-900">
                       {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="none" disabled>
+                  <SelectItem value="none" disabled className="text-gray-900">
                     No shows available
                   </SelectItem>
                 )}

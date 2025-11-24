@@ -190,15 +190,15 @@ export default function BulkSale() {
               </SelectTrigger>
               <SelectContent className="bg-white">
                 {loadingLots ? (
-                  <SelectItem value="loading" disabled>Loading lots...</SelectItem>
+                  <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
                 ) : lots && lots.length > 0 ? (
                   lots.map((lot) => (
-                    <SelectItem key={lot.id} value={lot.id}>
+                    <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
                       {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="none" disabled>No active lots available</SelectItem>
+                  <SelectItem value="none" disabled className="text-gray-900">No active lots available</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -281,15 +281,15 @@ export default function BulkSale() {
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
                 {loadingShows ? (
-                  <SelectItem value="loading" disabled>Loading shows...</SelectItem>
+                  <SelectItem value="loading" disabled className="text-gray-900">Loading shows...</SelectItem>
                 ) : shows && shows.length > 0 ? (
                   shows.map((show) => (
-                    <SelectItem key={show.id} value={show.id}>
+                    <SelectItem key={show.id} value={show.id} className="text-gray-900">
                       {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="none" disabled>No shows available</SelectItem>
+                  <SelectItem value="none" disabled className="text-gray-900">No shows available</SelectItem>
                 )}
               </SelectContent>
             </Select>
