@@ -25,108 +25,87 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 type LotStatus = "active" | "closed" | "archived";
 type FilterTab = "all" | LotStatus;
-type SortOption = "date-desc" | "date-asc" | "cost-desc" | "cost-asc" | "profit-desc";
 
 interface Lot {
   id: string;
+  created_at: string;
+  user_id: string;
   source: string;
   purchase_date: string;
   total_cost: number;
   status: LotStatus;
-  notes: string | null;
-  created_at: string;
+  notes?: string;
+  totalRevenue?: number;
+  profit?: number;
 }
 
-interface LotWithRevenue extends Lot {
+interface Transaction {
+  id: string;
+  created_at: string;
+  user_id: string;
+  lot_id: string;
+  show_card_id?: string;
+  date: string;
+  type: "sale" | "expense" | "cash_deposit" | "cash_withdrawal" | "cash_adjustment";
+  description: string;
   revenue: number;
-  net_profit: number;
-  roi: number;
+  cost: number;
+  payment_type: "cash" | "card" | "check" | "other";
+  notes?: string;
+  deleted?: boolean;
 }
 
 export default function Lots() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
   const [filterTab, setFilterTab] = useState<FilterTab>("all");
-  const [sortOption, setSortOption] = useState<SortOption>("date-desc");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [lotToDelete, setLotToDelete] = useState<LotWithRevenue | null>(null);
-  const [closeDialogOpen, setCloseDialogOpen] = useState(false);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-  const [lotToClose, setLotToClose] = useState<LotWithRevenue | null>(null);
-  const [unsoldCardCount, setUnsoldCardCount] = useState(0);
+  const [lotToDelete, setLotToDelete] = useState<any>(null);
+  const { getEffectiveUserId, isViewingAsMentor } = useMentorAccess();
 
-  // Use mentor access context
-  const { getEffectiveUserId } = useMentorAccess();
-
-  // Fetch lots with revenue calculation
-  const { data: lots = [], isLoading } = useQuery({
+  const { data: lots = [], isLoading: lotsLoading } = useQuery({
     queryKey: ["lots"],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
-
-      // Fetch lots
-      const { data: lotsData, error: lotsError } = await supabase
+      const { data, error } = await supabase
         .from("lots")
         .select("*")
         .eq("user_id", userId)
         .order("purchase_date", { ascending: false });
 
-      if (lotsError) throw lotsError;
+      if (error) throw error;
 
-      // Fetch revenue for each lot
-      const { data: transactionsData, error: transactionsError } = await supabase
-        .from("transactions")
-        .select("lot_id, revenue")
-        .eq("user_id", userId)
-        .not("lot_id", "is", null);
+      const lotsWithRevenue = await Promise.all(
+        (data || []).map(async (lot) => {
+          const { data: revenue } = await supabase
+            .from("transactions")
+            .select("revenue")
+            .eq("lot_id", lot.id)
+            .not("deleted", "eq", true);
 
-      if (transactionsError) throw transactionsError;
+          const totalRevenue = revenue?.reduce((sum, t) => sum + (t.revenue || 0), 0) || 0;
+          const profit = totalRevenue - lot.total_cost;
 
-      // Calculate revenue per lot
-      const revenueByLot = transactionsData.reduce((acc, transaction) => {
-        if (transaction.lot_id) {
-          acc[transaction.lot_id] = (acc[transaction.lot_id] || 0) + Number(transaction.revenue);
-        }
-        return acc;
-      }, {} as Record<string, number>);
-
-      // Add revenue and calculate profitability
-      const lotsWithRevenue: LotWithRevenue[] = lotsData.map((lot) => {
-        const revenue = revenueByLot[lot.id] || 0;
-        const net_profit = revenue - Number(lot.total_cost);
-        const roi = revenue > 0 ? ((net_profit / Number(lot.total_cost)) * 100) : 0;
-
-        return {
-          ...lot,
-          status: lot.status as LotStatus,
-          revenue,
-          net_profit,
-          roi,
-        };
-      });
+          return { ...lot, totalRevenue, profit };
+        })
+      );
 
       return lotsWithRevenue;
     },
   });
 
-  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (lotId: string) => {
-      const { error } = await supabase
-        .from("lots")
-        .delete()
-        .eq("id", lotId);
-
+      const { error } = await supabase.from("lots").delete().eq("id", lotId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lots"] });
-      queryClient.invalidateQueries({ queryKey: ["show_cards"] });
       toast({
         title: "Lot deleted",
         description: "The lot and all associated show cards have been removed",
@@ -143,31 +122,11 @@ export default function Lots() {
     },
   });
 
-  // Filter lots
   const filteredLots = lots.filter((lot) => {
     if (filterTab === "all") return true;
     return lot.status === filterTab;
   });
 
-  // Sort lots
-  const sortedLots = [...filteredLots].sort((a, b) => {
-    switch (sortOption) {
-      case "date-desc":
-        return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
-      case "date-asc":
-        return new Date(a.purchase_date).getTime() - new Date(b.purchase_date).getTime();
-      case "cost-desc":
-        return Number(b.total_cost) - Number(a.total_cost);
-      case "cost-asc":
-        return Number(a.total_cost) - Number(b.total_cost);
-      case "profit-desc":
-        return b.net_profit - a.net_profit;
-      default:
-        return 0;
-    }
-  });
-
-  // Count by status
   const counts = {
     all: lots.length,
     active: lots.filter((l) => l.status === "active").length,
@@ -175,72 +134,7 @@ export default function Lots() {
     archived: lots.filter((l) => l.status === "archived").length,
   };
 
-  // Close lot mutation
-  const closeLotMutation = useMutation({
-    mutationFn: async (lotId: string) => {
-      const { error } = await supabase
-        .from("lots")
-        .update({
-          status: "closed",
-          closure_date: new Date().toISOString().split("T")[0],
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", lotId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lots"] });
-      toast({
-        title: "Lot closed successfully",
-        description: "The lot has been marked as closed",
-      });
-      setCloseDialogOpen(false);
-      setLotToClose(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error closing lot",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleCloseLotClick = async (lot: LotWithRevenue) => {
-    setLotToClose(lot);
-
-    // Check for unsold show cards
-    const { data: unsoldCards, error } = await supabase
-      .from("show_cards")
-      .select("id")
-      .eq("lot_id", lot.id)
-      .eq("status", "available");
-
-    if (error) {
-      toast({
-        title: "Error checking show cards",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (unsoldCards && unsoldCards.length > 0) {
-      setUnsoldCardCount(unsoldCards.length);
-      setErrorDialogOpen(true);
-    } else {
-      setCloseDialogOpen(true);
-    }
-  };
-
-  const handleCloseConfirm = () => {
-    if (lotToClose) {
-      closeLotMutation.mutate(lotToClose.id);
-    }
-  };
-
-  const handleDeleteClick = (lot: LotWithRevenue) => {
+  const handleDeleteClick = (lot: any) => {
     setLotToDelete(lot);
     setDeleteDialogOpen(true);
   };
@@ -265,309 +159,141 @@ export default function Lots() {
   };
 
   return (
-    <div className="bg-[hsl(var(--bg-page))]">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex flex-col gap-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div>
-              {/* Page Title - Uses page-title class with EndZone design system */}
-              <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
-              <p className="text-muted-foreground">Track your inventory purchases</p>
-            </div>
-            <Button
-              onClick={() => navigate("/lots/new")}
-              className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              CREATE LOT
-            </Button>
+    <PageContainer maxWidth="7xl">
+      <div className="flex flex-col gap-6 mb-8">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div>
+            <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
+            <p className="text-muted-foreground">Track your inventory purchases</p>
           </div>
-          
-          {/* Mobile Filter Dropdown - only visible on mobile */}
-          <div className="md:hidden">
-            <Select value={filterTab} onValueChange={(value) => setFilterTab(value as FilterTab)}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All ({counts.all})</SelectItem>
-                <SelectItem value="active">Active ({counts.active})</SelectItem>
-                <SelectItem value="closed">Closed ({counts.closed})</SelectItem>
-                <SelectItem value="archived">Archived ({counts.archived})</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Button
+            onClick={() => navigate("/lots/new")}
+            className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
+            disabled={isViewingAsMentor}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            CREATE LOT
+          </Button>
         </div>
 
-        {/* Filter Tabs and Sort */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          {/* Desktop Filter Buttons - hidden on mobile */}
-          <div className="hidden md:flex flex-wrap gap-2 flex-1">
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {(["all", "active", "closed", "archived"] as const).map((tab) => (
             <Button
-              variant={filterTab === "all" ? "default" : "outline"}
-              onClick={() => setFilterTab("all")}
+              key={tab}
+              variant={filterTab === tab ? "default" : "outline"}
+              onClick={() => setFilterTab(tab)}
+              className="flex-shrink-0 capitalize"
             >
-              All ({counts.all})
+              {tab === "all" ? "All" : tab}
+              <Badge variant="secondary" className="ml-2">
+                {counts[tab]}
+              </Badge>
             </Button>
-            <Button
-              variant={filterTab === "active" ? "default" : "outline"}
-              onClick={() => setFilterTab("active")}
-            >
-              Active ({counts.active})
-            </Button>
-            <Button
-              variant={filterTab === "closed" ? "default" : "outline"}
-              onClick={() => setFilterTab("closed")}
-            >
-              Closed ({counts.closed})
-            </Button>
-            <Button
-              variant={filterTab === "archived" ? "default" : "outline"}
-              onClick={() => setFilterTab("archived")}
-            >
-              Archived ({counts.archived})
-            </Button>
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Sort by:</span>
-            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-              <SelectTrigger className="w-auto min-w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Date (Newest First)</SelectItem>
-                <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
-                <SelectItem value="cost-desc">Cost (High to Low)</SelectItem>
-                <SelectItem value="cost-asc">Cost (Low to High)</SelectItem>
-                <SelectItem value="profit-desc">Profitability</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          ))}
         </div>
+      </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading lots...</p>
-          </div>
-        )}
-
-        {/* Empty State - No Lots */}
-        {!isLoading && lots.length === 0 && (
-          <div className="bg-card shadow-card-shadow rounded-lg p-12 text-center">
-            <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-h2 mb-2">No lots yet</h2>
-            <p className="text-muted-foreground mb-6">Create your first lot to start tracking purchases</p>
-            <Button
-              onClick={() => navigate("/lots/new")}
-              className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              CREATE LOT
+      {lotsLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-muted-foreground">Loading lots...</div>
+        </div>
+      ) : filteredLots.length === 0 ? (
+        <div className="text-center py-12">
+          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">
+            {filterTab === "all" ? "No lots created yet" : `No ${filterTab} lots found`}
+          </p>
+          {filterTab === "all" && (
+            <Button onClick={() => navigate("/lots/new")} className="mt-4" disabled={isViewingAsMentor}>
+              Create your first lot
             </Button>
-          </div>
-        )}
-
-        {/* Empty State - Filtered View */}
-        {!isLoading && lots.length > 0 && sortedLots.length === 0 && (
-          <div className="bg-card shadow-card-shadow rounded-lg p-12 text-center">
-            <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-h2 mb-2">No {filterTab} lots found</h2>
-            <p className="text-muted-foreground">Try selecting a different filter</p>
-          </div>
-        )}
-
-        {/* Lots Grid */}
-        {!isLoading && sortedLots.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {sortedLots.map((lot) => (
-              <div
-                key={lot.id}
-                className="bg-card border border-[hsl(var(--border-default))] shadow-card-shadow rounded-lg p-6 relative hover:shadow-lg transition-shadow"
-              >
-                {/* Status Badge */}
-                <div className="absolute top-4 right-4">
-                  <Badge variant={getStatusBadgeVariant(lot.status)}>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {filteredLots.map((lot) => (
+            <div
+              key={lot.id}
+              className="bg-card rounded-lg shadow-card-shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => navigate(`/lots/${lot.id}`)}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="h-5 w-5 text-primary" />
+                    <h3 className="font-bold text-lg text-foreground">{lot.source}</h3>
+                  </div>
+                  <Badge variant={getStatusBadgeVariant(lot.status)} className="capitalize">
                     {lot.status}
                   </Badge>
                 </div>
+              </div>
 
-                {/* Lot Source */}
-                <h3 className="text-h3 mb-4 pr-20">{lot.source}</h3>
-
-                {/* Lot Details */}
-                <div className="space-y-3 mb-4">
-                  {/* Purchase Date */}
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-[hsl(var(--text-body))]">
-                    {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
-                  </span>
-                  </div>
-
-                  {/* Cost */}
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold text-[hsl(var(--text-body))]">
-                      Cost: ${Number(lot.total_cost).toFixed(2)}
-                    </span>
-                  </div>
-
-                  {/* Revenue (if > 0) */}
-                  {lot.revenue > 0 && (
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm text-[hsl(var(--text-body))]">
-                        Revenue: ${lot.revenue.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Net Profit/Loss */}
-                  <div className="flex items-center gap-2">
-                    {lot.net_profit >= 0 ? (
-                      <TrendingUp className="h-4 w-4 text-[hsl(var(--metric-positive))]" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-[hsl(var(--metric-negative))]" />
-                    )}
-                    <span className={`text-sm font-semibold ${
-                      lot.net_profit >= 0 ? "text-[hsl(var(--metric-positive))]" : "text-[hsl(var(--metric-negative))]"
-                    }`}>
-                      Net: ${lot.net_profit.toFixed(2)}
-                    </span>
-                  </div>
-
-                  {/* ROI (if revenue > 0) */}
-                  {lot.revenue > 0 && (
-                    <div className="text-sm text-muted-foreground">
-                      ROI: {lot.roi.toFixed(1)}%
-                    </div>
-                  )}
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>{format(new Date(lot.purchase_date), "MMM d, yyyy")}</span>
                 </div>
 
-                {/* Notes Preview */}
-                {lot.notes && (
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {lot.notes}
-                  </p>
-                )}
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="text-muted-foreground">Cost:</span>
+                  <span className="font-semibold text-foreground">${lot.total_cost.toFixed(2)}</span>
+                </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                  <Button
-                    onClick={() => navigate(`/lots/${lot.id}`)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    VIEW DETAILS
-                  </Button>
-                  <Button
-                    onClick={() => navigate(`/show-cards/new?lot_id=${lot.id}`)}
-                    className="w-full bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    ADD SHOW CARD
-                  </Button>
-                  {lot.status === "active" && (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleCloseLotClick(lot)}
-                      className="w-full"
-                    >
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      CLOSE LOT
-                    </Button>
-                  )}
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => navigate(`/lots/${lot.id}/edit`)}
-                    >
-                      <Edit className="mr-1 h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteClick(lot)}
-                      className="!text-red-600 hover:!bg-red-600 hover:!text-white"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Revenue:</span>
+                  <span className="font-semibold text-foreground">${lot.totalRevenue.toFixed(2)}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border">
+                  <span className="font-medium text-foreground">Profit:</span>
+                  <div className="flex items-center gap-1">
+                    {lot.profit >= 0 ? (
+                      <TrendingUp className="h-4 w-4 text-green-500" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                    )}
+                    <span className={`font-bold ${lot.profit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      ${Math.abs(lot.profit).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Delete Confirmation Dialog */}
+              {!isViewingAsMentor && (
+                <div className="flex gap-2 mt-4 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
+                  <Button variant="outline" size="sm" onClick={() => navigate(`/lots/${lot.id}/edit`)} className="flex-1">
+                    <Edit className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(lot)} className="flex-1">
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Lot?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete lot "{lotToDelete?.source}"? This will also delete all associated show cards. This action cannot be undone.
+              This will permanently delete "{lotToDelete?.source}" and all associated show cards.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Delete
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
+              Delete Lot
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Close Lot Error Dialog */}
-      <AlertDialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive">Cannot Close Lot</AlertDialogTitle>
-            <AlertDialogDescription>
-              This lot has {unsoldCardCount} unsold show card{unsoldCardCount !== 1 ? "s" : ""}. You must sell, transfer, or mark them as lost before closing this lot.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction
-              onClick={() => setErrorDialogOpen(false)}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              OK
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Close Lot Confirmation Dialog */}
-      <AlertDialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Close Lot?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Have you accounted for all cards through sales, dispositions, or combinations? This will mark lot "{lotToClose?.source}" as closed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleCloseConfirm}
-              className="bg-[#041E42] hover:bg-[#0A2E63] text-white"
-            >
-              Close Lot
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

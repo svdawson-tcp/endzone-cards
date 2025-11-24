@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { Trash2, Loader2, Package, Hash, FileText, AlertCircle } from "lucide-react";
+import { PageContainer } from "@/components/layout/AppLayout";
 
 type DispositionType = "discarded" | "lost" | "combined";
 
@@ -31,105 +32,89 @@ export default function Disposition() {
   const [destinationLotId, setDestinationLotId] = useState<string>("");
   const [transactionDate, setTransactionDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
-  const [errors, setErrors] = useState<{ 
-    lot?: string; 
-    type?: string;
-    quantity?: string; 
-    destinationLot?: string;
-  }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Fetch active lots
-  const { data: lots, isLoading: loadingLots } = useQuery({
+  const { data: lots = [], isLoading: lotsLoading } = useQuery({
     queryKey: ["active-lots"],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+
       const { data, error } = await supabase
         .from("lots")
-        .select("id, source, purchase_date")
+        .select("*")
+        .eq("user_id", user.user.id)
         .eq("status", "active")
         .order("purchase_date", { ascending: false });
-      
+
       if (error) throw error;
-      return data;
+      return data || [];
     },
   });
 
-  // Get placeholder text based on disposition type
   const getNotesPlaceholder = () => {
     switch (dispositionType) {
       case "discarded":
-        return "e.g., Water damaged, unsellable condition";
+        return "e.g., Damaged cards thrown away";
       case "lost":
-        return "e.g., Missing after show, possible theft";
+        return "e.g., Misplaced during inventory count";
       case "combined":
-        return "e.g., Consolidating similar cards for easier management";
+        return "e.g., Merged remaining cards into active lot";
       default:
-        return "Additional details about this disposition...";
+        return "Add any notes about this disposition...";
     }
   };
 
-  // Clear destination lot when type changes
   useEffect(() => {
     if (dispositionType !== "combined") {
       setDestinationLotId("");
     }
   }, [dispositionType]);
 
-  // Submit mutation
   const submitMutation = useMutation({
     mutationFn: async () => {
-      const quantityNum = parseInt(quantity);
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
 
-      // Get current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("User not authenticated");
-
-      // Build notes with destination lot info if combined
-      let finalNotes = notes;
+      let dispositionNotes = notes;
       if (dispositionType === "combined" && destinationLotId) {
-        const destLot = lots?.find(l => l.id === destinationLotId);
-        const destInfo = `Combined into lot: ${destLot?.source || destinationLotId}`;
-        finalNotes = notes ? `${destInfo}\n${notes}` : destInfo;
+        const destLot = lots.find(l => l.id === destinationLotId);
+        if (destLot) {
+          dispositionNotes = `${notes ? notes + " | " : ""}Combined into lot from ${destLot.source} (${format(new Date(destLot.purchase_date), "MMM d, yyyy")})`;
+        }
       }
 
-      // Insert transaction
-      const { data: transaction, error: txError } = await supabase
+      const transactionData = {
+        user_id: user.user.id,
+        transaction_type: dispositionType,
+        lot_id: selectedLotId,
+        quantity: parseInt(quantity),
+        revenue: 0,
+        transaction_date: transactionDate,
+        notes: dispositionNotes || null,
+      };
+
+      const { error } = await supabase
         .from("transactions")
-        .insert({
-          user_id: user.id,
-          transaction_type: "disposition",
-          lot_id: selectedLotId,
-          quantity: quantityNum,
-          revenue: 0,
-          notes: finalNotes || `Disposition: ${dispositionType}`,
-          transaction_date: transactionDate,
-        })
-        .select()
-        .single();
+        .insert(transactionData);
 
-      if (txError) throw txError;
-
-      return transaction;
+      if (error) throw error;
     },
     onSuccess: () => {
-      const typeLabel = dispositionType === "discarded" ? "Discarded" 
-        : dispositionType === "lost" ? "Lost" 
-        : "Combined";
-      
-      toast({
-        title: "Disposition recorded!",
-        description: `${quantity} card(s) marked as ${typeLabel.toLowerCase()}.`,
-      });
-      
-      // Invalidate relevant queries
-      queryClient.invalidateQueries({ queryKey: ["lots"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      
+      queryClient.invalidateQueries({ queryKey: ["active-lots"] });
+
+      toast({
+        title: "Disposition recorded",
+        description: `${quantity} cards marked as ${dispositionType}`,
+      });
+
       navigate("/lots");
     },
     onError: (error: any) => {
       toast({
         title: "Error recording disposition",
-        description: error.message || "Failed to record disposition. Please try again.",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     },
@@ -137,91 +122,60 @@ export default function Disposition() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Clear previous errors
-    setErrors({});
-    
-    const quantityNum = parseInt(quantity);
-    const validationErrors: { 
-      lot?: string; 
-      type?: string;
-      quantity?: string; 
-      destinationLot?: string;
-    } = {};
-    
-    // VALIDATE ALL REQUIRED FIELDS
-    if (!selectedLotId) {
-      validationErrors.lot = "Lot selection is required";
-    }
-    if (!dispositionType) {
-      validationErrors.type = "Disposition type is required";
-    }
-    if (!quantityNum || quantityNum < 1) {
-      validationErrors.quantity = "Quantity must be at least 1";
-    }
+
+    const newErrors: Record<string, string> = {};
+
+    if (!selectedLotId) newErrors.lot = "Please select a lot";
+    if (!dispositionType) newErrors.dispositionType = "Please select a disposition type";
+    if (!quantity || parseInt(quantity) <= 0) newErrors.quantity = "Please enter a valid quantity";
     if (dispositionType === "combined" && !destinationLotId) {
-      validationErrors.destinationLot = "Destination lot is required for combined disposition";
+      newErrors.destinationLot = "Please select a destination lot";
     }
-    
-    // If validation errors exist, show them and stop
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
       return;
     }
     
-    // Submit transaction
     submitMutation.mutate();
   };
 
   return (
-    <div className="bg-background pb-32 md:pb-8">
-      <div className="container max-w-2xl mx-auto px-4 py-8">
-        <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
-        {/* Header */}
+    <PageContainer maxWidth="2xl">
+      <div className="bg-card shadow-card-shadow rounded-lg p-6 md:p-8">
         <h1 className="text-h1 mb-2">RECORD DISPOSITION</h1>
         <p className="text-gray-600 mb-6">Mark cards as discarded, lost, or combined</p>
 
-        {/* Disposition Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* From Lot Selection */}
           <div>
             <label htmlFor="lot-select" className="form-label">From Lot *</label>
             <Select
               value={selectedLotId}
               onValueChange={(value) => {
                 setSelectedLotId(value);
-                if (errors.lot) setErrors({ ...errors, lot: "" });
+                setErrors((prev) => ({ ...prev, lot: "" }));
               }}
+              disabled={lotsLoading}
             >
-              <SelectTrigger 
-                id="lot-select" 
-                className="mt-2 min-h-[44px] bg-white text-gray-900"
-              >
-                <SelectValue placeholder="Select lot for disposition" />
+              <SelectTrigger className={`w-full min-h-[44px] ${errors.lot ? "border-red-500" : ""}`}>
+                <SelectValue placeholder={lotsLoading ? "Loading lots..." : "Select lot"} />
               </SelectTrigger>
-              <SelectContent className="bg-white z-50">
-                {loadingLots ? (
-                  <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
-                ) : lots && lots.length > 0 ? (
-                  lots.map((lot) => (
-                    <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
-                      {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
-                    </SelectItem>
-                  ))
-                ) : (
-                  <SelectItem value="none" disabled className="text-gray-900">No active lots available</SelectItem>
-                )}
+              <SelectContent>
+                {lots.map((lot) => (
+                  <SelectItem key={lot.id} value={lot.id}>
+                    {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            {errors.lot && (
-              <p className="text-destructive text-sm mt-1">{errors.lot}</p>
-            )}
-            <p className="text-xs text-gray-400 mt-1">
-              Which lot are these cards from?
-            </p>
+            {errors.lot && <p className="text-sm text-red-500 mt-1">{errors.lot}</p>}
           </div>
 
-          {/* Transaction Date */}
           <div>
             <label htmlFor="transaction-date" className="form-label">Transaction Date *</label>
             <Input
@@ -230,163 +184,139 @@ export default function Disposition() {
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
               max={format(new Date(), "yyyy-MM-dd")}
-              className="mt-2 min-h-[44px] bg-white text-gray-900"
+              className="min-h-[44px]"
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Date when this disposition occurred
-            </p>
           </div>
 
-          {/* Disposition Type */}
           <div>
             <label className="form-label">Disposition Type *</label>
-            <RadioGroup 
-              value={dispositionType} 
-              onValueChange={(value: DispositionType) => {
-                setDispositionType(value);
-                if (errors.type) setErrors({ ...errors, type: "" });
+            <RadioGroup
+              value={dispositionType}
+              onValueChange={(value) => {
+                setDispositionType(value as DispositionType);
+                setErrors((prev) => ({ ...prev, dispositionType: "" }));
               }}
-              className="mt-3 space-y-3"
+              className="space-y-3 mt-2"
             >
-              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
-                <RadioGroupItem value="discarded" id="discarded" className="mt-1" />
+              <div className={`flex items-center space-x-3 p-4 border rounded-lg ${dispositionType === "discarded" ? "border-primary bg-primary/5" : "border-border"}`}>
+                <RadioGroupItem value="discarded" id="discarded" />
                 <Label htmlFor="discarded" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-foreground">Discarded</div>
-                  <div className="text-sm text-gray-400">Intentionally thrown away (damaged, worthless)</div>
+                  <div className="flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    <span className="font-medium">Discarded</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Cards thrown away or destroyed
+                  </p>
                 </Label>
               </div>
 
-              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
-                <RadioGroupItem value="lost" id="lost" className="mt-1" />
+              <div className={`flex items-center space-x-3 p-4 border rounded-lg ${dispositionType === "lost" ? "border-primary bg-primary/5" : "border-border"}`}>
+                <RadioGroupItem value="lost" id="lost" />
                 <Label htmlFor="lost" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-foreground">Lost</div>
-                  <div className="text-sm text-gray-400">Unintentionally missing (theft, misplaced)</div>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    <span className="font-medium">Lost</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Cards misplaced or unaccounted for
+                  </p>
                 </Label>
               </div>
 
-              <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-[#041E42] transition-colors cursor-pointer has-[:checked]:border-[#041E42] has-[:checked]:bg-blue-50">
-                <RadioGroupItem value="combined" id="combined" className="mt-1" />
+              <div className={`flex items-center space-x-3 p-4 border rounded-lg ${dispositionType === "combined" ? "border-primary bg-primary/5" : "border-border"}`}>
+                <RadioGroupItem value="combined" id="combined" />
                 <Label htmlFor="combined" className="flex-1 cursor-pointer">
-                  <div className="font-semibold text-foreground">Combined</div>
-                  <div className="text-sm text-gray-400">Moved to another lot for organization</div>
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    <span className="font-medium">Combined</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Cards merged into another active lot
+                  </p>
                 </Label>
               </div>
             </RadioGroup>
-            {errors.type && (
-              <p className="text-destructive text-sm mt-1">{errors.type}</p>
-            )}
+            {errors.dispositionType && <p className="text-sm text-red-500 mt-1">{errors.dispositionType}</p>}
           </div>
 
-          {/* Quantity */}
           <div>
             <label htmlFor="quantity" className="form-label">Quantity *</label>
-            <div className="relative mt-2">
-              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="relative">
+              <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-500" />
               <Input
                 id="quantity"
                 type="number"
+                min="1"
+                step="1"
                 value={quantity}
                 onChange={(e) => {
                   setQuantity(e.target.value);
-                  if (errors.quantity) setErrors({ ...errors, quantity: "" });
+                  setErrors((prev) => ({ ...prev, quantity: "" }));
                 }}
-                placeholder="5"
-                required
-                min={1}
-                step={1}
-                className="pl-10 min-h-[44px] bg-white text-gray-900"
+                placeholder="Enter number of cards"
+                className={`pl-10 min-h-[44px] ${errors.quantity ? "border-red-500" : ""}`}
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Number of cards in this disposition
-            </p>
-            {errors.quantity && (
-              <p className="text-destructive text-sm mt-1">{errors.quantity}</p>
-            )}
+            {errors.quantity && <p className="text-sm text-red-500 mt-1">{errors.quantity}</p>}
           </div>
 
-          {/* Destination Lot - Conditional */}
           {dispositionType === "combined" && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-2 mb-3">
-                <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-gray-900">Destination Required</p>
-                  <p className="text-sm text-muted-foreground">Select where these cards are being moved to</p>
-                </div>
-              </div>
-              
+            <div>
               <label htmlFor="destination-lot" className="form-label">Destination Lot *</label>
               <Select
                 value={destinationLotId}
                 onValueChange={(value) => {
                   setDestinationLotId(value);
-                  if (errors.destinationLot) setErrors({ ...errors, destinationLot: "" });
+                  setErrors((prev) => ({ ...prev, destinationLot: "" }));
                 }}
+                disabled={lotsLoading}
               >
-                <SelectTrigger 
-                  id="destination-lot" 
-                  className="mt-2 min-h-[44px] bg-white text-gray-900"
-                >
+                <SelectTrigger className={`w-full min-h-[44px] ${errors.destinationLot ? "border-red-500" : ""}`}>
                   <SelectValue placeholder="Select destination lot" />
                 </SelectTrigger>
-                <SelectContent className="bg-white z-50">
-                  {loadingLots ? (
-                    <SelectItem value="loading" disabled className="text-gray-900">Loading lots...</SelectItem>
-                  ) : lots && lots.length > 0 ? (
-                    lots
-                      .filter(lot => lot.id !== selectedLotId) // Exclude source lot
-                      .map((lot) => (
-                        <SelectItem key={lot.id} value={lot.id} className="text-gray-900">
-                          {lot.source} - {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
-                        </SelectItem>
-                      ))
-                  ) : (
-                    <SelectItem value="none" disabled className="text-gray-900">No other lots available</SelectItem>
-                  )}
+                <SelectContent>
+                  {lots.filter(lot => lot.id !== selectedLotId).map((lot) => (
+                    <SelectItem key={lot.id} value={lot.id}>
+                      {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-              {errors.destinationLot && (
-                <p className="text-destructive text-sm mt-1">{errors.destinationLot}</p>
-              )}
+              <p className="text-xs text-gray-600 mt-1">
+                Select the lot these cards will be merged into
+              </p>
+              {errors.destinationLot && <p className="text-sm text-red-500 mt-1">{errors.destinationLot}</p>}
             </div>
           )}
 
-          {/* Notes */}
           <div>
             <label htmlFor="notes" className="form-label">Notes (Optional)</label>
-            <div className="relative mt-2">
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <div className="relative">
+              <FileText className="absolute left-3 top-3 h-5 w-5 text-gray-500" />
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={getNotesPlaceholder()}
-                maxLength={500}
-                rows={4}
-                className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
+                className="pl-10 min-h-[100px]"
               />
             </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Additional context for this disposition • {notes.length}/500 characters
-            </p>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <div className="flex gap-4 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={() => navigate("/lots")}
-              disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px]"
+              className="flex-1"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={submitMutation.isPending}
-              className="flex-1 min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white"
+              className="flex-1 bg-[#041E42] hover:bg-[#0A2E63] text-white"
             >
               {submitMutation.isPending ? (
                 <>
@@ -403,7 +333,6 @@ export default function Disposition() {
           </div>
         </form>
       </div>
-      </div>
-    </div>
+    </PageContainer>
   );
 }
