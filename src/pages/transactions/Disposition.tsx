@@ -195,7 +195,7 @@ export default function Disposition() {
             >
               <SelectTrigger 
                 id="lot-select" 
-                className="mt-2 min-h-[44px] bg-white text-card-foreground"
+                className="mt-2 min-h-[44px] bg-white text-gray-900"
               >
                 <SelectValue placeholder="Select lot for disposition" />
               </SelectTrigger>
@@ -230,7 +230,7 @@ export default function Disposition() {
               value={transactionDate}
               onChange={(e) => setTransactionDate(e.target.value)}
               max={format(new Date(), "yyyy-MM-dd")}
-              className="mt-2 min-h-[44px] bg-white text-card-foreground"
+              className="mt-2 min-h-[44px] bg-white text-gray-900"
             />
             <p className="text-xs text-muted-foreground mt-1">
               Date when this disposition occurred
@@ -294,7 +294,7 @@ export default function Disposition() {
                 required
                 min={1}
                 step={1}
-                className="pl-10 min-h-[44px] bg-white text-card-foreground"
+                className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -326,7 +326,7 @@ export default function Disposition() {
               >
                 <SelectTrigger 
                   id="destination-lot" 
-                  className="mt-2 min-h-[44px] bg-white text-card-foreground"
+                  className="mt-2 min-h-[44px] bg-white text-gray-900"
                 >
                   <SelectValue placeholder="Select destination lot" />
                 </SelectTrigger>
@@ -364,7 +364,7 @@ export default function Disposition() {
                 placeholder={getNotesPlaceholder()}
                 maxLength={500}
                 rows={4}
-                className="pl-10 bg-white text-card-foreground placeholder:opacity-50 resize-none"
+                className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">

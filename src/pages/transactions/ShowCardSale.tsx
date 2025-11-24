@@ -298,7 +298,7 @@ export default function ShowCardSale() {
             >
               <SelectTrigger 
                 id="show-select" 
-                className="mt-2 min-h-[44px] bg-white text-card-foreground"
+                className="mt-2 min-h-[44px] bg-white text-gray-900"
               >
                 <SelectValue placeholder="Select show where sold" />
               </SelectTrigger>
@@ -335,7 +335,7 @@ export default function ShowCardSale() {
                 value={saleDate}
                 onChange={(e) => setSaleDate(e.target.value)}
                 max={format(new Date(), "yyyy-MM-dd")}
-                className="pl-10 min-h-[44px] bg-white text-card-foreground"
+                className="pl-10 min-h-[44px] bg-white text-gray-900"
               />
             </div>
           </div>
@@ -352,7 +352,7 @@ export default function ShowCardSale() {
                 placeholder="Additional sale details..."
                 maxLength={500}
                 rows={3}
-                className="pl-10 bg-white text-card-foreground placeholder:opacity-50 resize-none"
+                className="pl-10 bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">

@@ -221,7 +221,7 @@ export default function CreateExpense() {
             helperText="Select the type of expense"
           >
             <Select value={category} onValueChange={(value) => setCategory(value as ExpenseCategory)}>
-              <SelectTrigger id="category" className="h-11 bg-white text-card-foreground placeholder:opacity-50">
+              <SelectTrigger id="category" className="h-11 bg-white text-gray-900">
                 <SelectValue placeholder="Select expense category" />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
@@ -241,7 +241,7 @@ export default function CreateExpense() {
             helperText="Associate expense with a specific show, or leave blank for general business expense"
           >
             <Select value={selectedShowId} onValueChange={setSelectedShowId}>
-              <SelectTrigger id="show" className="h-11 bg-white text-card-foreground placeholder:opacity-50">
+              <SelectTrigger id="show" className="h-11 bg-white text-gray-900">
                 <SelectValue placeholder="Select show (optional)" />
               </SelectTrigger>
               <SelectContent className="bg-white z-50">
@@ -295,7 +295,7 @@ export default function CreateExpense() {
                 }
               }}
               placeholder="Add any additional details about this expense..."
-              className="min-h-[100px] bg-white text-card-foreground placeholder:opacity-50 resize-none"
+              className="min-h-[100px] bg-white text-gray-900 placeholder:text-gray-500 resize-none"
               maxLength={500}
             />
           </FormField>
