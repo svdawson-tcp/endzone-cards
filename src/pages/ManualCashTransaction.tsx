@@ -13,6 +13,7 @@ import { DateInput } from "@/components/forms/DateInput";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 const ManualCashTransaction = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ const ManualCashTransaction = () => {
         .from("cash_transactions")
         .insert({
           transaction_type: type,
-          amount: signedAmount as any,
+          amount: parseRequiredAmount(signedAmount),
           notes: notes.trim() || null,
           user_id: user.id,
           related_expense_id: null,

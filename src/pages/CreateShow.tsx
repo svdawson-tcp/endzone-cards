@@ -12,6 +12,7 @@ import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 export default function CreateShow() {
   const navigate = useNavigate();
@@ -149,7 +150,7 @@ export default function CreateShow() {
         name: showName.trim(),
         show_date: showDate,
         location: location.trim(),
-        table_cost: tableCost as any,
+        table_cost: parseRequiredAmount(tableCost),
         booth_number: boothNumber.trim() || null,
         notes: notes.trim() || null,
       };

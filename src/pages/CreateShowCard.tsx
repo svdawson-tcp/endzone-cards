@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseAmount } from "@/lib/numericUtils";
 
 export default function CreateShowCard() {
   const navigate = useNavigate();
@@ -350,8 +351,8 @@ export default function CreateShowCard() {
         player_name: playerName.trim(),
         year: year,
         card_details: cardDetails,
-        cost_basis: (costBasis || null) as any,
-        asking_price: askingPrice as any,
+        cost_basis: parseAmount(costBasis),
+        asking_price: parseAmount(askingPrice),
         photo_front_url: frontPhotoUrl,
         photo_back_url: backPhotoUrl,
       };

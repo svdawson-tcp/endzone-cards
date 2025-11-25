@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
 type DispositionType = "discard" | "lost" | "combined";
@@ -125,7 +126,7 @@ export default function TransactionEntry() {
             show_card_id: selectedCardId,
             show_id: selectedShowId || null,
             quantity: 1,
-            revenue: revenue as any,
+            revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             notes: notes || null,
           });
@@ -145,7 +146,7 @@ export default function TransactionEntry() {
             lot_id: selectedLotId,
             show_id: selectedShowId || null,
             quantity: parseInt(quantity),
-            revenue: revenue as any,
+            revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             notes: notes || null,
           });
