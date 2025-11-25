@@ -105,6 +105,28 @@ export default function Shows() {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (showId: string) => {
+      // Check for linked records
+      const { data: linkedExpenses } = await supabase
+        .from("expenses")
+        .select("id")
+        .eq("show_id", showId)
+        .limit(1);
+
+      const { data: linkedTransactions } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("show_id", showId)
+        .limit(1);
+
+      const hasLinkedRecords = (linkedExpenses?.length || 0) + (linkedTransactions?.length || 0) > 0;
+
+      if (hasLinkedRecords) {
+        const confirmMessage = "This show has linked expenses or transactions. Deleting will unlink them. Continue?";
+        if (!confirm(confirmMessage)) {
+          throw new Error("Deletion cancelled by user");
+        }
+      }
+
       const { error } = await supabase
         .from("shows")
         .delete()
@@ -122,11 +144,13 @@ export default function Shows() {
       setShowToDelete(null);
     },
     onError: (error: any) => {
-      toast({
-        title: "Error deleting show",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+      if (error.message !== "Deletion cancelled by user") {
+        toast({
+          title: "Error deleting show",
+          description: error.message || "Please try again",
+          variant: "destructive",
+        });
+      }
     },
   });
 

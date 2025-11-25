@@ -102,7 +102,23 @@ export default function Lots() {
   const deleteMutation = useMutation({
     mutationFn: async (lotId: string) => {
       const { error } = await supabase.from("lots").delete().eq("id", lotId);
-      if (error) throw error;
+      if (error) {
+        // Check for FK constraint violation (show cards exist)
+        if (error.code === '23503') {
+          toast({
+            title: "Cannot delete lot",
+            description: "Show cards still exist. Please remove or reassign all show cards first.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error deleting lot",
+            description: error.message || "Please try again",
+            variant: "destructive",
+          });
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lots"] });
@@ -113,12 +129,8 @@ export default function Lots() {
       setDeleteDialogOpen(false);
       setLotToDelete(null);
     },
-    onError: (error: any) => {
-      toast({
-        title: "Error deleting lot",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+    onError: () => {
+      // Error already handled in mutationFn
     },
   });
 
