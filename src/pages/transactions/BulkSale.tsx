@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { DollarSign, Calendar, FileText, Loader2, Package, Hash, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 export default function BulkSale() {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ export default function BulkSale() {
         transaction_type: "bulk_sale",
         lot_id: selectedLotId,
         quantity: parseInt(quantity),
-        revenue: parseFloat(revenue),
+        revenue: parseRequiredAmount(revenue),
         show_id: selectedShowId || null,
         transaction_date: saleDate,
         notes: notes.trim() || null,
