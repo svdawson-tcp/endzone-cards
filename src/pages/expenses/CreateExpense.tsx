@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 const EXPENSE_CATEGORIES = [
   "Booth Fee",
@@ -134,7 +135,7 @@ export default function CreateExpense() {
       // Insert expense
       const { error: insertError } = await supabase.from("expenses").insert({
         user_id: user.id,
-        amount: parseFloat(amount),
+        amount: parseRequiredAmount(amount),
         category: category as ExpenseCategory,
         show_id: selectedShowId || null,
         expense_date: expenseDate,
