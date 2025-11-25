@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { DollarSign, Calendar, FileText, Loader2, Package, Image as ImageIcon } from "lucide-react";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 interface ShowCard {
   id: string;
@@ -101,7 +102,7 @@ export default function ShowCardSale() {
     mutationFn: async () => {
       if (!showCard) throw new Error("Show card not found");
 
-      const salePriceNum = salePrice as any;
+      const salePriceNum = parseRequiredAmount(salePrice);
 
       // Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
