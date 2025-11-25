@@ -13,6 +13,7 @@ import { DateInput } from "@/components/forms/DateInput";
 import { FormField } from "@/components/forms/FormField";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { parseRequiredAmount } from "@/lib/numericUtils";
 
 export default function CreateLot() {
   const navigate = useNavigate();
@@ -129,7 +130,7 @@ export default function CreateLot() {
       const lotData = {
         purchase_date: purchaseDate,
         source: source.trim(),
-        total_cost: parseFloat(totalCost) || 0,
+        total_cost: parseRequiredAmount(totalCost),
         notes: notes.trim() || null,
       };
 
