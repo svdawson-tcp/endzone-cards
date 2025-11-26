@@ -10,6 +10,8 @@ import { format } from "date-fns";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
+import { KpiInfoPopover } from "@/components/ui/KpiInfoPopover";
+import { kpiTooltips } from "@/data/kpiTooltips";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -402,6 +404,7 @@ export default function Dashboard() {
 
           {/* NET PROFIT - Hero Card with Gold Effect */}
           <div className="night-game-card p-6 relative group cursor-pointer" onClick={() => navigate('/transaction-history')}>
+            <KpiInfoPopover content={kpiTooltips.netProfit} />
             <div className="flex flex-col h-full justify-between relative z-10">
               <TrendingUp className="h-8 w-8 text-accent mb-4" />
               <div>
@@ -432,6 +435,7 @@ export default function Dashboard() {
 
           {/* PROFIT MARGIN */}
           <div className="night-game-card p-6 relative overflow-hidden">
+            <KpiInfoPopover content={kpiTooltips.profitMargin} />
             <div className="relative z-10">
               <TrendingUp className="h-8 w-8 text-accent mb-4" />
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
@@ -457,6 +461,7 @@ export default function Dashboard() {
 
           {/* TOTAL REVENUE */}
           <div className="night-game-card p-6 relative overflow-hidden">
+            <KpiInfoPopover content={kpiTooltips.totalRevenue} />
             <div className="relative z-10">
               <TrendingUp className="h-8 w-8 text-accent mb-4" />
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
@@ -482,6 +487,7 @@ export default function Dashboard() {
 
           {/* CASH ON HAND */}
           <div className="night-game-card p-6 relative overflow-hidden">
+            <KpiInfoPopover content={kpiTooltips.cashOnHand} />
             <div className="relative z-10">
               <Wallet className="h-8 w-8 text-accent mb-4" />
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
@@ -512,7 +518,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* TOTAL COSTS */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.totalCosts} />
             <Package className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Total Costs
@@ -535,7 +542,8 @@ export default function Dashboard() {
           </div>
 
           {/* PREMIUM SALES */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.premiumSales} />
             <CreditCard className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Premium Sales
@@ -558,7 +566,8 @@ export default function Dashboard() {
           </div>
 
           {/* BULK SALES */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.bulkSales} />
             <Package className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Bulk Sales
@@ -581,7 +590,8 @@ export default function Dashboard() {
           </div>
 
           {/* SHOW CARD INVENTORY */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.showCardInventory} />
             <CreditCard className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Show Card Inventory
@@ -601,7 +611,8 @@ export default function Dashboard() {
           </div>
 
           {/* AVERAGE SALE VALUE */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.averageSaleValue} />
             <TrendingUp className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Average Sale Value
@@ -633,7 +644,8 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* TOTAL INVENTORY VALUE */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.totalInventoryValue} />
             <Package className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Total Inventory Value
@@ -653,7 +665,8 @@ export default function Dashboard() {
           </div>
 
           {/* TOTAL BUSINESS VALUE */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.totalBusinessValue} />
             <Wallet className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Total Business Value
@@ -673,7 +686,8 @@ export default function Dashboard() {
           </div>
 
           {/* INVENTORY TURNOVER */}
-          <div className="night-game-card p-6">
+          <div className="night-game-card p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.inventoryTurnover} />
             <TrendingUp className="h-8 w-8 text-accent mb-4" />
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
               Inventory Turnover
