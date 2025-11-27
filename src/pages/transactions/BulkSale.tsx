@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
+import { LotSelector } from "@/components/forms/LotSelector";
 import {
   Select,
   SelectContent,
@@ -158,25 +159,17 @@ export default function BulkSale() {
         {/* Primary Lot Selection */}
         <div>
           <label htmlFor="lot-select" className="form-label">Primary Lot *</label>
-          <Select
-            value={selectedLotId}
-            onValueChange={(value) => {
+          <LotSelector
+            lots={lots}
+            selectedLotId={selectedLotId}
+            onSelect={(value) => {
               setSelectedLotId(value);
               setErrors((prev) => ({ ...prev, lot: "" }));
             }}
             disabled={lotsLoading}
-          >
-            <SelectTrigger className={`w-full min-h-[44px] ${errors.lot ? "border-red-500" : ""}`}>
-              <SelectValue placeholder={lotsLoading ? "Loading lots..." : "Select lot"} />
-            </SelectTrigger>
-            <SelectContent>
-              {lots.map((lot) => (
-                <SelectItem key={lot.id} value={lot.id}>
-                  {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            error={errors.lot}
+            placeholder={lotsLoading ? "Loading lots..." : "Select lot"}
+          />
           {errors.lot && <p className="text-sm text-red-500 mt-1">{errors.lot}</p>}
         </div>
 
