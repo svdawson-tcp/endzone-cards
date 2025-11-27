@@ -108,23 +108,28 @@ const ShowCardDetail = () => {
 
   if (cardLoading) {
     return (
-      <div className="bg-slate-100 flex items-center justify-center">
-        <div className="text-muted-foreground">Loading card details...</div>
+      <div className="min-h-screen bg-[url('/stadium-bg.png')] bg-cover bg-center bg-fixed">
+        <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--navy-base))]/95 to-[hsl(var(--navy-dark))]/98 flex items-center justify-center">
+          <div className="text-[hsl(var(--silver-base))]">Loading card details...</div>
+        </div>
       </div>
     );
   }
 
   if (!card) {
     return (
-      <div className="bg-slate-100 flex items-center justify-center">
-        <div className="text-muted-foreground">Card not found</div>
+      <div className="min-h-screen bg-[url('/stadium-bg.png')] bg-cover bg-center bg-fixed">
+        <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--navy-base))]/95 to-[hsl(var(--navy-dark))]/98 flex items-center justify-center">
+          <div className="text-[hsl(var(--silver-base))]">Card not found</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-100">
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+    <div className="min-h-screen bg-[url('/stadium-bg.png')] bg-cover bg-center bg-fixed">
+      <div className="min-h-screen bg-gradient-to-b from-[hsl(var(--navy-base))]/95 to-[hsl(var(--navy-dark))]/98">
+        <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -156,9 +161,9 @@ const ShowCardDetail = () => {
         </div>
 
         {/* Photo Display Section */}
-        <Card>
+        <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="card-title">Card Photos</CardTitle>
+            <CardTitle className="text-[hsl(var(--silver-light))]">Card Photos</CardTitle>
           </CardHeader>
           <CardContent>
             {isMobile ? (
@@ -177,14 +182,14 @@ const ShowCardDetail = () => {
                           alt="Card front"
                         />
                       ) : (
-                        <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                        <div className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
+                          <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
                         </div>
                       )}
                       <div className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
                         <RotateCw className="h-5 w-5 text-white" />
                       </div>
-                      <p className="text-center text-sm text-gray-600 mt-2">Front • Tap to flip</p>
+                      <p className="text-center text-sm text-[hsl(var(--silver-base))] mt-2">Front • Tap to flip</p>
                     </div>
                   ) : (
                     <div className="relative">
@@ -195,14 +200,14 @@ const ShowCardDetail = () => {
                           alt="Card back"
                         />
                       ) : (
-                        <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                        <div className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
+                          <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
                         </div>
                       )}
                       <div className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
                         <RotateCcw className="h-5 w-5 text-white" />
                       </div>
-                      <p className="text-center text-sm text-gray-600 mt-2">Back • Tap to flip</p>
+                      <p className="text-center text-sm text-[hsl(var(--silver-base))] mt-2">Back • Tap to flip</p>
                     </div>
                   )}
                 </div>
@@ -211,7 +216,7 @@ const ShowCardDetail = () => {
               // Desktop/Tablet: Side by side photos
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm text-gray-600 mb-2 font-semibold">Front</p>
+                  <p className="text-sm text-[hsl(var(--silver-base))] mb-2 font-semibold">Front</p>
                   {card.photo_front_url ? (
                     <img
                       src={card.photo_front_url}
@@ -219,13 +224,13 @@ const ShowCardDetail = () => {
                       alt="Card front"
                     />
                   ) : (
-                    <div className="w-full h-80 bg-muted rounded-lg flex items-center justify-center">
-                      <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                    <div className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
+                      <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600 mb-2 font-semibold">Back</p>
+                  <p className="text-sm text-[hsl(var(--silver-base))] mb-2 font-semibold">Back</p>
                   {card.photo_back_url ? (
                     <img
                       src={card.photo_back_url}
@@ -233,8 +238,8 @@ const ShowCardDetail = () => {
                       alt="Card back"
                     />
                   ) : (
-                    <div className="w-full h-80 bg-muted rounded-lg flex items-center justify-center">
-                      <ImageIcon className="h-16 w-16 text-muted-foreground" />
+                    <div className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
+                      <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
                     </div>
                   )}
                 </div>
@@ -244,28 +249,28 @@ const ShowCardDetail = () => {
         </Card>
 
         {/* Card Information */}
-        <Card>
+        <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="card-title">Card Information</CardTitle>
+            <CardTitle className="text-[hsl(var(--silver-light))]">Card Information</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Player:</span>
-                <span className="font-semibold text-gray-900">{card.player_name}</span>
+                <span className="text-[hsl(var(--silver-base))]">Player:</span>
+                <span className="font-semibold text-white">{card.player_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Year:</span>
-                <span className="font-semibold text-gray-900">{card.year}</span>
+                <span className="text-[hsl(var(--silver-base))]">Year:</span>
+                <span className="font-semibold text-white">{card.year}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">From Lot:</span>
-                <span className="font-semibold text-gray-900">{card.lots?.source}</span>
+                <span className="text-[hsl(var(--silver-base))]">From Lot:</span>
+                <span className="font-semibold text-white">{card.lots?.source}</span>
               </div>
               {card.lots?.purchase_date && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Purchase Date:</span>
-                  <span className="font-semibold text-gray-900">
+                  <span className="text-[hsl(var(--silver-base))]">Purchase Date:</span>
+                  <span className="font-semibold text-white">
                     {format(new Date(card.lots.purchase_date), "MMM dd, yyyy")}
                   </span>
                 </div>
@@ -276,20 +281,20 @@ const ShowCardDetail = () => {
 
         {/* Financial Summary - Available Status */}
         {card.status === "available" && (
-          <Card>
+          <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="card-title">Pricing</CardTitle>
+              <CardTitle className="text-[hsl(var(--silver-light))]">Pricing</CardTitle>
             </CardHeader>
             <CardContent>
               {card.asking_price ? (
                 <div className="text-center py-4">
-                  <p className="text-sm text-gray-600 mb-1">Asking Price</p>
-                  <p className="text-3xl font-bold text-green-600">
+                  <p className="text-sm text-[hsl(var(--silver-base))] mb-1">Asking Price</p>
+                  <p className="text-3xl font-bold text-[hsl(var(--gold-light))]">
                     ${Number(card.asking_price).toFixed(2)}
                   </p>
                 </div>
               ) : (
-                <p className="text-gray-500 text-center py-4">No asking price set</p>
+                <p className="text-[hsl(var(--silver-base))] text-center py-4">No asking price set</p>
               )}
             </CardContent>
           </Card>
@@ -309,30 +314,30 @@ const ShowCardDetail = () => {
 
         {/* Financial Summary - Sold Status */}
         {card.status === "sold" && saleInfo && (
-          <Card>
+          <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle className="card-title">Sale Information</CardTitle>
+              <CardTitle className="text-[hsl(var(--silver-light))]">Sale Information</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {saleInfo.askingPrice > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Asking Price:</span>
-                    <span className="font-semibold">${saleInfo.askingPrice.toFixed(2)}</span>
+                    <span className="text-[hsl(var(--silver-base))]">Asking Price:</span>
+                    <span className="font-semibold text-white">${saleInfo.askingPrice.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Sale Price:</span>
-                  <span className="font-semibold text-green-600">
+                  <span className="text-[hsl(var(--silver-base))]">Sale Price:</span>
+                  <span className="font-semibold text-[hsl(var(--gold-light))]">
                     ${saleInfo.salePrice.toFixed(2)}
                   </span>
                 </div>
                 {saleInfo.profit !== null && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Profit:</span>
+                    <span className="text-[hsl(var(--silver-base))]">Profit:</span>
                     <span
                       className={`font-semibold ${
-                        saleInfo.profit >= 0 ? "text-green-600" : "text-red-600"
+                        saleInfo.profit >= 0 ? "text-[hsl(var(--gold-light))]" : "text-red-400"
                       }`}
                     >
                       ${saleInfo.profit.toFixed(2)}
@@ -340,8 +345,8 @@ const ShowCardDetail = () => {
                   </div>
                 )}
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Sold Date:</span>
-                  <span className="font-semibold">
+                  <span className="text-[hsl(var(--silver-base))]">Sold Date:</span>
+                  <span className="font-semibold text-white">
                     {format(new Date(saleInfo.saleDate), "MMM dd, yyyy")}
                   </span>
                 </div>
@@ -353,27 +358,27 @@ const ShowCardDetail = () => {
         {/* Transaction History */}
         {card.status === "sold" && transactions.length > 0 && (
           <Collapsible>
-            <Card>
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors min-h-[44px]">
-                <CardTitle className="card-title">Transaction History</CardTitle>
-                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 data-[state=open]:rotate-180" />
+            <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">
+              <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-[hsl(var(--navy-base))]/50 transition-colors min-h-[44px]">
+                <CardTitle className="text-[hsl(var(--silver-light))]">Transaction History</CardTitle>
+                <ChevronDown className="h-5 w-5 text-[hsl(var(--silver-base))] transition-transform duration-200 data-[state=open]:rotate-180" />
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   {transactions.map((tx) => (
-                    <div key={tx.id} className="border-b last:border-0 py-3">
+                    <div key={tx.id} className="border-b border-[hsl(var(--silver-base))]/20 last:border-0 py-3">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="text-sm font-semibold text-gray-900">
+                        <span className="text-sm font-semibold text-white">
                           {tx.transaction_type === "show_card_sale" ? "Sale" : tx.transaction_type}
                         </span>
-                        <span className="text-sm font-semibold text-green-600">
+                        <span className="text-sm font-semibold text-[hsl(var(--gold-light))]">
                           ${Number(tx.revenue).toFixed(2)}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-[hsl(var(--silver-base))]">
                         {format(new Date(tx.created_at), "MMM dd, yyyy")}
                       </p>
-                      {tx.notes && <p className="text-xs text-gray-600 mt-1">{tx.notes}</p>}
+                      {tx.notes && <p className="text-xs text-[hsl(var(--silver-base))] mt-1">{tx.notes}</p>}
                     </div>
                   ))}
                 </CardContent>
@@ -382,6 +387,7 @@ const ShowCardDetail = () => {
           </Collapsible>
         )}
 
+        </div>
       </div>
     </div>
   );
