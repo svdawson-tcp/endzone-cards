@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
@@ -11,7 +11,11 @@ import {
   RotateCw,
   RotateCcw,
   ChevronDown,
+  Upload,
+  Loader2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,9 +28,13 @@ import {
 const ShowCardDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { getEffectiveUserId } = useMentorAccess();
   const [isFlipped, setIsFlipped] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isUploadingFront, setIsUploadingFront] = useState(false);
+  const [isUploadingBack, setIsUploadingBack] = useState(false);
 
   // Handle window resize
   useState(() => {
@@ -106,6 +114,62 @@ const ShowCardDetail = () => {
     }
   };
 
+  const handlePhotoUpload = async (file: File, side: 'front' | 'back') => {
+    const setUploading = side === 'front' ? setIsUploadingFront : setIsUploadingBack;
+    
+    try {
+      validatePhotoFile(file);
+      setUploading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
+      // Compress photo
+      const compressed = await compressPhoto(file);
+      const fileName = `${user.id}/${Date.now()}_${side}.webp`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from("show_cards")
+        .upload(fileName, compressed, {
+          contentType: "image/webp",
+          upsert: false,
+        });
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("show_cards")
+        .getPublicUrl(fileName);
+      
+      // Update show_card record
+      const updateField = side === 'front' ? 'photo_front_url' : 'photo_back_url';
+      const { error: updateError } = await supabase
+        .from("show_cards")
+        .update({ [updateField]: publicUrl })
+        .eq("id", id);
+      
+      if (updateError) throw updateError;
+      
+      // Invalidate query to refresh
+      queryClient.invalidateQueries({ queryKey: ["show-card", id] });
+      
+      toast({
+        title: "Photo updated!",
+        description: `${side === 'front' ? 'Front' : 'Back'} photo uploaded successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (cardLoading) {
     return (
       <div className="min-h-screen bg-[url('/stadium-bg.png')] bg-cover bg-center bg-fixed">
@@ -166,6 +230,30 @@ const ShowCardDetail = () => {
             <CardTitle className="text-[hsl(var(--silver-light))]">Card Photos</CardTitle>
           </CardHeader>
           <CardContent>
+            {/* Hidden file inputs */}
+            <input
+              type="file"
+              id="front-photo-input"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePhotoUpload(file, 'front');
+                e.target.value = '';
+              }}
+            />
+            <input
+              type="file"
+              id="back-photo-input"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handlePhotoUpload(file, 'back');
+                e.target.value = '';
+              }}
+            />
+            
             {isMobile ? (
               // Mobile: Flippable single card
               <div className="relative w-full max-w-md mx-auto">
@@ -176,17 +264,39 @@ const ShowCardDetail = () => {
                   {!isFlipped ? (
                     <div className="relative">
                       {card.photo_front_url ? (
-                        <img
-                          src={card.photo_front_url}
-                          className="w-full rounded-lg shadow-lg"
-                          alt="Card front"
-                        />
+                        <label htmlFor="front-photo-input" className="relative cursor-pointer group block">
+                          <img
+                            src={card.photo_front_url}
+                            className="w-full rounded-lg shadow-lg"
+                            alt="Card front"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            {isUploadingFront ? (
+                              <Loader2 className="h-8 w-8 text-white animate-spin" />
+                            ) : (
+                              <Upload className="h-8 w-8 text-white" />
+                            )}
+                          </div>
+                        </label>
                       ) : (
-                        <div className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
-                        </div>
+                        <label 
+                          htmlFor="front-photo-input"
+                          className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[hsl(var(--navy-dark))]/80 transition-colors"
+                        >
+                          {isUploadingFront ? (
+                            <Loader2 className="h-16 w-16 text-[hsl(var(--silver-base))] animate-spin" />
+                          ) : (
+                            <>
+                              <Upload className="h-16 w-16 text-[hsl(var(--silver-base))]" />
+                              <span className="text-[hsl(var(--silver-base))] mt-2 text-sm">Tap to add photo</span>
+                            </>
+                          )}
+                        </label>
                       )}
-                      <div className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <div 
+                        className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                        onClick={() => setIsFlipped(!isFlipped)}
+                      >
                         <RotateCw className="h-5 w-5 text-white" />
                       </div>
                       <p className="text-center text-sm text-[hsl(var(--silver-base))] mt-2">Front • Tap to flip</p>
@@ -194,17 +304,39 @@ const ShowCardDetail = () => {
                   ) : (
                     <div className="relative">
                       {card.photo_back_url ? (
-                        <img
-                          src={card.photo_back_url}
-                          className="w-full rounded-lg shadow-lg"
-                          alt="Card back"
-                        />
+                        <label htmlFor="back-photo-input" className="relative cursor-pointer group block">
+                          <img
+                            src={card.photo_back_url}
+                            className="w-full rounded-lg shadow-lg"
+                            alt="Card back"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            {isUploadingBack ? (
+                              <Loader2 className="h-8 w-8 text-white animate-spin" />
+                            ) : (
+                              <Upload className="h-8 w-8 text-white" />
+                            )}
+                          </div>
+                        </label>
                       ) : (
-                        <div className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
-                          <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
-                        </div>
+                        <label 
+                          htmlFor="back-photo-input"
+                          className="w-full h-96 bg-[hsl(var(--navy-dark))] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[hsl(var(--navy-dark))]/80 transition-colors"
+                        >
+                          {isUploadingBack ? (
+                            <Loader2 className="h-16 w-16 text-[hsl(var(--silver-base))] animate-spin" />
+                          ) : (
+                            <>
+                              <Upload className="h-16 w-16 text-[hsl(var(--silver-base))]" />
+                              <span className="text-[hsl(var(--silver-base))] mt-2 text-sm">Tap to add photo</span>
+                            </>
+                          )}
+                        </label>
                       )}
-                      <div className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                      <div 
+                        className="absolute top-3 right-3 bg-black/60 rounded-full p-2 min-h-[44px] min-w-[44px] flex items-center justify-center cursor-pointer"
+                        onClick={() => setIsFlipped(!isFlipped)}
+                      >
                         <RotateCcw className="h-5 w-5 text-white" />
                       </div>
                       <p className="text-center text-sm text-[hsl(var(--silver-base))] mt-2">Back • Tap to flip</p>
@@ -218,29 +350,67 @@ const ShowCardDetail = () => {
                 <div>
                   <p className="text-sm text-[hsl(var(--silver-base))] mb-2 font-semibold">Front</p>
                   {card.photo_front_url ? (
-                    <img
-                      src={card.photo_front_url}
-                      className="w-full rounded-lg shadow-lg"
-                      alt="Card front"
-                    />
+                    <label htmlFor="front-photo-input" className="relative cursor-pointer group block">
+                      <img
+                        src={card.photo_front_url}
+                        className="w-full rounded-lg shadow-lg"
+                        alt="Card front"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        {isUploadingFront ? (
+                          <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        ) : (
+                          <Upload className="h-8 w-8 text-white" />
+                        )}
+                      </div>
+                    </label>
                   ) : (
-                    <div className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
-                      <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
-                    </div>
+                    <label 
+                      htmlFor="front-photo-input"
+                      className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[hsl(var(--navy-dark))]/80 transition-colors"
+                    >
+                      {isUploadingFront ? (
+                        <Loader2 className="h-16 w-16 text-[hsl(var(--silver-base))] animate-spin" />
+                      ) : (
+                        <>
+                          <Upload className="h-16 w-16 text-[hsl(var(--silver-base))]" />
+                          <span className="text-[hsl(var(--silver-base))] mt-2 text-sm">Tap to add photo</span>
+                        </>
+                      )}
+                    </label>
                   )}
                 </div>
                 <div>
                   <p className="text-sm text-[hsl(var(--silver-base))] mb-2 font-semibold">Back</p>
                   {card.photo_back_url ? (
-                    <img
-                      src={card.photo_back_url}
-                      className="w-full rounded-lg shadow-lg"
-                      alt="Card back"
-                    />
+                    <label htmlFor="back-photo-input" className="relative cursor-pointer group block">
+                      <img
+                        src={card.photo_back_url}
+                        className="w-full rounded-lg shadow-lg"
+                        alt="Card back"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                        {isUploadingBack ? (
+                          <Loader2 className="h-8 w-8 text-white animate-spin" />
+                        ) : (
+                          <Upload className="h-8 w-8 text-white" />
+                        )}
+                      </div>
+                    </label>
                   ) : (
-                    <div className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex items-center justify-center">
-                      <ImageIcon className="h-16 w-16 text-[hsl(var(--silver-base))]" />
-                    </div>
+                    <label 
+                      htmlFor="back-photo-input"
+                      className="w-full h-80 bg-[hsl(var(--navy-dark))] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[hsl(var(--navy-dark))]/80 transition-colors"
+                    >
+                      {isUploadingBack ? (
+                        <Loader2 className="h-16 w-16 text-[hsl(var(--silver-base))] animate-spin" />
+                      ) : (
+                        <>
+                          <Upload className="h-16 w-16 text-[hsl(var(--silver-base))]" />
+                          <span className="text-[hsl(var(--silver-base))] mt-2 text-sm">Tap to add photo</span>
+                        </>
+                      )}
+                    </label>
                   )}
                 </div>
               </div>
