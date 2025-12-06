@@ -97,10 +97,8 @@ export default function CreateShow() {
       newErrors.showDate = "Date is required";
       isValid = false;
     } else if (!isEditMode || showStatus === "planned") {
-      const selectedDate = new Date(showDate);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      if (selectedDate < today) {
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      if (showDate < todayStr) {
         newErrors.showDate = "Date cannot be in the past";
         isValid = false;
       }
@@ -129,7 +127,7 @@ export default function CreateShow() {
       parseFloat(tableCost) >= 0;
     
     if (!isEditMode || showStatus === "planned") {
-      return basicValidation && new Date(showDate) >= new Date(new Date().setHours(0, 0, 0, 0));
+      return basicValidation && showDate >= format(new Date(), "yyyy-MM-dd");
     }
     
     return basicValidation;
