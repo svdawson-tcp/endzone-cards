@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -99,7 +100,8 @@ export function DateNotesEditDialog({
       return;
     }
 
-    if (new Date(transactionDate) > new Date()) {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    if (transactionDate > todayStr) {
       toast({
         title: "Validation error",
         description: "Transaction date cannot be in the future.",
@@ -138,7 +140,7 @@ export function DateNotesEditDialog({
     updateMutation.mutate();
   };
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = format(new Date(), "yyyy-MM-dd");
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

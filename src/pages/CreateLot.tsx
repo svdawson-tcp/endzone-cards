@@ -83,10 +83,8 @@ export default function CreateLot() {
       newErrors.purchaseDate = "Purchase date is required";
       isValid = false;
     } else {
-      const selectedDate = new Date(purchaseDate);
-      const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      if (selectedDate > today) {
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+      if (purchaseDate > todayStr) {
         newErrors.purchaseDate = "Date cannot be in the future";
         isValid = false;
       }
@@ -107,12 +105,13 @@ export default function CreateLot() {
   };
 
   const isFormValid = () => {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
     return (
       purchaseDate !== "" &&
       source.trim() !== "" &&
       totalCost !== "" &&
       parseFloat(totalCost) > 0 &&
-      new Date(purchaseDate) <= new Date(new Date().setHours(23, 59, 59, 999))
+      purchaseDate <= todayStr
     );
   };
 
