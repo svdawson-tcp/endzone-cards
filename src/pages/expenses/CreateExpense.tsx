@@ -50,7 +50,7 @@ export default function CreateExpense() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("shows")
-        .select("id, name, show_date")
+        .select("id, name, show_date, table_cost")
         .in("status", ["planned", "active", "completed"])
         .order("show_date", { ascending: false });
 
@@ -117,7 +117,7 @@ export default function CreateExpense() {
         const fileName = `${user.id}/${Date.now()}_receipt.webp`;
 
         const { error: uploadError } = await supabase.storage
-          .from("receipts")
+          .from("expense_receipts")
           .upload(fileName, compressedPhoto, {
             contentType: "image/webp",
             upsert: false,
@@ -127,7 +127,7 @@ export default function CreateExpense() {
 
         const {
           data: { publicUrl },
-        } = supabase.storage.from("receipts").getPublicUrl(fileName);
+        } = supabase.storage.from("expense_receipts").getPublicUrl(fileName);
 
         receiptPhotoUrl = publicUrl;
       }
@@ -213,6 +213,18 @@ export default function CreateExpense() {
             </SelectContent>
           </Select>
         </FormField>
+
+        {/* Booth Fee Warning */}
+        {category === "Booth Fee" && selectedShowId && 
+          shows?.find(s => s.id === selectedShowId)?.table_cost && 
+          (shows.find(s => s.id === selectedShowId)?.table_cost ?? 0) > 0 && (
+          <div className="bg-warning/10 border border-warning/30 rounded-md p-3 text-sm text-warning-foreground">
+            <strong>Note:</strong> This show already has a booth fee of $
+            {(shows.find(s => s.id === selectedShowId)?.table_cost ?? 0).toFixed(2)} 
+            recorded in the show setup. Only add an expense here if this is an 
+            additional fee.
+          </div>
+        )}
 
         {/* Show Field (Optional) */}
         <FormField
