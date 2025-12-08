@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +16,10 @@ import {
   Receipt,
   ShoppingCart,
   Package,
-  ChevronDown
+  ChevronDown,
+  Trash2,
+  Plus,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +29,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { EditExpenseDialog } from "@/components/expenses/EditExpenseDialog";
+import { DeleteExpenseDialog } from "@/components/expenses/DeleteExpenseDialog";
 
 type ShowStatus = "planned" | "active" | "completed";
 
@@ -56,6 +62,7 @@ interface Expense {
   amount: number;
   category: string;
   notes: string | null;
+  show_id: string | null;
 }
 
 export default function ShowDetail() {
@@ -64,6 +71,10 @@ export default function ShowDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getEffectiveUserId } = useMentorAccess();
+
+  // Edit/Delete expense state
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   // Fetch show details
   const { data: show, isLoading: showLoading } = useQuery({
@@ -458,7 +469,7 @@ export default function ShowDetail() {
         <Collapsible defaultOpen className="mb-6">
           <Card>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-6 hover:bg-accent/50 transition-colors">
-              <CardTitle className="text-gray-900">Expenses ({expenses.length + 1})</CardTitle>
+              <CardTitle className="text-gray-900">Expenses ({expenses.length + (show.table_cost > 0 ? 1 : 0)})</CardTitle>
               <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 [data-state=open]:rotate-180" />
             </CollapsibleTrigger>
             <CollapsibleContent>
@@ -467,28 +478,85 @@ export default function ShowDetail() {
                   <p className="text-gray-500 text-center py-8">No expenses recorded</p>
                 ) : (
                   <div className="space-y-3">
-                    {/* Booth Fee */}
-                    <div className="flex justify-between items-center pb-3 border-b">
-                      <span className="text-gray-900">Booth Fee: ${Number(show.table_cost).toFixed(2)}</span>
-                    </div>
-                    
-                    {/* Other expenses by category */}
-                    {expenses.reduce((acc: { [key: string]: number }, exp) => {
-                      acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
-                      return acc;
-                    }, {} as { [key: string]: number })
-                    && Object.entries(
-                      expenses.reduce((acc: { [key: string]: number }, exp) => {
-                        acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
-                        return acc;
-                      }, {})
-                    ).map(([category, amount]) => (
-                      <div key={category} className="flex justify-between items-center">
-                        <span className="text-gray-900">{category}: ${amount.toFixed(2)}</span>
+                    {/* Booth Fee from show setup */}
+                    {show.table_cost > 0 && (
+                      <div className="flex justify-between items-center pb-3 border-b">
+                        <div>
+                          <span className="text-gray-900 font-medium">Booth Fee (from show setup)</span>
+                        </div>
+                        <span className="font-semibold text-red-600">${Number(show.table_cost).toFixed(2)}</span>
                       </div>
-                    ))}
+                    )}
+                    
+                    {/* Individual expenses */}
+                    {expenses.map((exp) => {
+                      const hasDuplicateBoothFee = exp.category === "Booth Fee" && show.table_cost > 0;
+                      return (
+                        <div key={exp.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500">
+                                {format(new Date(exp.expense_date), "MM/dd")}
+                              </span>
+                              <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
+                                {exp.category}
+                              </Badge>
+                              {hasDuplicateBoothFee && (
+                                <span title="This show already has a booth fee set. This may be a duplicate.">
+                                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                </span>
+                              )}
+                            </div>
+                            {exp.notes && (
+                              <p className="text-sm text-gray-500 truncate max-w-xs mt-1">
+                                {exp.notes}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            <span className="font-semibold text-red-600">${Number(exp.amount).toFixed(2)}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-11 w-11"
+                              onClick={() => setEditingExpense(exp)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-11 w-11 text-destructive hover:text-destructive"
+                              onClick={() => setDeletingExpense(exp)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Total */}
+                    <div className="flex justify-between items-center pt-3 border-t mt-3">
+                      <span className="text-gray-900 font-semibold">Total Expenses</span>
+                      <span className="font-bold text-red-600">
+                        ${(totalExpenses + Number(show.table_cost)).toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 )}
+                
+                {/* Add Expense Button */}
+                <div className="mt-4 pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate(`/expenses/new?showId=${id}`)}
+                    className="w-full"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Expense
+                  </Button>
+                </div>
               </CardContent>
             </CollapsibleContent>
           </Card>
@@ -511,6 +579,22 @@ export default function ShowDetail() {
           </Collapsible>
         )}
       </div>
+
+      {/* Edit Expense Dialog */}
+      <EditExpenseDialog
+        expense={editingExpense}
+        open={!!editingExpense}
+        onOpenChange={(open) => !open && setEditingExpense(null)}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ["show-expenses", id] })}
+      />
+
+      {/* Delete Expense Dialog */}
+      <DeleteExpenseDialog
+        expense={deletingExpense}
+        open={!!deletingExpense}
+        onOpenChange={(open) => !open && setDeletingExpense(null)}
+        onDeleted={() => queryClient.invalidateQueries({ queryKey: ["show-expenses", id] })}
+      />
     </div>
   );
 }
