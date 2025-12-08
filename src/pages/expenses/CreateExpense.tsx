@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -34,6 +34,7 @@ type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
 export default function CreateExpense() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("");
@@ -44,6 +45,14 @@ export default function CreateExpense() {
   const [showCamera, setShowCamera] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Pre-select show from URL param
+  const showIdFromUrl = searchParams.get("showId");
+  useEffect(() => {
+    if (showIdFromUrl) {
+      setSelectedShowId(showIdFromUrl);
+    }
+  }, [showIdFromUrl]);
 
   const { data: shows, isLoading: loadingShows } = useQuery({
     queryKey: ["active-shows-for-expenses"],
