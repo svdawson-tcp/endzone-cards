@@ -157,6 +157,7 @@ export function EditExpenseDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
+              className="bg-white text-gray-900"
             />
           </FormField>
 
@@ -168,12 +169,12 @@ export function EditExpenseDialog({
             error={errors.category}
           >
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="bg-white text-card-foreground">
+              <SelectTrigger className="bg-white text-gray-900">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white">
                 {EXPENSE_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
+                  <SelectItem key={cat} value={cat} className="text-gray-900">
                     {cat}
                   </SelectItem>
                 ))}
@@ -192,6 +193,7 @@ export function EditExpenseDialog({
               id="edit-expense-date"
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
+              className="bg-white text-gray-900"
             />
           </FormField>
 
@@ -203,7 +205,7 @@ export function EditExpenseDialog({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes..."
               maxLength={500}
-              className="bg-white text-card-foreground placeholder:opacity-50"
+              className="bg-white text-gray-900 placeholder:text-gray-400"
             />
           </FormField>
 
