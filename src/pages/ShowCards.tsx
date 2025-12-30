@@ -35,7 +35,7 @@ const ShowCards = () => {
         .select(`
           *,
           lots!show_cards_lot_id_fkey(source),
-          transactions!left(transaction_date)
+          transactions!left(transaction_date, revenue)
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
@@ -222,8 +222,10 @@ const ShowCards = () => {
                       </p>
                     )}
 
-                    {card.status === "sold" && (
-                      <p className="text-sm font-semibold text-[hsl(var(--text-body))]">SOLD</p>
+                    {card.status === "sold" && (card as any).transactions?.[0]?.revenue && (
+                      <p className="text-sm font-semibold text-[hsl(var(--metric-positive))]">
+                        Sold: ${Number((card as any).transactions[0].revenue).toFixed(2)}
+                      </p>
                     )}
                   </div>
                 </CardContent>
