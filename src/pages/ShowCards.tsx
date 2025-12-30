@@ -19,7 +19,7 @@ import { DeleteShowCardDialog } from "@/components/showCards/DeleteShowCardDialo
 
 const ShowCards = () => {
   const navigate = useNavigate();
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("available");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Use mentor access context
@@ -106,10 +106,10 @@ const ShowCards = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
                 <SelectItem value="available">Available</SelectItem>
                 <SelectItem value="sold">Sold</SelectItem>
                 <SelectItem value="combined">Combined/Lost</SelectItem>
+                <SelectItem value="all">All</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -129,10 +129,10 @@ const ShowCards = () => {
             {/* Status Filter Tabs - hidden on mobile, visible on desktop */}
             <div className="hidden md:flex gap-2 overflow-x-auto">
               {[
-                { value: "all", label: "All" },
                 { value: "available", label: "Available" },
                 { value: "sold", label: "Sold" },
                 { value: "combined", label: "Combined/Lost" },
+                { value: "all", label: "All" },
               ].map((filter) => (
                 <Button
                   key={filter.value}
