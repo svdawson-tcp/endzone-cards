@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
+import { DeleteShowCardDialog } from "@/components/showCards/DeleteShowCardDialog";
 
 const ShowCards = () => {
   const navigate = useNavigate();
@@ -195,9 +196,12 @@ const ShowCards = () => {
                         <h3 className="font-bold text-lg">{card.player_name}</h3>
                         <p className="text-sm text-[hsl(var(--text-body))]">{card.year}</p>
                       </div>
-                      <Badge variant={getStatusBadgeVariant(card.status)}>
-                        {card.status}
-                      </Badge>
+                      <div className="flex items-center gap-1">
+                        <Badge variant={getStatusBadgeVariant(card.status)}>
+                          {card.status}
+                        </Badge>
+                        <DeleteShowCardDialog showCard={card} />
+                      </div>
                     </div>
 
                     <p className="text-xs text-[hsl(var(--text-secondary))]">From: {card.lots?.source}</p>
