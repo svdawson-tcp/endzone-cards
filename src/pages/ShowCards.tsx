@@ -58,6 +58,17 @@ const ShowCards = () => {
       );
     }
 
+    // Sort by price: asking_price for available, transaction revenue for sold
+    filtered = [...filtered].sort((a, b) => {
+      const getPrice = (card: any) => {
+        if (card.status === "sold" && card.transactions?.[0]?.revenue) {
+          return Number(card.transactions[0].revenue);
+        }
+        return Number(card.asking_price) || 0;
+      };
+      return getPrice(b) - getPrice(a);
+    });
+
     return filtered;
   }, [showCards, statusFilter, searchQuery]);
 
