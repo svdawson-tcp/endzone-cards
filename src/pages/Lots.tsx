@@ -63,7 +63,7 @@ export default function Lots() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [filterTab, setFilterTab] = useState<FilterTab>("all");
+  const [filterTab, setFilterTab] = useState<FilterTab>("active");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [lotToDelete, setLotToDelete] = useState<any>(null);
   const { getEffectiveUserId, isViewingAsMentor } = useMentorAccess();
