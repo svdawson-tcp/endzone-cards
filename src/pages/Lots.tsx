@@ -189,7 +189,7 @@ export default function Lots() {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {(["all", "active", "closed", "archived"] as const).map((tab) => (
+          {(["active", "closed", "archived", "all"] as const).map((tab) => (
             <Button
               key={tab}
               variant={filterTab === tab ? "default" : "outline"}
