@@ -144,10 +144,12 @@ const ShowCardDetail = () => {
         .getPublicUrl(fileName);
       
       // Update show_card record
-      const updateField = side === 'front' ? 'photo_front_url' : 'photo_back_url';
+      const updatePayload = side === 'front'
+        ? { photo_front_url: publicUrl }
+        : { photo_back_url: publicUrl };
       const { error: updateError } = await supabase
         .from("show_cards")
-        .update({ [updateField]: publicUrl })
+        .update(updatePayload)
         .eq("id", id);
       
       if (updateError) throw updateError;
