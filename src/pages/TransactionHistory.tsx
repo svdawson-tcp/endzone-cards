@@ -534,9 +534,7 @@ export default function TransactionHistory() {
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-[hsl(var(--text-secondary))]" />
                             <span className="text-[hsl(var(--text-body))] font-medium">
-                              {tx.source === "sales" && (tx as SalesTransaction).transaction_date
-                                ? formatBusinessDate((tx as SalesTransaction).transaction_date, "MM/dd/yy")
-                                : format(new Date(tx.created_at), "MM/dd/yy")}
+                              {formatBusinessDate(businessDateOf(tx), "MM/dd/yy")}
                             </span>
                           </div>
                           <div className="text-xs text-[hsl(var(--text-secondary))]">
@@ -561,7 +559,9 @@ export default function TransactionHistory() {
                               ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
                               : (tx as SalesTransaction).lots?.source || "-"
                           ) : (
-                            tx.notes || "Manual cash entry"
+                            tx.transaction_type === "transfer"
+                              ? cashAccountLabel(tx as CashTransaction)
+                              : tx.notes || "Manual cash entry"
                           )}
                         </TableCell>
                         <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
@@ -570,6 +570,9 @@ export default function TransactionHistory() {
                           ) : (
                             "—"
                           )}
+                        </TableCell>
+                        <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
+                          {tx.source === "cash" ? cashAccountLabel(tx as CashTransaction) : "—"}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
