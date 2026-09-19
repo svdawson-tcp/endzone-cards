@@ -293,21 +293,29 @@ export default function TransactionHistory() {
     bulk_sale: transactions.filter(tx => tx.transaction_type === "bulk_sale").length,
   };
 
+  const cashAccountLabel = (tx: CashTransaction): string => {
+    if (tx.transaction_type === "transfer") {
+      return `${tx.transferFromName || "?"} → ${tx.transferToName || "?"}`;
+    }
+    return tx.cash_accounts?.name || "-";
+  };
+
   const handleExport = () => {
-    const headers = ["Date", "Type", "Source", "Lot", "Show", "Amount", "Quantity", "Notes"];
+    const headers = ["Date", "Type", "Source", "Lot", "Show", "Account", "Amount", "Quantity", "Notes"];
     const rows = sortedTransactions.map(tx => {
       if (tx.source === "sales") {
         const salesTx = tx as SalesTransaction;
         return [
           salesTx.transaction_date
             ? formatBusinessDate(salesTx.transaction_date, "yyyy-MM-dd")
-            : format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
-          tx.transaction_type,
+            : formatBusinessDate(toDateInputValue(tx.created_at), "yyyy-MM-dd"),
+          CASH_TYPE_LABELS[tx.transaction_type] || tx.transaction_type,
           "sales",
           tx.transaction_type === "show_card_sale" && salesTx.show_cards
             ? `${salesTx.show_cards.player_name} (${salesTx.show_cards.year || ""})`
             : salesTx.lots?.source || "-",
           salesTx.shows?.name || "-",
+          "-",
           salesTx.revenue.toFixed(2),
           salesTx.quantity || "-",
           tx.notes || "-"
@@ -315,17 +323,19 @@ export default function TransactionHistory() {
       } else {
         const cashTx = tx as CashTransaction;
         return [
-          format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
-          tx.transaction_type,
+          formatBusinessDate(cashTx.entry_date, "yyyy-MM-dd"),
+          CASH_TYPE_LABELS[tx.transaction_type] || tx.transaction_type,
           "cash",
           "-",
           "-",
+          cashAccountLabel(cashTx),
           cashTx.amount.toFixed(2),
           "-",
           tx.notes || "-"
         ];
       }
     });
+
 
     const csv = [
       headers.join(","),
