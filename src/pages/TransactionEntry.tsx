@@ -165,6 +165,7 @@ export default function TransactionEntry() {
             quantity: parseInt(quantity),
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
+            sales_channel: salesChannel,
             notes: notes || null,
           });
 
@@ -206,6 +207,10 @@ export default function TransactionEntry() {
           title: "Disposition recorded!",
           description: `Card ${dispositionType === "combined" ? "combined into lot" : dispositionType}.`,
         });
+      }
+
+      if (transactionType !== "disposition") {
+        writeLastSalesChannel(salesChannel);
       }
 
       navigate("/dashboard");
