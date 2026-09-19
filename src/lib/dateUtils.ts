@@ -1,4 +1,19 @@
-import { format } from "date-fns";
+import {
+  format,
+  addDays,
+  subDays,
+  subWeeks,
+  subMonths,
+  subQuarters,
+  subYears,
+  startOfMonth,
+  endOfMonth,
+  startOfQuarter,
+  endOfQuarter,
+  startOfYear,
+  differenceInCalendarDays,
+  min as minDate,
+} from "date-fns";
 
 /**
  * Business-date helpers (ISS-003).
@@ -39,4 +54,74 @@ export function todayLocal(): string {
 /** Any Date as a LOCAL "YYYY-MM-DD" string. Use instead of toISOString().split("T")[0]. */
 export function toLocalDateString(date: Date): string {
   return format(date, "yyyy-MM-dd");
+}
+
+export type DateRange = { start: string; end: string };
+
+/**
+ * The comparable range immediately before the selected one.
+ * Returns null when no comparison makes sense (All Time / missing dates).
+ */
+export function previousPeriodRange(
+  preset: string,
+  start: string | null,
+  end: string | null
+): DateRange | null {
+  if (!start || !end) return null;
+  const s = parseBusinessDate(start);
+  const e = parseBusinessDate(end);
+
+  switch (preset) {
+    case "thisweek":
+      return { start: toLocalDateString(subWeeks(s, 1)), end: toLocalDateString(subWeeks(e, 1)) };
+    case "lastweek":
+      return { start: toLocalDateString(subWeeks(s, 1)), end: toLocalDateString(subWeeks(e, 1)) };
+    case "thismonth":
+      return {
+        start: toLocalDateString(startOfMonth(subMonths(s, 1))),
+        end: toLocalDateString(subMonths(e, 1)),
+      };
+    case "lastmonth": {
+      const ref = subMonths(s, 1);
+      return { start: toLocalDateString(startOfMonth(ref)), end: toLocalDateString(endOfMonth(ref)) };
+    }
+    case "thisquarter": {
+      const prevStart = startOfQuarter(subQuarters(s, 1));
+      const offset = differenceInCalendarDays(e, s);
+      const prevEnd = minDate([addDays(prevStart, offset), endOfQuarter(prevStart)]);
+      return { start: toLocalDateString(prevStart), end: toLocalDateString(prevEnd) };
+    }
+    case "lastquarter": {
+      const ref = subQuarters(s, 1);
+      return {
+        start: toLocalDateString(startOfQuarter(ref)),
+        end: toLocalDateString(endOfQuarter(ref)),
+      };
+    }
+    case "ytd":
+      return {
+        start: toLocalDateString(startOfYear(subYears(s, 1))),
+        end: toLocalDateString(subYears(e, 1)),
+      };
+    case "custom": {
+      const days = differenceInCalendarDays(e, s) + 1;
+      const prevEnd = subDays(s, 1);
+      return {
+        start: toLocalDateString(subDays(prevEnd, days - 1)),
+        end: toLocalDateString(prevEnd),
+      };
+    }
+    case "alltime":
+    default:
+      return null;
+  }
+}
+
+/** The same range one year earlier (Feb 29 -> Feb 28). */
+export function sameRangeLastYear(start: string | null, end: string | null): DateRange | null {
+  if (!start || !end) return null;
+  return {
+    start: toLocalDateString(subYears(parseBusinessDate(start), 1)),
+    end: toLocalDateString(subYears(parseBusinessDate(end), 1)),
+  };
 }

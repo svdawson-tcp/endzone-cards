@@ -40,6 +40,7 @@ const BottomTabBar = () => {
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
     { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
+    { icon: Receipt, label: "Expenses", route: "/expenses", description: "What you spent, by category" },
     { icon: BookText, label: "Business Glossary", route: "/glossary", description: "Learn business terms" },
     { icon: User, label: "Profile", route: "/profile", description: "View your profile settings", disabled: true },
     { icon: Users, label: "Switch Account", route: "/switch-account", description: "Switch to another user account", isAccountSwitcher: true },

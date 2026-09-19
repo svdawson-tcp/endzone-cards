@@ -13,6 +13,7 @@ import ShowCardSale from "./pages/transactions/ShowCardSale";
 import BulkSale from "./pages/transactions/BulkSale";
 import Disposition from "./pages/transactions/Disposition";
 import CreateExpense from "./pages/expenses/CreateExpense";
+import Expenses from "./pages/Expenses";
 import ManualCashTransaction from "./pages/ManualCashTransaction";
 import Accounts from "./pages/Accounts";
 import CashTransfer from "./pages/CashTransfer";
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/transactions/bulk-sale/new" element={<ProtectedRoute><AuthenticatedLayout><BulkSale /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/transactions/disposition/new" element={<ProtectedRoute><AuthenticatedLayout><Disposition /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/expenses/new" element={<ProtectedRoute><AuthenticatedLayout><CreateExpense /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/expenses" element={<ProtectedRoute><AuthenticatedLayout><Expenses /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/cash/new" element={<ProtectedRoute><AuthenticatedLayout><ManualCashTransaction /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/cash/transfer" element={<ProtectedRoute><AuthenticatedLayout><CashTransfer /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute><AuthenticatedLayout><Accounts /></AuthenticatedLayout></ProtectedRoute>} />

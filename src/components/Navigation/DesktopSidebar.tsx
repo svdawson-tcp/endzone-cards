@@ -22,6 +22,7 @@ const DesktopSidebar = () => {
     { icon: CreditCard, label: "Show Cards", route: "/show-cards" },
     { icon: Calendar, label: "Shows", route: "/shows" },
     { icon: Wallet, label: "Accounts", route: "/accounts" },
+    { icon: Receipt, label: "Expenses", route: "/expenses" },
     { icon: Receipt, label: "Transaction History", route: "/transactions" },
   ];
 
