@@ -15,6 +15,15 @@ import { kpiTooltips } from "@/data/kpiTooltips";
 
 const PERIOD_STORAGE_KEY = "dashboardPeriod";
 
+type DashboardAccount = {
+  id: string;
+  name: string;
+  kind: string;
+  target: number | null;
+  is_default: boolean;
+  balance: number;
+};
+
 type DashboardMetrics = {
   revenue: number;
   premium_revenue: number;
@@ -27,7 +36,12 @@ type DashboardMetrics = {
   expense_count: number;
   cash_in_minus_out: number;
   tax_setaside: number;
+  owner_contributions: number;
+  owner_draws: number;
+  reimbursements: number;
   cash_on_hand: number;
+  owed_to_owner: number;
+  accounts: DashboardAccount[];
   active_lots: number;
   listed_cards: number;
   listed_cards_value: number;
