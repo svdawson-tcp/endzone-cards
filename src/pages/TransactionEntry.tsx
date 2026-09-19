@@ -448,6 +448,17 @@ export default function TransactionEntry() {
                 </Select>
               </div>
 
+              <SalesChannelChips
+                value={salesChannel}
+                onChange={(value) => {
+                  setSalesChannel(value);
+                  setChannelError("");
+                }}
+                error={channelError}
+              />
+
+
+
               <div>
                 <label htmlFor="bulk-notes" className="form-label">Notes (Optional)</label>
                 <Textarea
