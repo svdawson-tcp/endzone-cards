@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseAmount } from "@/lib/numericUtils";
 
@@ -488,7 +489,7 @@ export default function CreateShowCard() {
                   lots?.map((lot) => (
                     <SelectItem key={lot.id} value={lot.id}>
                       {lot.source} - ${lot.total_cost} (
-                      {format(new Date(lot.purchase_date), "MMM dd, yyyy")})
+                      {formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")})
                     </SelectItem>
                   ))
                 )}

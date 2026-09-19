@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { DollarSign, Calendar, FileText, Loader2, Package, Hash, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageContainer } from "@/components/layout/AppLayout";
@@ -226,7 +227,7 @@ export default function BulkSale() {
               <SelectItem value="none">No show</SelectItem>
               {shows.map((show) => (
                 <SelectItem key={show.id} value={show.id}>
-                  {show.name} - {format(new Date(show.show_date), "MMM d, yyyy")}
+                  {show.name} - {formatBusinessDate(show.show_date, "MMM d, yyyy")}
                 </SelectItem>
               ))}
             </SelectContent>

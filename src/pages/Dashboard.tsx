@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { formatBusinessDate, toLocalDateString } from "@/lib/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
@@ -22,34 +23,34 @@ export default function Dashboard() {
   // Calculate date range based on selection
   const getDateRange = (): { startDate: string | null; endDate: string } => {
     const today = new Date();
-    const endDate = today.toISOString().split('T')[0];
+    const endDate = toLocalDateString(today);
     
     switch (dateRange) {
       case "7days":
         const last7Days = new Date(today);
         last7Days.setDate(today.getDate() - 7);
-        return { startDate: last7Days.toISOString().split('T')[0], endDate };
+        return { startDate: toLocalDateString(last7Days), endDate };
       
       case "30days":
         const last30Days = new Date(today);
         last30Days.setDate(today.getDate() - 30);
-        return { startDate: last30Days.toISOString().split('T')[0], endDate };
+        return { startDate: toLocalDateString(last30Days), endDate };
       
       case "thismonth":
         const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        return { startDate: firstDayThisMonth.toISOString().split('T')[0], endDate };
+        return { startDate: toLocalDateString(firstDayThisMonth), endDate };
       
       case "lastmonth":
         const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
         return { 
-          startDate: firstDayLastMonth.toISOString().split('T')[0], 
-          endDate: lastDayLastMonth.toISOString().split('T')[0] 
+          startDate: toLocalDateString(firstDayLastMonth), 
+          endDate: toLocalDateString(lastDayLastMonth) 
         };
       
       case "thisyear":
         const firstDayThisYear = new Date(today.getFullYear(), 0, 1);
-        return { startDate: firstDayThisYear.toISOString().split('T')[0], endDate };
+        return { startDate: toLocalDateString(firstDayThisYear), endDate };
       
       case "alltime":
       default:
@@ -812,7 +813,7 @@ export default function Dashboard() {
                     {getStatusBadge(show.status)}
                   </div>
                   <p className="text-sm mb-1 text-foreground">
-                    {format(new Date(show.show_date), "MMM dd, yyyy")}
+                    {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                   </p>
                   <p className="text-sm mb-3 text-muted-foreground">
                     {show.location || "Location TBD"}

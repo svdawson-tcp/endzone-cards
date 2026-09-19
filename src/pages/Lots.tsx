@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -244,7 +244,7 @@ export default function Lots() {
               <div className="space-y-3 text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>{format(new Date(lot.purchase_date), "MMM d, yyyy")}</span>
+                  <span>{formatBusinessDate(lot.purchase_date, "MMM d, yyyy")}</span>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-border">

@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { DollarSign, Calendar, FileText, Loader2, Package, Image as ImageIcon } from "lucide-react";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
@@ -309,7 +310,7 @@ export default function ShowCardSale() {
                 ) : shows && shows.length > 0 ? (
                   shows.map((show) => (
                     <SelectItem key={show.id} value={show.id} className="text-gray-900">
-                      {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
+                      {show.name} - {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                     </SelectItem>
                   ))
                 ) : (

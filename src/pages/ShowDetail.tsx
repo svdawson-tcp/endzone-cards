@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { 
   Calendar, 
   MapPin, 
@@ -256,7 +257,7 @@ export default function ShowDetail() {
               <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-gray-600">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>{format(new Date(show.show_date), "MMMM dd, yyyy")}</span>
+                  <span>{formatBusinessDate(show.show_date, "MMMM dd, yyyy")}</span>
                 </div>
                 {show.location && (
                   <div className="flex items-center gap-2">
@@ -496,7 +497,7 @@ export default function ShowDetail() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm text-gray-500">
-                                {format(new Date(exp.expense_date), "MM/dd")}
+                                {formatBusinessDate(exp.expense_date, "MM/dd")}
                               </span>
                               <Badge variant="outline" className="text-gray-900 border-gray-400 bg-gray-100">
                                 {exp.category}

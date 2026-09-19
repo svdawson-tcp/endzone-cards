@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { formatBusinessDate, toDateInputValue } from "@/lib/dateUtils";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { 
   Receipt, 
@@ -240,7 +241,9 @@ export default function TransactionHistory() {
       if (tx.source === "sales") {
         const salesTx = tx as SalesTransaction;
         return [
-          format(new Date(salesTx.transaction_date || tx.created_at), "yyyy-MM-dd HH:mm"),
+          salesTx.transaction_date
+            ? formatBusinessDate(salesTx.transaction_date, "yyyy-MM-dd")
+            : format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
           tx.transaction_type,
           "sales",
           tx.transaction_type === "show_card_sale" && salesTx.show_cards
@@ -446,11 +449,13 @@ export default function TransactionHistory() {
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-[hsl(var(--text-secondary))]" />
                             <span className="text-[hsl(var(--text-body))] font-medium">
-                              {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "MM/dd/yy")}
+                              {tx.source === "sales" && (tx as SalesTransaction).transaction_date
+                                ? formatBusinessDate((tx as SalesTransaction).transaction_date, "MM/dd/yy")
+                                : format(new Date(tx.created_at), "MM/dd/yy")}
                             </span>
                           </div>
                           <div className="text-xs text-[hsl(var(--text-secondary))]">
-                            {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "h:mm a")}
+                            {format(new Date(tx.created_at), "h:mm a")}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -504,7 +509,7 @@ export default function TransactionHistory() {
                                     const salesTx = tx as SalesTransaction;
                                     setSelectedDateNotesTransaction({
                                       id: salesTx.id,
-                                      date: salesTx.transaction_date || salesTx.created_at,
+                                      date: toDateInputValue(salesTx.transaction_date || salesTx.created_at),
                                       notes: salesTx.notes,
                                     });
                                     setDateNotesDialogOpen(true);
