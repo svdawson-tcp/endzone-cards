@@ -389,10 +389,17 @@ export default function TransactionHistory() {
       );
     } else {
       const cashTx = tx as CashTransaction;
+      if (cashTx.transaction_type === "transfer") {
+        return (
+          <span className="text-[hsl(var(--text-body))] font-semibold">
+            ${Math.abs(cashTx.amount).toFixed(2)}
+          </span>
+        );
+      }
       const isPositive = cashTx.amount >= 0;
       return (
         <span className={isPositive ? "text-[hsl(var(--metric-positive))] font-semibold" : "text-[hsl(var(--metric-negative))] font-semibold"}>
-          {isPositive ? "+" : ""}${Math.abs(cashTx.amount).toFixed(2)}
+          {isPositive ? "+" : "−"}${Math.abs(cashTx.amount).toFixed(2)}
         </span>
       );
     }
