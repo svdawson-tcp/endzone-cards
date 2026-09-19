@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { formatBusinessDate, toDateInputValue } from "@/lib/dateUtils";
+import { CASH_TYPE_LABELS } from "@/lib/moneyConstants";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { 
   Receipt, 
@@ -42,7 +43,17 @@ import { ShowReassignmentDialog } from "@/components/ShowReassignmentDialog";
 import { DateNotesEditDialog } from "@/components/DateNotesEditDialog";
 import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
 
-type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
+type TransactionType =
+  | "show_card_sale"
+  | "bulk_sale"
+  | "disposition"
+  | "deposit"
+  | "withdrawal"
+  | "adjustment"
+  | "owner_contribution"
+  | "owner_draw"
+  | "reimbursement"
+  | "transfer";
 type FilterCategory = "all" | "sales" | "cash";
 type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
@@ -62,6 +73,7 @@ interface SalesTransaction extends BaseTransaction {
   lot_id: string | null;
   show_card_id: string | null;
   transaction_date?: string;
+  sales_channel?: string | null;
   shows?: { name: string } | null;
   lots?: { source: string } | null;
   show_cards?: { player_name: string; year: string | null } | null;
@@ -73,6 +85,12 @@ interface SalesTransaction extends BaseTransaction {
 interface CashTransaction extends BaseTransaction {
   source: "cash";
   amount: number;
+  entry_date: string;
+  account_id: string | null;
+  transfer_group_id: string | null;
+  cash_accounts?: { name: string } | null;
+  transferFromName?: string | null;
+  transferToName?: string | null;
 }
 
 type Transaction = SalesTransaction | CashTransaction;
@@ -128,32 +146,74 @@ export default function TransactionHistory() {
 
       if (salesError) throw salesError;
 
-      // Fetch manual cash transactions (exclude auto-generated ones)
+      // Fetch manual cash entries (exclude auto-generated ones)
       const { data: cashData, error: cashError } = await supabase
         .from("cash_transactions")
-        .select("*")
+        .select("*, cash_accounts(name)")
         .eq("user_id", userId)
-        .in("transaction_type", ["deposit", "withdrawal", "adjustment"])
-        .order("created_at", { ascending: false });
+        .in("transaction_type", [
+          "deposit",
+          "withdrawal",
+          "adjustment",
+          "owner_contribution",
+          "owner_draw",
+          "reimbursement",
+          "transfer",
+        ])
+        .order("entry_date", { ascending: false });
 
       if (cashError) throw cashError;
 
-      // Merge and sort by date
+      // A transfer is two rows; show it once, from → to
+      const cashRows = (cashData || []) as any[];
+      const transferGroups = new Map<string, any[]>();
+      cashRows.forEach((row) => {
+        if (row.transfer_group_id) {
+          const group = transferGroups.get(row.transfer_group_id) || [];
+          group.push(row);
+          transferGroups.set(row.transfer_group_id, group);
+        }
+      });
+
+      const seenGroups = new Set<string>();
+      const cashEntries = cashRows.reduce<any[]>((acc, row) => {
+        if (!row.transfer_group_id) {
+          acc.push({ ...row, source: "cash" as const });
+          return acc;
+        }
+        if (seenGroups.has(row.transfer_group_id)) return acc;
+        seenGroups.add(row.transfer_group_id);
+        const group = transferGroups.get(row.transfer_group_id) || [];
+        const outRow = group.find((r) => Number(r.amount) < 0) || row;
+        const inRow = group.find((r) => Number(r.amount) > 0) || row;
+        acc.push({
+          ...inRow,
+          source: "cash" as const,
+          transferFromName: outRow.cash_accounts?.name || null,
+          transferToName: inRow.cash_accounts?.name || null,
+        });
+        return acc;
+      }, []);
+
+      // Merge and sort by business date
       const allTransactions: Transaction[] = [
         ...(salesData || []).map(t => ({ 
           ...t, 
           source: "sales" as const,
           transaction_type: t.transaction_type as TransactionType
         })),
-        ...(cashData || []).map(t => ({ 
-          ...t, 
-          source: "cash" as const,
+        ...cashEntries.map(t => ({
+          ...t,
           transaction_type: t.transaction_type as TransactionType
         }))
       ].sort((a, b) => {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
+        const aDate = a.source === "sales"
+          ? toDateInputValue((a as SalesTransaction).transaction_date || a.created_at)
+          : (a as CashTransaction).entry_date;
+        const bDate = b.source === "sales"
+          ? toDateInputValue((b as SalesTransaction).transaction_date || b.created_at)
+          : (b as CashTransaction).entry_date;
+        return bDate.localeCompare(aDate);
       });
 
       return allTransactions;
@@ -196,18 +256,17 @@ export default function TransactionHistory() {
     return true;
   });
 
+  const businessDateOf = (tx: Transaction): string =>
+    tx.source === "sales"
+      ? toDateInputValue((tx as SalesTransaction).transaction_date || tx.created_at)
+      : (tx as CashTransaction).entry_date;
+
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     switch (sortOption) {
-      case "date-desc": {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
-      }
-      case "date-asc": {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(aDate).getTime() - new Date(bDate).getTime();
-      }
+      case "date-desc":
+        return businessDateOf(b).localeCompare(businessDateOf(a));
+      case "date-asc":
+        return businessDateOf(a).localeCompare(businessDateOf(b));
       case "amount-desc": {
         const aAmount = a.source === "sales" ? (a as SalesTransaction).revenue : Math.abs((a as CashTransaction).amount);
         const bAmount = b.source === "sales" ? (b as SalesTransaction).revenue : Math.abs((b as CashTransaction).amount);
@@ -235,21 +294,29 @@ export default function TransactionHistory() {
     bulk_sale: transactions.filter(tx => tx.transaction_type === "bulk_sale").length,
   };
 
+  const cashAccountLabel = (tx: CashTransaction): string => {
+    if (tx.transaction_type === "transfer") {
+      return `${tx.transferFromName || "?"} → ${tx.transferToName || "?"}`;
+    }
+    return tx.cash_accounts?.name || "-";
+  };
+
   const handleExport = () => {
-    const headers = ["Date", "Type", "Source", "Lot", "Show", "Amount", "Quantity", "Notes"];
+    const headers = ["Date", "Type", "Source", "Lot", "Show", "Account", "Amount", "Quantity", "Notes"];
     const rows = sortedTransactions.map(tx => {
       if (tx.source === "sales") {
         const salesTx = tx as SalesTransaction;
         return [
           salesTx.transaction_date
             ? formatBusinessDate(salesTx.transaction_date, "yyyy-MM-dd")
-            : format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
-          tx.transaction_type,
+            : formatBusinessDate(toDateInputValue(tx.created_at), "yyyy-MM-dd"),
+          CASH_TYPE_LABELS[tx.transaction_type] || tx.transaction_type,
           "sales",
           tx.transaction_type === "show_card_sale" && salesTx.show_cards
             ? `${salesTx.show_cards.player_name} (${salesTx.show_cards.year || ""})`
             : salesTx.lots?.source || "-",
           salesTx.shows?.name || "-",
+          "-",
           salesTx.revenue.toFixed(2),
           salesTx.quantity || "-",
           tx.notes || "-"
@@ -257,17 +324,19 @@ export default function TransactionHistory() {
       } else {
         const cashTx = tx as CashTransaction;
         return [
-          format(new Date(tx.created_at), "yyyy-MM-dd HH:mm"),
-          tx.transaction_type,
+          formatBusinessDate(cashTx.entry_date, "yyyy-MM-dd"),
+          CASH_TYPE_LABELS[tx.transaction_type] || tx.transaction_type,
           "cash",
           "-",
           "-",
+          cashAccountLabel(cashTx),
           cashTx.amount.toFixed(2),
           "-",
           tx.notes || "-"
         ];
       }
     });
+
 
     const csv = [
       headers.join(","),
@@ -291,13 +360,21 @@ export default function TransactionHistory() {
       case "disposition":
         return { label: "Disposition", className: "bg-gray-500 text-white" };
       case "deposit":
-        return { label: "Deposit", className: "bg-green-600 text-white" };
+        return { label: CASH_TYPE_LABELS.deposit, className: "bg-green-600 text-white" };
       case "withdrawal":
-        return { label: "Withdrawal", className: "bg-red-600 text-white" };
+        return { label: CASH_TYPE_LABELS.withdrawal, className: "bg-red-600 text-white" };
       case "adjustment":
-        return { label: "Adjustment", className: "bg-yellow-600 text-white" };
+        return { label: CASH_TYPE_LABELS.adjustment, className: "bg-yellow-600 text-white" };
+      case "owner_contribution":
+        return { label: CASH_TYPE_LABELS.owner_contribution, className: "bg-green-700 text-white" };
+      case "owner_draw":
+        return { label: CASH_TYPE_LABELS.owner_draw, className: "bg-red-700 text-white" };
+      case "reimbursement":
+        return { label: CASH_TYPE_LABELS.reimbursement, className: "bg-orange-600 text-white" };
+      case "transfer":
+        return { label: CASH_TYPE_LABELS.transfer, className: "bg-blue-600 text-white" };
       default:
-        return { label: type, className: "bg-gray-500 text-white" };
+        return { label: CASH_TYPE_LABELS[type] || type, className: "bg-gray-500 text-white" };
     }
   };
 
@@ -312,10 +389,17 @@ export default function TransactionHistory() {
       );
     } else {
       const cashTx = tx as CashTransaction;
+      if (cashTx.transaction_type === "transfer") {
+        return (
+          <span className="text-[hsl(var(--text-body))] font-semibold">
+            ${Math.abs(cashTx.amount).toFixed(2)}
+          </span>
+        );
+      }
       const isPositive = cashTx.amount >= 0;
       return (
         <span className={isPositive ? "text-[hsl(var(--metric-positive))] font-semibold" : "text-[hsl(var(--metric-negative))] font-semibold"}>
-          {isPositive ? "+" : ""}${Math.abs(cashTx.amount).toFixed(2)}
+          {isPositive ? "+" : "−"}${Math.abs(cashTx.amount).toFixed(2)}
         </span>
       );
     }
@@ -435,6 +519,7 @@ export default function TransactionHistory() {
                     <TableHead>Type</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Show</TableHead>
+                    <TableHead>Account</TableHead>
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Notes</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -449,9 +534,7 @@ export default function TransactionHistory() {
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-[hsl(var(--text-secondary))]" />
                             <span className="text-[hsl(var(--text-body))] font-medium">
-                              {tx.source === "sales" && (tx as SalesTransaction).transaction_date
-                                ? formatBusinessDate((tx as SalesTransaction).transaction_date, "MM/dd/yy")
-                                : format(new Date(tx.created_at), "MM/dd/yy")}
+                              {formatBusinessDate(businessDateOf(tx), "MM/dd/yy")}
                             </span>
                           </div>
                           <div className="text-xs text-[hsl(var(--text-secondary))]">
@@ -476,7 +559,9 @@ export default function TransactionHistory() {
                               ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
                               : (tx as SalesTransaction).lots?.source || "-"
                           ) : (
-                            tx.notes || "Manual cash entry"
+                            tx.transaction_type === "transfer"
+                              ? cashAccountLabel(tx as CashTransaction)
+                              : tx.notes || "Manual cash entry"
                           )}
                         </TableCell>
                         <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
@@ -485,6 +570,9 @@ export default function TransactionHistory() {
                           ) : (
                             "—"
                           )}
+                        </TableCell>
+                        <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
+                          {tx.source === "cash" ? cashAccountLabel(tx as CashTransaction) : "—"}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">

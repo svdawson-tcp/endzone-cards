@@ -14,6 +14,8 @@ import BulkSale from "./pages/transactions/BulkSale";
 import Disposition from "./pages/transactions/Disposition";
 import CreateExpense from "./pages/expenses/CreateExpense";
 import ManualCashTransaction from "./pages/ManualCashTransaction";
+import Accounts from "./pages/Accounts";
+import CashTransfer from "./pages/CashTransfer";
 import CreateShowCard from "./pages/CreateShowCard";
 import CreateShow from "./pages/CreateShow";
 import CreateLot from "./pages/CreateLot";
@@ -64,6 +66,8 @@ const App = () => (
           <Route path="/transactions/disposition/new" element={<ProtectedRoute><AuthenticatedLayout><Disposition /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/expenses/new" element={<ProtectedRoute><AuthenticatedLayout><CreateExpense /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/cash/new" element={<ProtectedRoute><AuthenticatedLayout><ManualCashTransaction /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/cash/transfer" element={<ProtectedRoute><AuthenticatedLayout><CashTransfer /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/accounts" element={<ProtectedRoute><AuthenticatedLayout><Accounts /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowCardDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />

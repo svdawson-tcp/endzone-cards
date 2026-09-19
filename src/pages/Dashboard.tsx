@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, ShoppingCart } from "lucide-react";
+import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, ShoppingCart, HandCoins, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear } from "date-fns";
 import { formatBusinessDate, toLocalDateString, todayLocal } from "@/lib/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +15,15 @@ import { KpiInfoPopover } from "@/components/ui/KpiInfoPopover";
 import { kpiTooltips } from "@/data/kpiTooltips";
 
 const PERIOD_STORAGE_KEY = "dashboardPeriod";
+
+type DashboardAccount = {
+  id: string;
+  name: string;
+  kind: string;
+  target: number | null;
+  is_default: boolean;
+  balance: number;
+};
 
 type DashboardMetrics = {
   revenue: number;
@@ -27,7 +37,12 @@ type DashboardMetrics = {
   expense_count: number;
   cash_in_minus_out: number;
   tax_setaside: number;
+  owner_contributions: number;
+  owner_draws: number;
+  reimbursements: number;
   cash_on_hand: number;
+  owed_to_owner: number;
+  accounts: DashboardAccount[];
   active_lots: number;
   listed_cards: number;
   listed_cards_value: number;
@@ -202,6 +217,13 @@ export default function Dashboard() {
   const cashFlow = Number(metrics?.cash_in_minus_out || 0);
   const cashFlowColor = cashFlow > 0 ? "metric-positive" : cashFlow < 0 ? "metric-negative" : "text-foreground";
 
+  const accounts = metrics?.accounts || [];
+  const reserveAccount = accounts.find((a) => a.kind === "reserve");
+  const reserveBalance = Number(reserveAccount?.balance || 0);
+  const reserveTarget = Number(reserveAccount?.target || 0);
+  const reserveProgress = reserveTarget > 0 ? Math.min(100, (reserveBalance / reserveTarget) * 100) : 0;
+  const owedToOwner = Number(metrics?.owed_to_owner || 0);
+
   const Tile = ({
     icon: Icon,
     title,
@@ -209,6 +231,7 @@ export default function Dashboard() {
     subtext,
     tooltip,
     valueClassName,
+    footer,
   }: {
     icon: typeof TrendingUp;
     title: string;
@@ -216,6 +239,7 @@ export default function Dashboard() {
     subtext?: string;
     tooltip: string;
     valueClassName?: string;
+    footer?: React.ReactNode;
   }) => (
     <div className="night-game-card p-4 md:p-6 relative">
       <KpiInfoPopover content={tooltip} />
@@ -231,6 +255,7 @@ export default function Dashboard() {
             {value}
           </div>
           {subtext && <p className="text-xs md:text-sm text-muted-foreground mt-2">{subtext}</p>}
+          {footer}
         </>
       )}
     </div>
@@ -317,6 +342,8 @@ export default function Dashboard() {
             value={money(metrics?.premium_revenue)} />
           <Tile icon={Package} title="Bulk Sales" tooltip={kpiTooltips.bulkSales}
             value={money(metrics?.bulk_revenue)} />
+          <Tile icon={HandCoins} title="Owner Draws" tooltip={kpiTooltips.ownerDraws}
+            value={money(metrics?.owner_draws)} subtext="Money you took out of the business" />
         </div>
       </div>
 
@@ -328,7 +355,43 @@ export default function Dashboard() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Tile icon={Wallet} title="Cash on Hand" tooltip={kpiTooltips.cashOnHand}
-            value={money(metrics?.cash_on_hand)} />
+            value={money(metrics?.cash_on_hand)}
+            footer={
+              accounts.length > 0 ? (
+                <div className="mt-3 space-y-1">
+                  {accounts.map((account) => (
+                    <div key={account.id} className="flex justify-between text-xs text-muted-foreground">
+                      <span>{account.name}</span>
+                      <span>{money(account.balance)}</span>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => navigate("/accounts")}
+                    className="text-xs text-accent underline min-h-[44px] pt-2"
+                  >
+                    View accounts
+                  </button>
+                </div>
+              ) : undefined
+            } />
+          <Tile icon={Landmark} title="Reserve" tooltip={kpiTooltips.reserve}
+            value={money(reserveBalance)}
+            subtext={reserveTarget > 0 ? `${reserveProgress.toFixed(0)}% of ${money(reserveTarget)} target` : "No target set"}
+            footer={
+              <div className="mt-3">
+                {reserveTarget > 0 && <Progress value={reserveProgress} className="h-2" />}
+                <button
+                  onClick={() => navigate("/accounts")}
+                  className="text-xs text-accent underline min-h-[44px] pt-2"
+                >
+                  Manage accounts
+                </button>
+              </div>
+            } />
+          {owedToOwner > 0 && (
+            <Tile icon={HandCoins} title="Owed to You" tooltip={kpiTooltips.owedToYou}
+              value={money(owedToOwner)} subtext="Expenses you paid personally" />
+          )}
           <Tile icon={Package} title="Active Lots" tooltip={kpiTooltips.activeLots}
             value={`${Number(metrics?.active_lots || 0)}`} />
           <Tile icon={CreditCard} title="Listed Cards" tooltip={kpiTooltips.listedCards}
