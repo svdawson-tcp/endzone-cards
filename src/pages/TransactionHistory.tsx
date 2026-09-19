@@ -455,7 +455,7 @@ export default function TransactionHistory() {
                             </span>
                           </div>
                           <div className="text-xs text-[hsl(var(--text-secondary))]">
-                            {format(new Date(tx.source === "sales" ? ((tx as SalesTransaction).transaction_date || tx.created_at) : tx.created_at), "h:mm a")}
+                            {format(new Date(tx.created_at), "h:mm a")}
                           </div>
                         </TableCell>
                         <TableCell>
