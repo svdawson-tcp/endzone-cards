@@ -255,18 +255,17 @@ export default function TransactionHistory() {
     return true;
   });
 
+  const businessDateOf = (tx: Transaction): string =>
+    tx.source === "sales"
+      ? toDateInputValue((tx as SalesTransaction).transaction_date || tx.created_at)
+      : (tx as CashTransaction).entry_date;
+
   const sortedTransactions = [...filteredTransactions].sort((a, b) => {
     switch (sortOption) {
-      case "date-desc": {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
-      }
-      case "date-asc": {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(aDate).getTime() - new Date(bDate).getTime();
-      }
+      case "date-desc":
+        return businessDateOf(b).localeCompare(businessDateOf(a));
+      case "date-asc":
+        return businessDateOf(a).localeCompare(businessDateOf(b));
       case "amount-desc": {
         const aAmount = a.source === "sales" ? (a as SalesTransaction).revenue : Math.abs((a as CashTransaction).amount);
         const bAmount = b.source === "sales" ? (b as SalesTransaction).revenue : Math.abs((b as CashTransaction).amount);
