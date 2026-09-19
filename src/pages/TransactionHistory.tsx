@@ -42,7 +42,17 @@ import { ShowReassignmentDialog } from "@/components/ShowReassignmentDialog";
 import { DateNotesEditDialog } from "@/components/DateNotesEditDialog";
 import { DeleteTransactionDialog } from "@/components/DeleteTransactionDialog";
 
-type TransactionType = "show_card_sale" | "bulk_sale" | "disposition" | "deposit" | "withdrawal" | "adjustment";
+type TransactionType =
+  | "show_card_sale"
+  | "bulk_sale"
+  | "disposition"
+  | "deposit"
+  | "withdrawal"
+  | "adjustment"
+  | "owner_contribution"
+  | "owner_draw"
+  | "reimbursement"
+  | "transfer";
 type FilterCategory = "all" | "sales" | "cash";
 type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
@@ -62,6 +72,7 @@ interface SalesTransaction extends BaseTransaction {
   lot_id: string | null;
   show_card_id: string | null;
   transaction_date?: string;
+  sales_channel?: string | null;
   shows?: { name: string } | null;
   lots?: { source: string } | null;
   show_cards?: { player_name: string; year: string | null } | null;
@@ -73,6 +84,12 @@ interface SalesTransaction extends BaseTransaction {
 interface CashTransaction extends BaseTransaction {
   source: "cash";
   amount: number;
+  entry_date: string;
+  account_id: string | null;
+  transfer_group_id: string | null;
+  cash_accounts?: { name: string } | null;
+  transferFromName?: string | null;
+  transferToName?: string | null;
 }
 
 type Transaction = SalesTransaction | CashTransaction;
