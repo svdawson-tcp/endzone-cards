@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,8 @@ import { DollarSign, Calendar, FileText, Loader2, Package, Hash, Info } from "lu
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
+import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
+import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
 
 export default function BulkSale() {
   const navigate = useNavigate();
@@ -33,6 +35,7 @@ export default function BulkSale() {
   const [selectedShowId, setSelectedShowId] = useState<string>("");
   const [saleDate, setSaleDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
+  const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: lots = [], isLoading: lotsLoading } = useQuery({
@@ -71,6 +74,12 @@ export default function BulkSale() {
     },
   });
 
+  // Keep entry fast: selecting a show means it sold at the show
+  useEffect(() => {
+    if (selectedShowId) setSalesChannel("card_show");
+  }, [selectedShowId]);
+
+
   const submitMutation = useMutation({
     mutationFn: async () => {
       const { data: user } = await supabase.auth.getUser();
@@ -84,6 +93,7 @@ export default function BulkSale() {
         revenue: parseRequiredAmount(revenue),
         show_id: selectedShowId || null,
         transaction_date: saleDate,
+        sales_channel: salesChannel,
         notes: notes.trim() || null,
       };
 
@@ -96,6 +106,7 @@ export default function BulkSale() {
       return data;
     },
     onSuccess: async () => {
+      writeLastSalesChannel(salesChannel);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["active-lots"] });
 
@@ -125,6 +136,7 @@ export default function BulkSale() {
     if (!quantity || parseInt(quantity) <= 0) newErrors.quantity = "Please enter a valid quantity";
     if (!revenue || parseFloat(revenue) <= 0) newErrors.revenue = "Please enter valid revenue";
     if (!saleDate) newErrors.date = "Please select a date";
+    if (!salesChannel) newErrors.salesChannel = "Please choose where this sold";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -233,6 +245,18 @@ export default function BulkSale() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* Sales Channel */}
+        <SalesChannelChips
+          value={salesChannel}
+          onChange={(value) => {
+            setSalesChannel(value);
+            setErrors((prev) => ({ ...prev, salesChannel: "" }));
+          }}
+          error={errors.salesChannel}
+        />
+
+
 
         {/* Sale Date */}
         <div>

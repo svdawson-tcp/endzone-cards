@@ -38,15 +38,7 @@ export function DeleteExpenseDialog({
     mutationFn: async () => {
       if (!expense) throw new Error("No expense to delete");
 
-      // First, delete linked cash_transaction (no cascade trigger exists)
-      const { error: cashError } = await supabase
-        .from("cash_transactions")
-        .delete()
-        .eq("related_expense_id", expense.id);
-
-      if (cashError) throw cashError;
-
-      // Then delete the expense itself
+      // The BEFORE DELETE trigger removes the linked cash row.
       const { error: expenseError } = await supabase
         .from("expenses")
         .delete()

@@ -19,6 +19,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { parseRequiredAmount } from "@/lib/numericUtils";
+import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
+import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
+import { useEffect } from "react";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
 type DispositionType = "discard" | "lost" | "combined";
@@ -38,6 +41,13 @@ export default function TransactionEntry() {
   const [notes, setNotes] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [transactionDate, setTransactionDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
+  const [channelError, setChannelError] = useState("");
+
+  // Keep entry fast: selecting a show means it sold at the show
+  useEffect(() => {
+    if (selectedShowId) setSalesChannel("card_show");
+  }, [selectedShowId]);
 
   // Fetch available show cards
   const { data: showCards, isLoading: loadingCards } = useQuery({
@@ -112,6 +122,11 @@ export default function TransactionEntry() {
     e.preventDefault();
     if (!isFormValid()) return;
 
+    if (transactionType !== "disposition" && !salesChannel) {
+      setChannelError("Please choose where this sold");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -129,6 +144,7 @@ export default function TransactionEntry() {
             quantity: 1,
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
+            sales_channel: salesChannel,
             notes: notes || null,
           });
 
@@ -149,6 +165,7 @@ export default function TransactionEntry() {
             quantity: parseInt(quantity),
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
+            sales_channel: salesChannel,
             notes: notes || null,
           });
 
@@ -190,6 +207,10 @@ export default function TransactionEntry() {
           title: "Disposition recorded!",
           description: `Card ${dispositionType === "combined" ? "combined into lot" : dispositionType}.`,
         });
+      }
+
+      if (transactionType !== "disposition") {
+        writeLastSalesChannel(salesChannel);
       }
 
       navigate("/dashboard");
@@ -325,6 +346,19 @@ export default function TransactionEntry() {
                 </Select>
               </div>
 
+              <SalesChannelChips
+                value={salesChannel}
+                onChange={(value) => {
+                  setSalesChannel(value);
+                  setChannelError("");
+                }}
+                error={channelError}
+              />
+
+
+
+
+
               <div>
                 <label htmlFor="notes" className="form-label">Notes (Optional)</label>
                 <Textarea
@@ -418,6 +452,17 @@ export default function TransactionEntry() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <SalesChannelChips
+                value={salesChannel}
+                onChange={(value) => {
+                  setSalesChannel(value);
+                  setChannelError("");
+                }}
+                error={channelError}
+              />
+
+
 
               <div>
                 <label htmlFor="bulk-notes" className="form-label">Notes (Optional)</label>

@@ -63,6 +63,23 @@ const LotDetail = () => {
     enabled: !!id,
   });
 
+  // Show this lot was bought at, if any
+  const { data: boughtAtShow } = useQuery({
+    queryKey: ["lot-bought-at-show", lot?.show_id],
+    enabled: !!lot?.show_id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("shows")
+        .select("name")
+        .eq("id", lot!.show_id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+  const boughtAtShowName = boughtAtShow?.name || null;
+
+
   // Fetch show cards
   const { data: showCards = [], isLoading: cardsLoading } = useQuery({
     queryKey: ["lot-show-cards", id],
@@ -265,6 +282,9 @@ const LotDetail = () => {
               <p className="text-sm text-muted-foreground">
                 Purchased {formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")}
               </p>
+              {boughtAtShowName && (
+                <p className="text-sm text-muted-foreground">Bought at {boughtAtShowName}</p>
+              )}
             </div>
             <Badge variant={getStatusBadgeVariant(lot.status)}>
               {lot.status}

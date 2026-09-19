@@ -14,6 +14,14 @@ import { FormField } from "@/components/forms/FormField";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
+import { formatBusinessDate } from "@/lib/dateUtils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CreateLot() {
   const navigate = useNavigate();
@@ -27,6 +35,7 @@ export default function CreateLot() {
   const [source, setSource] = useState("");
   const [totalCost, setTotalCost] = useState("");
   const [notes, setNotes] = useState("");
+  const [showId, setShowId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: existingLot, isLoading: loadingLot } = useQuery({
@@ -44,12 +53,28 @@ export default function CreateLot() {
     enabled: !!id,
   });
 
+  const { data: shows = [] } = useQuery({
+    queryKey: ["shows-for-lots"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase
+        .from("shows")
+        .select("id, name, show_date")
+        .eq("user_id", user.id)
+        .order("show_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   useEffect(() => {
     if (existingLot) {
       setPurchaseDate(existingLot.purchase_date);
       setSource(existingLot.source);
       setTotalCost(existingLot.total_cost.toString());
       setNotes(existingLot.notes || "");
+      setShowId(existingLot.show_id || "");
     }
   }, [existingLot]);
 
@@ -131,6 +156,7 @@ export default function CreateLot() {
         source: source.trim(),
         total_cost: parseRequiredAmount(totalCost),
         notes: notes.trim() || null,
+        show_id: showId || null,
       };
 
       if (isEditMode) {
@@ -269,6 +295,26 @@ export default function CreateLot() {
             min={0.01}
             step={0.01}
           />
+        </FormField>
+
+        <FormField
+          label="Bought at show"
+          helperText="Link this purchase to a show, if you bought it there"
+          htmlFor="lot-show"
+        >
+          <Select value={showId || "none"} onValueChange={(value) => setShowId(value === "none" ? "" : value)}>
+            <SelectTrigger id="lot-show" className="min-h-[44px]">
+              <SelectValue placeholder="Not at a show" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Not at a show</SelectItem>
+              {shows.map((show) => (
+                <SelectItem key={show.id} value={show.id}>
+                  {show.name} – {formatBusinessDate(show.show_date, "MMM d, yyyy")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </FormField>
 
         <div>

@@ -9,5 +9,8 @@ export const kpiTooltips = {
   bulkSales: "Revenue from bulk and lot sales.",
   cashOnHand: "Current balance of all cash entries in the app. Should match the business bank account.",
   activeLots: "Lots still being sold.",
-  listedCards: "Individually listed show cards still available, and their total asking price. Does NOT include un-itemised cards still sitting in lots, so real inventory is larger."
+  listedCards: "Individually listed show cards still available, and their total asking price. Does NOT include un-itemised cards still sitting in lots, so real inventory is larger.",
+  ownerDraws: "Money taken out of the business for personal use in this period. Contributions (money put in) are shown underneath.",
+  reserve: "Your emergency cushion. The goal is to build it steadily; it's the best single sign the business can support you.",
+  owedToYou: "Business costs you paid with your own money that the business hasn't paid back yet. Record a Reimbursement to clear it."
 };

@@ -22,14 +22,10 @@ import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
-
-const EXPENSE_CATEGORIES = [
-  "Booth Fee",
-  "Travel",
-  "Supplies",
-  "Meals",
-  "Other",
-] as const;
+import { EXPENSE_CATEGORIES } from "@/lib/moneyConstants";
+import { useCashAccounts } from "@/hooks/useCashAccounts";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
 
@@ -46,6 +42,16 @@ export default function CreateExpense() {
   const [showCamera, setShowCamera] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [paidPersonally, setPaidPersonally] = useState(false);
+  const [accountId, setAccountId] = useState("");
+
+  const { data: accounts = [] } = useCashAccounts();
+
+  useEffect(() => {
+    if (!accountId && accounts.length > 0) {
+      setAccountId((accounts.find((a) => a.is_default) || accounts[0]).id);
+    }
+  }, [accounts, accountId]);
 
   // Pre-select show from URL param
   const showIdFromUrl = searchParams.get("showId");
@@ -142,7 +148,7 @@ export default function CreateExpense() {
         receiptPhotoUrl = publicUrl;
       }
 
-      // Insert expense
+      // Insert expense (the database trigger handles the cash entry)
       const { error: insertError } = await supabase.from("expenses").insert({
         user_id: user.id,
         amount: parseRequiredAmount(amount),
@@ -151,6 +157,8 @@ export default function CreateExpense() {
         expense_date: expenseDate,
         notes: notes || null,
         receipt_photo_url: receiptPhotoUrl,
+        paid_personally: paidPersonally,
+        account_id: paidPersonally ? null : accountId || null,
       });
 
       if (insertError) throw insertError;
@@ -225,7 +233,7 @@ export default function CreateExpense() {
         </FormField>
 
         {/* Booth Fee Warning */}
-        {category === "Booth Fee" && selectedShowId && 
+        {category === "Table / Booth Fees" && selectedShowId && 
           shows?.find(s => s.id === selectedShowId)?.table_cost && 
           (shows.find(s => s.id === selectedShowId)?.table_cost ?? 0) > 0 && (
           <div className="bg-warning/10 border border-warning/30 rounded-md p-3 text-sm text-warning-foreground">
@@ -234,6 +242,40 @@ export default function CreateExpense() {
             recorded in the show setup. Only add an expense here if this is an 
             additional fee.
           </div>
+        )}
+
+        {/* Paid personally */}
+        <div className="flex items-center justify-between gap-4 rounded-md border border-input p-3 min-h-[44px]">
+          <Label htmlFor="paid-personally" className="cursor-pointer">
+            I paid with my own money (reimburse me)
+          </Label>
+          <Switch
+            id="paid-personally"
+            checked={paidPersonally}
+            onCheckedChange={setPaidPersonally}
+          />
+        </div>
+
+        {/* Paid from account */}
+        {!paidPersonally && (
+          <FormField
+            label="Paid from"
+            htmlFor="paid-from"
+            helperText="Which account the money came out of"
+          >
+            <Select value={accountId} onValueChange={setAccountId}>
+              <SelectTrigger id="paid-from" className="min-h-[44px]">
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
         )}
 
         {/* Show Field (Optional) */}

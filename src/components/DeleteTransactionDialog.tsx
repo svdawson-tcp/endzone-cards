@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle } from "lucide-react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
+import { toDateInputValue } from "@/lib/dateUtils";
 
 interface DeleteTransactionDialogProps {
   open: boolean;
@@ -74,16 +75,34 @@ export function DeleteTransactionDialog({
         if (showCardError) throw showCardError;
       }
 
-      // 3. Create offsetting cash transaction (reversal)
+      // 3. Create offsetting cash transaction (reversal) on the sale's business date
+      const { data: saleRow, error: saleError } = await supabase
+        .from("transactions")
+        .select("transaction_date")
+        .eq("id", transactionId)
+        .single();
+
+      if (saleError) throw saleError;
+
+      const { data: defaultAccount, error: accountError } = await supabase
+        .from("cash_accounts")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_default", true)
+        .single();
+
+      if (accountError) throw accountError;
+
       const { error: cashError } = await supabase
         .from("cash_transactions")
         .insert({
           user_id: user.id,
+          account_id: defaultAccount.id,
           transaction_type: "adjustment",
           amount: -revenue,
           notes: `Reversal for deleted transaction ${transactionId}`,
           related_transaction_id: transactionId,
-          created_at: new Date().toISOString(),
+          entry_date: toDateInputValue(saleRow.transaction_date),
         });
 
       if (cashError) throw cashError;

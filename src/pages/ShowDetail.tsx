@@ -491,7 +491,7 @@ export default function ShowDetail() {
                     
                     {/* Individual expenses */}
                     {expenses.map((exp) => {
-                      const hasDuplicateBoothFee = exp.category === "Booth Fee" && show.table_cost > 0;
+                      const hasDuplicateBoothFee = exp.category === "Table / Booth Fees" && show.table_cost > 0;
                       return (
                         <div key={exp.id} className="flex items-center justify-between py-2 border-b last:border-0">
                           <div className="flex-1 min-w-0">
