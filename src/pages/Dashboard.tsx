@@ -361,7 +361,7 @@ export default function Dashboard() {
       </div>
 
       {/* Trend */}
-      {series && series.length > 0 && <TrendChart series={series} grain={grain} />}
+      {series && series.length > 0 && <TrendChart series={series} grain={grain} rangeLabel={rangeLabel} />}
 
       {/* Section B: Right Now */}
       <div className="space-y-4">
