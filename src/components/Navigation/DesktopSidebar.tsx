@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const DesktopSidebar = () => {
     { icon: Package, label: "Lots", route: "/lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards" },
     { icon: Calendar, label: "Shows", route: "/shows" },
+    { icon: Wallet, label: "Accounts", route: "/accounts" },
     { icon: Receipt, label: "Transaction History", route: "/transactions" },
   ];
 
@@ -29,9 +30,8 @@ const DesktopSidebar = () => {
     { icon: Package, label: "Bulk Sale", route: "/transactions/bulk-sale/new" },
     { icon: Trash2, label: "Disposition", route: "/transactions/disposition/new" },
     { icon: Receipt, label: "Record Expense", route: "/expenses/new", description: "Track business expenses" },
-    { icon: DollarSign, label: "Cash Deposit", route: "/cash/new?type=deposit" },
-    { icon: TrendingDown, label: "Cash Withdrawal", route: "/cash/new?type=withdrawal" },
-    { icon: Settings, label: "Cash Adjustment", route: "/cash/new?type=adjustment" },
+    { icon: DollarSign, label: "Money In / Out", route: "/cash/new" },
+    { icon: ArrowLeftRight, label: "Transfer Between Accounts", route: "/cash/transfer" },
   ];
 
   const goalItems = [
