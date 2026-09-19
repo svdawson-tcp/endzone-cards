@@ -1,14 +1,13 @@
 export const kpiTooltips = {
-  netProfit: "Your bottom line. Total revenue minus all costs (inventory purchases + expenses). Positive = making money, negative = losing money.",
-  profitMargin: "What percentage of each dollar you keep as profit. 15%+ is healthy, 5-15% is okay, below 5% needs attention.",
-  totalRevenue: "All money received from selling cards (premium + bulk sales). Does not include expenses or costs.",
-  cashOnHand: "Actual cash available right now. Increases with sales and deposits, decreases with purchases and expenses.",
-  totalCosts: "All money spent: lot purchases (inventory) plus business expenses (table fees, supplies, etc.).",
-  premiumSales: "Revenue from individual show card sales. These are your high-value, photographed inventory items.",
-  bulkSales: "Revenue from selling common cards in bulk (by count or weight). Lower margin but moves volume.",
-  showCardInventory: "Number of individual cards photographed and available for sale. Your premium inventory count.",
-  averageSaleValue: "Total revenue ÷ number of transactions. Higher = selling bigger items or bundles.",
-  totalInventoryValue: "Sum of asking prices for all unsold show cards. What you could potentially earn if everything sold at asking price.",
-  totalBusinessValue: "Cash on hand + inventory value. Your total liquid assets if you sold everything today.",
-  inventoryTurnover: "Revenue ÷ inventory value. Higher = faster sales. 1x means you've sold your inventory's worth once."
+  revenue: "Money received from card sales in this period (show card + bulk). Before platform fees and shipping.",
+  buying: "Money spent buying lots in this period. The strongest predictor of next month's sales.",
+  cashInMinusOut: "Sales minus lot purchases minus logged expenses for this period. This is cash flow, not profit: a big buying week can show negative even when the business is healthy, because those cards haven't sold yet.",
+  expensesLogged: "Business expenses you've recorded for this period. If this looks low, costs are probably going unrecorded.",
+  taxSetAside: "4% of every sale in this period. Move this amount to the Tax account. Based on sales, not profit, on purpose.",
+  averageSale: "Revenue ÷ number of sales in this period.",
+  premiumSales: "Revenue from individually listed show cards.",
+  bulkSales: "Revenue from bulk and lot sales.",
+  cashOnHand: "Current balance of all cash entries in the app. Should match the business bank account.",
+  activeLots: "Lots still being sold.",
+  listedCards: "Individually listed show cards still available, and their total asking price. Does NOT include un-itemised cards still sitting in lots, so real inventory is larger."
 };

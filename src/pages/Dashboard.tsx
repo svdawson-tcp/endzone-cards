@@ -1,276 +1,128 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Package, CreditCard, Calendar, Wallet } from "lucide-react";
+import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, ShoppingCart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { formatBusinessDate, toLocalDateString } from "@/lib/dateUtils";
+import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear } from "date-fns";
+import { formatBusinessDate, toLocalDateString, todayLocal } from "@/lib/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { KpiInfoPopover } from "@/components/ui/KpiInfoPopover";
 import { kpiTooltips } from "@/data/kpiTooltips";
 
+const PERIOD_STORAGE_KEY = "dashboardPeriod";
+
+type DashboardMetrics = {
+  revenue: number;
+  premium_revenue: number;
+  bulk_revenue: number;
+  sale_count: number;
+  avg_sale: number;
+  inventory_purchased: number;
+  lots_purchased: number;
+  expenses: number;
+  expense_count: number;
+  cash_in_minus_out: number;
+  tax_setaside: number;
+  cash_on_hand: number;
+  active_lots: number;
+  listed_cards: number;
+  listed_cards_value: number;
+};
+
+const readStoredPeriod = (): string => {
+  try {
+    const stored = localStorage.getItem(PERIOD_STORAGE_KEY);
+    if (stored) return stored;
+  } catch {
+    // ignore storage errors
+  }
+  return "thismonth";
+};
+
+const money = (value: unknown) => `$${Number(value || 0).toFixed(2)}`;
+
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [dateRange, setDateRange] = useState<string>("alltime");
-  const { getEffectiveUserId, isViewingAsMentor, viewingUserId } = useMentorAccess();
+  const [period, setPeriod] = useState<string>(readStoredPeriod);
+  const [customFrom, setCustomFrom] = useState<string>(toLocalDateString(startOfMonth(new Date())));
+  const [customTo, setCustomTo] = useState<string>(todayLocal());
+  const { viewingUserId, getEffectiveUserId } = useMentorAccess();
 
-  // Calculate date range based on selection
-  const getDateRange = (): { startDate: string | null; endDate: string } => {
+  const handlePeriodChange = (value: string) => {
+    setPeriod(value);
+    try {
+      localStorage.setItem(PERIOD_STORAGE_KEY, value);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  // Resolve the selected period into business-date strings (never toISOString)
+  const resolveRange = (): { start: string | null; end: string | null } => {
     const today = new Date();
-    const endDate = toLocalDateString(today);
-    
-    switch (dateRange) {
-      case "7days":
-        const last7Days = new Date(today);
-        last7Days.setDate(today.getDate() - 7);
-        return { startDate: toLocalDateString(last7Days), endDate };
-      
-      case "30days":
-        const last30Days = new Date(today);
-        last30Days.setDate(today.getDate() - 30);
-        return { startDate: toLocalDateString(last30Days), endDate };
-      
-      case "thismonth":
-        const firstDayThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        return { startDate: toLocalDateString(firstDayThisMonth), endDate };
-      
-      case "lastmonth":
-        const firstDayLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const lastDayLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
-        return { 
-          startDate: toLocalDateString(firstDayLastMonth), 
-          endDate: toLocalDateString(lastDayLastMonth) 
+    switch (period) {
+      case "thisweek":
+        return { start: toLocalDateString(startOfWeek(today, { weekStartsOn: 1 })), end: toLocalDateString(today) };
+      case "lastweek": {
+        const ref = subWeeks(today, 1);
+        return {
+          start: toLocalDateString(startOfWeek(ref, { weekStartsOn: 1 })),
+          end: toLocalDateString(endOfWeek(ref, { weekStartsOn: 1 })),
         };
-      
-      case "thisyear":
-        const firstDayThisYear = new Date(today.getFullYear(), 0, 1);
-        return { startDate: toLocalDateString(firstDayThisYear), endDate };
-      
+      }
+      case "thismonth":
+        return { start: toLocalDateString(startOfMonth(today)), end: toLocalDateString(today) };
+      case "lastmonth": {
+        const ref = subMonths(today, 1);
+        return { start: toLocalDateString(startOfMonth(ref)), end: toLocalDateString(endOfMonth(ref)) };
+      }
+      case "thisquarter":
+        return { start: toLocalDateString(startOfQuarter(today)), end: toLocalDateString(today) };
+      case "lastquarter": {
+        const ref = subQuarters(today, 1);
+        return { start: toLocalDateString(startOfQuarter(ref)), end: toLocalDateString(endOfQuarter(ref)) };
+      }
+      case "ytd":
+        return { start: toLocalDateString(startOfYear(today)), end: toLocalDateString(today) };
+      case "custom":
+        return { start: customFrom || null, end: customTo || null };
       case "alltime":
       default:
-        return { startDate: null, endDate };
+        return { start: null, end: null };
     }
   };
 
-  const getDateRangeLabel = (): string => {
-    switch (dateRange) {
-      case "7days": return "Last 7 Days";
-      case "30days": return "Last 30 Days";
-      case "thismonth": return "This Month";
-      case "lastmonth": return "Last Month";
-      case "thisyear": return "This Year";
-      case "alltime":
-      default: return "All Time";
-    }
+  const { start, end } = resolveRange();
+  const customInvalid = period === "custom" && (!customFrom || !customTo || customFrom > customTo);
+
+  const rangeLabel = (): string => {
+    if (!start && !end) return "All time";
+    if (!start || !end) return "All time";
+    const sameYear = start.slice(0, 4) === end.slice(0, 4);
+    return `${formatBusinessDate(start, sameYear ? "MMM d" : "MMM d, yyyy")} – ${formatBusinessDate(end, "MMM d, yyyy")}`;
   };
 
-  const { startDate, endDate } = getDateRange();
-
-  // Cash Balance Query
-  const { data: cashBalance, isLoading: loadingCash } = useQuery({
-    queryKey: ["cashBalance", viewingUserId],
+  // ISS-005: single RPC — all money math happens in the database
+  const { data: metrics, isLoading: loadingMetrics } = useQuery({
+    queryKey: ["dashboardMetrics", viewingUserId, start, end],
+    enabled: !customInvalid,
     queryFn: async () => {
       const userId = await getEffectiveUserId();
-      const { data, error } = await supabase
-        .from("cash_transactions")
-        .select("amount")
-        .eq("user_id", userId);
-      
+      const { data, error } = await supabase.rpc("get_dashboard_metrics", {
+        p_user_id: userId,
+        p_start: start,
+        p_end: end,
+      });
       if (error) throw error;
-      return data?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
+      return data as unknown as DashboardMetrics;
     },
   });
 
-  // Total Revenue Query
-  const { data: totalRevenue, isLoading: loadingRevenue } = useQuery({
-    queryKey: ["totalRevenue", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("transactions")
-        .select("revenue")
-        .eq("user_id", userId)
-        .in("transaction_type", ["show_card_sale", "bulk_sale"])
-        .or("deleted.is.null,deleted.eq.false");
-      
-      if (startDate) {
-        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
-    },
-  });
-
-  // Premium Sales Query (show_card_sale)
-  const { data: premiumSales, isLoading: loadingPremium } = useQuery({
-    queryKey: ["premiumSales", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("transactions")
-        .select("revenue")
-        .eq("user_id", userId)
-        .eq("transaction_type", "show_card_sale")
-        .or("deleted.is.null,deleted.eq.false");
-      
-      if (startDate) {
-        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
-    },
-  });
-
-  // Bulk Sales Query
-  const { data: bulkSales, isLoading: loadingBulk } = useQuery({
-    queryKey: ["bulkSales", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("transactions")
-        .select("revenue")
-        .eq("user_id", userId)
-        .eq("transaction_type", "bulk_sale")
-        .or("deleted.is.null,deleted.eq.false");
-      
-      if (startDate) {
-        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
-    },
-  });
-
-  // Average Sale Value Query
-  const { data: averageSaleData, isLoading: loadingAverage } = useQuery({
-    queryKey: ["averageSale", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("transactions")
-        .select("revenue")
-        .eq("user_id", userId)
-        .in("transaction_type", ["show_card_sale", "bulk_sale"])
-        .or("deleted.is.null,deleted.eq.false");
-      
-      if (startDate) {
-        query = query.gte("transaction_date", startDate).lte("transaction_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      
-      const totalRevenue = data?.reduce((sum, t) => sum + Number(t.revenue), 0) || 0;
-      const transactionCount = data?.length || 0;
-      const averageValue = transactionCount > 0 ? totalRevenue / transactionCount : 0;
-      
-      return { averageValue, transactionCount };
-    },
-  });
-
-  // Lot Costs Query (exclude 'ordered' status)
-  const { data: lotCosts, isLoading: loadingLotCosts } = useQuery({
-    queryKey: ["lotCosts", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("lots")
-        .select("total_cost")
-        .eq("user_id", userId)
-        .neq("status", "ordered");
-      
-      if (startDate) {
-        query = query.gte("purchase_date", startDate).lte("purchase_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data?.reduce((sum, l) => sum + Number(l.total_cost), 0) || 0;
-    },
-  });
-
-  // Total Expenses Query
-  const { data: totalExpenses, isLoading: loadingExpenses } = useQuery({
-    queryKey: ["totalExpenses", dateRange, viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("expenses")
-        .select("amount")
-        .eq("user_id", userId);
-      
-      if (startDate) {
-        query = query.gte("expense_date", startDate).lte("expense_date", endDate);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
-      return data?.reduce((sum, e) => sum + Number(e.amount), 0) || 0;
-    },
-  });
-
-  // Calculate derived metrics
-  const totalCosts = (lotCosts || 0) + (totalExpenses || 0);
-  const netProfit = (totalRevenue || 0) - totalCosts;
-  const profitMargin = totalRevenue && totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
-
-  const getProfitColor = () => {
-    if (netProfit > 0) return "metric-positive";
-    if (netProfit < 0) return "metric-negative";
-    return "text-primary";
-  };
-
-  const getMarginColor = () => {
-    if (profitMargin >= 15) return "metric-positive";
-    if (profitMargin >= 5) return "text-yellow-500";
-    return "metric-negative";
-  };
-
-  // Active Lots Query
-  const { data: activeLots, isLoading: loadingLots } = useQuery({
-    queryKey: ["activeLots", viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      const { count, error } = await supabase
-        .from("lots")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "active");
-      
-      if (error) throw error;
-      return count || 0;
-    },
-  });
-
-  // Available Show Cards Query
-  const { data: availableCards, isLoading: loadingCards } = useQuery({
-    queryKey: ["availableCards", viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      const { count, error } = await supabase
-        .from("show_cards")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "available");
-      
-      if (error) throw error;
-      return count || 0;
-    },
-  });
-
-  // Upcoming Shows Query
+  // Upcoming Shows Query (unchanged)
   const { data: upcomingShowsCount, isLoading: loadingShowsCount } = useQuery({
     queryKey: ["upcomingShowsCount", viewingUserId],
     queryFn: async () => {
@@ -280,38 +132,13 @@ export default function Dashboard() {
         .select("*", { count: "exact", head: true })
         .eq("user_id", userId)
         .in("status", ["planned", "active"]);
-      
+
       if (error) throw error;
       return count || 0;
     },
   });
 
-  // Total Inventory Value Query (Sum of asking prices for available cards)
-  const { data: inventoryValue, isLoading: loadingInventory } = useQuery({
-    queryKey: ["inventoryValue", viewingUserId],
-    queryFn: async () => {
-      const userId = await getEffectiveUserId();
-      
-      const { data, error } = await supabase
-        .from("show_cards")
-        .select("asking_price")
-        .eq("user_id", userId)
-        .eq("status", "available");
-      
-      if (error) throw error;
-      return data?.reduce((sum, card) => sum + (Number(card.asking_price) || 0), 0) || 0;
-    },
-  });
-
-  // Calculate Total Business Value
-  const totalBusinessValue = (cashBalance || 0) + (inventoryValue || 0);
-
-  // Calculate Inventory Turnover
-  const inventoryTurnover = (inventoryValue && inventoryValue > 0) 
-    ? (totalRevenue || 0) / inventoryValue 
-    : (totalRevenue || 0) > 0 ? Infinity : 0;
-
-  // Recent Activity Query
+  // Recent Activity Query (unchanged)
   const { data: recentActivity, isLoading: loadingActivity } = useQuery({
     queryKey: ["recentActivity"],
     queryFn: async () => {
@@ -326,13 +153,13 @@ export default function Dashboard() {
         .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
         .order("created_at", { ascending: false })
         .limit(10);
-      
+
       if (error) throw error;
       return data;
     },
   });
 
-  // Upcoming Shows Details Query
+  // Upcoming Shows Details Query (unchanged)
   const { data: upcomingShows, isLoading: loadingShows } = useQuery({
     queryKey: ["upcomingShows"],
     queryFn: async () => {
@@ -343,7 +170,7 @@ export default function Dashboard() {
         .in("status", ["planned", "active"])
         .order("show_date", { ascending: true })
         .limit(3);
-      
+
       if (error) throw error;
       return data;
     },
@@ -355,7 +182,7 @@ export default function Dashboard() {
       bulk_sale: { variant: "secondary", label: "Bulk Sale", className: "text-gray-900" },
       disposition: { variant: "outline", label: "Disposition", className: "text-gray-900" },
     };
-    
+
     const config = variants[type] || { variant: "outline" as const, label: type, className: "text-gray-900" };
     return <Badge variant={config.variant} className={config.className}>{config.label}</Badge>;
   };
@@ -366,347 +193,156 @@ export default function Dashboard() {
       active: { variant: "default" },
       completed: { variant: "outline", className: "text-gray-900" },
     };
-    
+
     const displayLabel = status === "completed" ? "Closed" : status.charAt(0).toUpperCase() + status.slice(1);
     const config = variants[status] || { variant: "outline" as const, className: "text-gray-900" };
     return <Badge variant={config.variant} className={config.className}>{displayLabel}</Badge>;
   };
 
-  const isLoadingInitial = loadingRevenue || loadingLotCosts || loadingExpenses || loadingCash;
+  const cashFlow = Number(metrics?.cash_in_minus_out || 0);
+  const cashFlowColor = cashFlow > 0 ? "metric-positive" : cashFlow < 0 ? "metric-negative" : "text-foreground";
+
+  const Tile = ({
+    icon: Icon,
+    title,
+    value,
+    subtext,
+    tooltip,
+    valueClassName,
+  }: {
+    icon: typeof TrendingUp;
+    title: string;
+    value: string;
+    subtext?: string;
+    tooltip: string;
+    valueClassName?: string;
+  }) => (
+    <div className="night-game-card p-4 md:p-6 relative">
+      <KpiInfoPopover content={tooltip} />
+      <Icon className="h-7 w-7 md:h-8 md:w-8 text-accent mb-3 md:mb-4" />
+      <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1 pr-8">
+        {title}
+      </h3>
+      {loadingMetrics ? (
+        <Skeleton className="h-9 w-2/3 bg-muted/20" />
+      ) : (
+        <>
+          <div className={`text-2xl md:text-3xl font-bold ${valueClassName || "text-foreground"}`}>
+            {value}
+          </div>
+          {subtext && <p className="text-xs md:text-sm text-muted-foreground mt-2">{subtext}</p>}
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-6 space-y-8 max-w-7xl pb-24">
-      {/* Header with Date Selector */}
+      {/* Header with Period Picker */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="w-full md:w-auto">
-          <Select value={dateRange} onValueChange={setDateRange}>
-            <SelectTrigger className="w-full md:w-[200px] bg-card border-input text-foreground">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground uppercase tracking-wide">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">{rangeLabel()}</p>
+        </div>
+        <div className="w-full md:w-auto space-y-3">
+          <Select value={period} onValueChange={handlePeriodChange}>
+            <SelectTrigger className="w-full md:w-[220px] min-h-[44px] bg-card border-input text-foreground">
               <Calendar className="mr-2 h-4 w-4 text-accent" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-card border-input text-foreground">
-              <SelectItem value="7days">Last 7 Days</SelectItem>
-              <SelectItem value="30days">Last 30 Days</SelectItem>
+              <SelectItem value="thisweek">This Week</SelectItem>
+              <SelectItem value="lastweek">Last Week</SelectItem>
               <SelectItem value="thismonth">This Month</SelectItem>
               <SelectItem value="lastmonth">Last Month</SelectItem>
-              <SelectItem value="thisyear">This Year</SelectItem>
+              <SelectItem value="thisquarter">This Quarter</SelectItem>
+              <SelectItem value="lastquarter">Last Quarter</SelectItem>
+              <SelectItem value="ytd">Year to Date</SelectItem>
               <SelectItem value="alltime">All Time</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
 
-      {/* Section 1: Am I Profitable? */}
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
-          Am I Profitable?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          {/* NET PROFIT - Hero Card with Gold Effect */}
-          <div className="night-game-card p-6 relative group cursor-pointer" onClick={() => navigate('/transaction-history')}>
-            <KpiInfoPopover content={kpiTooltips.netProfit} />
-            <div className="flex flex-col h-full justify-between relative z-10">
-              <TrendingUp className="h-8 w-8 text-accent mb-4" />
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                  Net Profit
-                </h3>
-                {isLoadingInitial ? (
-                  <Skeleton className="h-12 w-3/4 bg-muted/20" />
-                ) : (
-                  <>
-                    <div className="text-4xl md:text-5xl font-bold gold-stat-text mb-2">
-                      ${netProfit.toFixed(2)}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {getDateRangeLabel() === "All Time" 
-                        ? "Money earned after all costs"
-                        : `${getDateRangeLabel()} - Money earned after costs`
-                      }
-                    </p>
-                  </>
-                )}
+          {period === "custom" && (
+            <div className="space-y-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="flex-1">
+                  <label className="block text-xs text-muted-foreground mb-1" htmlFor="range-from">From</label>
+                  <input
+                    id="range-from"
+                    type="date"
+                    value={customFrom}
+                    max={todayLocal()}
+                    onChange={(e) => setCustomFrom(e.target.value)}
+                    className="w-full min-h-[44px] rounded-md border border-input bg-card px-3 text-foreground"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-xs text-muted-foreground mb-1" htmlFor="range-to">To</label>
+                  <input
+                    id="range-to"
+                    type="date"
+                    value={customTo}
+                    max={todayLocal()}
+                    onChange={(e) => setCustomTo(e.target.value)}
+                    className="w-full min-h-[44px] rounded-md border border-input bg-card px-3 text-foreground"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-1/4 translate-y-1/4 z-0">
-              <TrendingUp className="h-32 w-32 text-accent" />
-            </div>
-          </div>
-
-          {/* PROFIT MARGIN */}
-          <div className="night-game-card p-6 relative overflow-hidden">
-            <KpiInfoPopover content={kpiTooltips.profitMargin} />
-            <div className="relative z-10">
-              <TrendingUp className="h-8 w-8 text-accent mb-4" />
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                Profit Margin
-              </h3>
-              {isLoadingInitial ? (
-                <Skeleton className="h-10 w-1/2 bg-muted/20" />
-              ) : (
-                <>
-                  <div className={`text-3xl font-bold ${getMarginColor()}`}>
-                    {profitMargin.toFixed(1)}%
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {getDateRangeLabel() === "All Time" 
-                      ? "Percentage kept as profit"
-                      : `${getDateRangeLabel()} - Percentage kept as profit`
-                    }
-                  </p>
-                </>
+              {customInvalid && (
+                <p className="text-sm metric-negative">From date must be on or before the To date.</p>
               )}
             </div>
-          </div>
-
-          {/* TOTAL REVENUE */}
-          <div className="night-game-card p-6 relative overflow-hidden">
-            <KpiInfoPopover content={kpiTooltips.totalRevenue} />
-            <div className="relative z-10">
-              <TrendingUp className="h-8 w-8 text-accent mb-4" />
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                Total Revenue
-              </h3>
-              {loadingRevenue ? (
-                <Skeleton className="h-10 w-1/2 bg-muted/20" />
-              ) : (
-                <>
-                  <div className="text-3xl font-bold text-foreground">
-                    ${(totalRevenue || 0).toFixed(2)}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {getDateRangeLabel() === "All Time" 
-                      ? "Total money from card sales"
-                      : `${getDateRangeLabel()} - Total from card sales`
-                    }
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* CASH ON HAND */}
-          <div className="night-game-card p-6 relative overflow-hidden">
-            <KpiInfoPopover content={kpiTooltips.cashOnHand} />
-            <div className="relative z-10">
-              <Wallet className="h-8 w-8 text-accent mb-4" />
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-                Cash on Hand
-              </h3>
-              {loadingCash ? (
-                <Skeleton className="h-10 w-1/2 bg-muted/20" />
-              ) : (
-                <>
-                  <div className="text-3xl font-bold text-foreground">
-                    ${(cashBalance || 0).toFixed(2)}
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Money available to spend
-                  </p>
-                </>
-              )}
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Section 2: How Am I Selling? */}
+      {/* Section A: This Period */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
-          How Am I Selling?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          {/* TOTAL COSTS */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.totalCosts} />
-            <Package className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Total Costs
-            </h3>
-            {loadingLotCosts || loadingExpenses ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${totalCosts.toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Cost of inventory + expenses"
-                    : `${getDateRangeLabel()} - Inventory + expenses`
-                  }
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* PREMIUM SALES */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.premiumSales} />
-            <CreditCard className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Premium Sales
-            </h3>
-            {loadingPremium ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${(premiumSales || 0).toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Revenue from individual card sales"
-                    : `${getDateRangeLabel()} - Individual card sales`
-                  }
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* BULK SALES */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.bulkSales} />
-            <Package className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Bulk Sales
-            </h3>
-            {loadingBulk ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${(bulkSales || 0).toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Revenue from multi-card sales"
-                    : `${getDateRangeLabel()} - Multi-card sales`
-                  }
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* SHOW CARD INVENTORY */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.showCardInventory} />
-            <CreditCard className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Show Card Inventory
-            </h3>
-            {loadingCards ? (
-              <Skeleton className="h-10 w-16 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  {availableCards}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  High-value cards ready to sell
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* AVERAGE SALE VALUE */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.averageSaleValue} />
-            <TrendingUp className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Average Sale Value
-            </h3>
-            {loadingAverage ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${(averageSaleData?.averageValue || 0).toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Average money per transaction"
-                    : `${getDateRangeLabel()} - Avg per transaction`
-                  }
-                </p>
-              </>
-            )}
-          </div>
+        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">This Period</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <Tile icon={TrendingUp} title="Revenue" tooltip={kpiTooltips.revenue}
+            value={money(metrics?.revenue)} subtext={`${Number(metrics?.sale_count || 0)} sales`} />
+          <Tile icon={ShoppingCart} title="Buying" tooltip={kpiTooltips.buying}
+            value={money(metrics?.inventory_purchased)} subtext={`${Number(metrics?.lots_purchased || 0)} lots`} />
+          <Tile icon={Wallet} title="Cash In − Cash Out" tooltip={kpiTooltips.cashInMinusOut}
+            value={money(metrics?.cash_in_minus_out)} valueClassName={cashFlowColor} />
+          <Tile icon={Receipt} title="Expenses Logged" tooltip={kpiTooltips.expensesLogged}
+            value={money(metrics?.expenses)} subtext={`${Number(metrics?.expense_count || 0)} entries`} />
+          <Tile icon={PiggyBank} title="Tax Set-Aside" tooltip={kpiTooltips.taxSetAside}
+            value={money(metrics?.tax_setaside)} subtext="4% of sales — move to Tax account" />
+          <Tile icon={TrendingUp} title="Average Sale" tooltip={kpiTooltips.averageSale}
+            value={money(metrics?.avg_sale)} />
+          <Tile icon={CreditCard} title="Show Card Sales" tooltip={kpiTooltips.premiumSales}
+            value={money(metrics?.premium_revenue)} />
+          <Tile icon={Package} title="Bulk Sales" tooltip={kpiTooltips.bulkSales}
+            value={money(metrics?.bulk_revenue)} />
         </div>
       </div>
 
-      {/* Section 3: What's My Investment? */}
+      {/* Section B: Right Now */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">
-          What's My Investment?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-          {/* TOTAL INVENTORY VALUE */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.totalInventoryValue} />
-            <Package className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Total Inventory Value
+        <div>
+          <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">Right Now</h2>
+          <p className="text-xs text-muted-foreground mt-1">Not affected by the date range</p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <Tile icon={Wallet} title="Cash on Hand" tooltip={kpiTooltips.cashOnHand}
+            value={money(metrics?.cash_on_hand)} />
+          <Tile icon={Package} title="Active Lots" tooltip={kpiTooltips.activeLots}
+            value={`${Number(metrics?.active_lots || 0)}`} />
+          <Tile icon={CreditCard} title="Listed Cards" tooltip={kpiTooltips.listedCards}
+            value={`${Number(metrics?.listed_cards || 0)}`}
+            subtext={`${money(metrics?.listed_cards_value)} at asking price`} />
+          <div className="night-game-card p-4 md:p-6 relative">
+            <Calendar className="h-7 w-7 md:h-8 md:w-8 text-accent mb-3 md:mb-4" />
+            <h3 className="text-xs md:text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
+              Upcoming Shows
             </h3>
-            {loadingInventory ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
+            {loadingShowsCount ? (
+              <Skeleton className="h-9 w-1/2 bg-muted/20" />
             ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${(inventoryValue || 0).toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Money tied up in unsold cards
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* TOTAL BUSINESS VALUE */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.totalBusinessValue} />
-            <Wallet className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Total Business Value
-            </h3>
-            {loadingCash || loadingInventory ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  ${totalBusinessValue.toFixed(2)}
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Total worth if liquidated today
-                </p>
-              </>
-            )}
-          </div>
-
-          {/* INVENTORY TURNOVER */}
-          <div className="night-game-card p-6 relative">
-            <KpiInfoPopover content={kpiTooltips.inventoryTurnover} />
-            <TrendingUp className="h-8 w-8 text-accent mb-4" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">
-              Inventory Turnover
-            </h3>
-            {loadingRevenue || loadingInventory ? (
-              <Skeleton className="h-10 w-1/2 bg-muted/20" />
-            ) : (
-              <>
-                <div className="text-3xl font-bold text-foreground">
-                  {inventoryTurnover === Infinity ? "∞" : inventoryTurnover.toFixed(1)}x
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {getDateRangeLabel() === "All Time" 
-                    ? "Inventory converts to cash"
-                    : `${getDateRangeLabel()} - Inventory to cash speed`
-                  }
-                </p>
-              </>
+              <div className="text-2xl md:text-3xl font-bold text-foreground">{upcomingShowsCount}</div>
             )}
           </div>
         </div>
@@ -716,19 +352,19 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row gap-4">
         <Button 
           onClick={() => navigate("/transactions/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
         >
           RECORD SALE
         </Button>
         <Button 
           onClick={() => navigate("/show-cards/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
         >
           ADD SHOW CARD
         </Button>
         <Button 
           onClick={() => navigate("/shows/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-semibold uppercase flex-1"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
         >
           CREATE SHOW
         </Button>
