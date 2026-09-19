@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { formatBusinessDate, toDateInputValue } from "@/lib/dateUtils";
+import { CASH_TYPE_LABELS } from "@/lib/moneyConstants";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { 
   Receipt, 
