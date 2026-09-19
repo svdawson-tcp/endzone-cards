@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
 
@@ -252,7 +253,7 @@ export default function CreateExpense() {
               <SelectItem value="none">No specific show</SelectItem>
               {shows?.map((show) => (
                 <SelectItem key={show.id} value={show.id}>
-                  {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
+                  {show.name} - {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                 </SelectItem>
               ))}
             </SelectContent>

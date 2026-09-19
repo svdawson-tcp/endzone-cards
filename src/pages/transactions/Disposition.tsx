@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { Trash2, Loader2, Package, Hash, FileText, AlertCircle } from "lucide-react";
 import { PageContainer } from "@/components/layout/AppLayout";
 
@@ -80,7 +81,7 @@ export default function Disposition() {
       if (dispositionType === "combined" && destinationLotId) {
         const destLot = lots.find(l => l.id === destinationLotId);
         if (destLot) {
-          dispositionNotes = `${notes ? notes + " | " : ""}Combined into lot from ${destLot.source} (${format(new Date(destLot.purchase_date), "MMM d, yyyy")})`;
+          dispositionNotes = `${notes ? notes + " | " : ""}Combined into lot from ${destLot.source} (${formatBusinessDate(destLot.purchase_date, "MMM d, yyyy")})`;
         }
       }
 
@@ -168,7 +169,7 @@ export default function Disposition() {
               <SelectContent>
                 {lots.map((lot) => (
                   <SelectItem key={lot.id} value={lot.id}>
-                    {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
+                    {formatBusinessDate(lot.purchase_date, "MMM d, yyyy")} - {lot.source}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -278,7 +279,7 @@ export default function Disposition() {
                 <SelectContent>
                   {lots.filter(lot => lot.id !== selectedLotId).map((lot) => (
                     <SelectItem key={lot.id} value={lot.id}>
-                      {format(new Date(lot.purchase_date), "MMM d, yyyy")} - {lot.source}
+                      {formatBusinessDate(lot.purchase_date, "MMM d, yyyy")} - {lot.source}
                     </SelectItem>
                   ))}
                 </SelectContent>

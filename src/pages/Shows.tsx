@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { Calendar, MapPin, DollarSign, Edit, Trash2, Plus, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -407,7 +408,7 @@ export default function Shows() {
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm text-[hsl(var(--text-body))]">
-                    {format(new Date(show.show_date), "MMM dd, yyyy")}
+                    {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                   </span>
                   </div>
 

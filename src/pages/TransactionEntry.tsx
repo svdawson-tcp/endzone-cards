@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { parseRequiredAmount } from "@/lib/numericUtils";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
@@ -317,7 +318,7 @@ export default function TransactionEntry() {
                     <SelectItem value="none">No show</SelectItem>
                     {shows?.map((show) => (
                       <SelectItem key={show.id} value={show.id}>
-                        {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
+                        {show.name} - {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -351,7 +352,7 @@ export default function TransactionEntry() {
                   <SelectContent>
                     {lots?.map((lot) => (
                       <SelectItem key={lot.id} value={lot.id}>
-                        {lot.source} - ${lot.total_cost} ({format(new Date(lot.purchase_date), "MMM dd, yyyy")})
+                        {lot.source} - ${lot.total_cost} ({formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -411,7 +412,7 @@ export default function TransactionEntry() {
                     <SelectItem value="none">No show</SelectItem>
                     {shows?.map((show) => (
                       <SelectItem key={show.id} value={show.id}>
-                        {show.name} - {format(new Date(show.show_date), "MMM dd, yyyy")}
+                        {show.name} - {formatBusinessDate(show.show_date, "MMM dd, yyyy")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -492,7 +493,7 @@ export default function TransactionEntry() {
                     <SelectContent>
                       {lots?.map((lot) => (
                         <SelectItem key={lot.id} value={lot.id}>
-                          {lot.source} - ${lot.total_cost} ({format(new Date(lot.purchase_date), "MMM dd, yyyy")})
+                          {lot.source} - ${lot.total_cost} ({formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")})
                         </SelectItem>
                       ))}
                     </SelectContent>

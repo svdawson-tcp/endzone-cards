@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { DeleteShowCardDialog } from "@/components/showCards/DeleteShowCardDialog";
+import { formatBusinessDate } from "@/lib/dateUtils";
 
 const ShowCards = () => {
   const navigate = useNavigate();
@@ -219,11 +220,7 @@ const ShowCards = () => {
 
                     {card.status === "sold" && (card as any).transactions?.[0]?.transaction_date && (
                       <p className="text-xs text-[hsl(var(--text-secondary))]">
-                        Sold: {new Date((card as any).transactions[0].transaction_date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })}
+                        Sold: {formatBusinessDate((card as any).transactions[0].transaction_date, "MMM d, yyyy")}
                       </p>
                     )}
 
