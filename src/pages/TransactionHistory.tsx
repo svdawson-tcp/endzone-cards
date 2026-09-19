@@ -145,32 +145,74 @@ export default function TransactionHistory() {
 
       if (salesError) throw salesError;
 
-      // Fetch manual cash transactions (exclude auto-generated ones)
+      // Fetch manual cash entries (exclude auto-generated ones)
       const { data: cashData, error: cashError } = await supabase
         .from("cash_transactions")
-        .select("*")
+        .select("*, cash_accounts(name)")
         .eq("user_id", userId)
-        .in("transaction_type", ["deposit", "withdrawal", "adjustment"])
-        .order("created_at", { ascending: false });
+        .in("transaction_type", [
+          "deposit",
+          "withdrawal",
+          "adjustment",
+          "owner_contribution",
+          "owner_draw",
+          "reimbursement",
+          "transfer",
+        ])
+        .order("entry_date", { ascending: false });
 
       if (cashError) throw cashError;
 
-      // Merge and sort by date
+      // A transfer is two rows; show it once, from → to
+      const cashRows = (cashData || []) as any[];
+      const transferGroups = new Map<string, any[]>();
+      cashRows.forEach((row) => {
+        if (row.transfer_group_id) {
+          const group = transferGroups.get(row.transfer_group_id) || [];
+          group.push(row);
+          transferGroups.set(row.transfer_group_id, group);
+        }
+      });
+
+      const seenGroups = new Set<string>();
+      const cashEntries = cashRows.reduce<any[]>((acc, row) => {
+        if (!row.transfer_group_id) {
+          acc.push({ ...row, source: "cash" as const });
+          return acc;
+        }
+        if (seenGroups.has(row.transfer_group_id)) return acc;
+        seenGroups.add(row.transfer_group_id);
+        const group = transferGroups.get(row.transfer_group_id) || [];
+        const outRow = group.find((r) => Number(r.amount) < 0) || row;
+        const inRow = group.find((r) => Number(r.amount) > 0) || row;
+        acc.push({
+          ...inRow,
+          source: "cash" as const,
+          transferFromName: outRow.cash_accounts?.name || null,
+          transferToName: inRow.cash_accounts?.name || null,
+        });
+        return acc;
+      }, []);
+
+      // Merge and sort by business date
       const allTransactions: Transaction[] = [
         ...(salesData || []).map(t => ({ 
           ...t, 
           source: "sales" as const,
           transaction_type: t.transaction_type as TransactionType
         })),
-        ...(cashData || []).map(t => ({ 
-          ...t, 
-          source: "cash" as const,
+        ...cashEntries.map(t => ({
+          ...t,
           transaction_type: t.transaction_type as TransactionType
         }))
       ].sort((a, b) => {
-        const aDate = a.source === "sales" ? ((a as SalesTransaction).transaction_date || a.created_at) : a.created_at;
-        const bDate = b.source === "sales" ? ((b as SalesTransaction).transaction_date || b.created_at) : b.created_at;
-        return new Date(bDate).getTime() - new Date(aDate).getTime();
+        const aDate = a.source === "sales"
+          ? toDateInputValue((a as SalesTransaction).transaction_date || a.created_at)
+          : (a as CashTransaction).entry_date;
+        const bDate = b.source === "sales"
+          ? toDateInputValue((b as SalesTransaction).transaction_date || b.created_at)
+          : (b as CashTransaction).entry_date;
+        return bDate.localeCompare(aDate);
       });
 
       return allTransactions;
