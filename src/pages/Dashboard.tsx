@@ -216,6 +216,13 @@ export default function Dashboard() {
   const cashFlow = Number(metrics?.cash_in_minus_out || 0);
   const cashFlowColor = cashFlow > 0 ? "metric-positive" : cashFlow < 0 ? "metric-negative" : "text-foreground";
 
+  const accounts = metrics?.accounts || [];
+  const reserveAccount = accounts.find((a) => a.kind === "reserve");
+  const reserveBalance = Number(reserveAccount?.balance || 0);
+  const reserveTarget = Number(reserveAccount?.target || 0);
+  const reserveProgress = reserveTarget > 0 ? Math.min(100, (reserveBalance / reserveTarget) * 100) : 0;
+  const owedToOwner = Number(metrics?.owed_to_owner || 0);
+
   const Tile = ({
     icon: Icon,
     title,
@@ -223,6 +230,7 @@ export default function Dashboard() {
     subtext,
     tooltip,
     valueClassName,
+    footer,
   }: {
     icon: typeof TrendingUp;
     title: string;
@@ -230,6 +238,7 @@ export default function Dashboard() {
     subtext?: string;
     tooltip: string;
     valueClassName?: string;
+    footer?: React.ReactNode;
   }) => (
     <div className="night-game-card p-4 md:p-6 relative">
       <KpiInfoPopover content={tooltip} />
@@ -245,6 +254,7 @@ export default function Dashboard() {
             {value}
           </div>
           {subtext && <p className="text-xs md:text-sm text-muted-foreground mt-2">{subtext}</p>}
+          {footer}
         </>
       )}
     </div>
