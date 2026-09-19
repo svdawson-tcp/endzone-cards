@@ -341,6 +341,8 @@ export default function Dashboard() {
             value={money(metrics?.premium_revenue)} />
           <Tile icon={Package} title="Bulk Sales" tooltip={kpiTooltips.bulkSales}
             value={money(metrics?.bulk_revenue)} />
+          <Tile icon={HandCoins} title="Owner Draws" tooltip={kpiTooltips.ownerDraws}
+            value={money(metrics?.owner_draws)} subtext="Money you took out of the business" />
         </div>
       </div>
 
