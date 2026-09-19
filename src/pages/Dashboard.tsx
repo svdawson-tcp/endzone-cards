@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, ShoppingCart } from "lucide-react";
+import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, ShoppingCart, HandCoins, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
