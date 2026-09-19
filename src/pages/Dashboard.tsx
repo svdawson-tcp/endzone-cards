@@ -6,15 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear } from "date-fns";
-import { formatBusinessDate, toLocalDateString, todayLocal } from "@/lib/dateUtils";
+import { format, differenceInCalendarDays } from "date-fns";
+import { formatBusinessDate, previousPeriodRange, sameRangeLastYear } from "@/lib/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { KpiInfoPopover } from "@/components/ui/KpiInfoPopover";
 import { kpiTooltips } from "@/data/kpiTooltips";
+import { usePeriod, formatRangeLabel } from "@/hooks/usePeriod";
+import { PeriodPicker } from "@/components/PeriodPicker";
+import { TrendChart, type PeriodSeriesRow } from "@/components/TrendChart";
+import { ChangeLine } from "@/components/ChangeLine";
 
-const PERIOD_STORAGE_KEY = "dashboardPeriod";
+const COMPARE_STORAGE_KEY = "dashboardCompare";
 
 type DashboardAccount = {
   id: string;
@@ -48,78 +52,54 @@ type DashboardMetrics = {
   listed_cards_value: number;
 };
 
-const readStoredPeriod = (): string => {
+const readStoredCompare = (): string => {
   try {
-    const stored = localStorage.getItem(PERIOD_STORAGE_KEY);
+    const stored = localStorage.getItem(COMPARE_STORAGE_KEY);
     if (stored) return stored;
   } catch {
     // ignore storage errors
   }
-  return "thismonth";
+  return "previous";
 };
 
 const money = (value: unknown) => `$${Number(value || 0).toFixed(2)}`;
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [period, setPeriod] = useState<string>(readStoredPeriod);
-  const [customFrom, setCustomFrom] = useState<string>(toLocalDateString(startOfMonth(new Date())));
-  const [customTo, setCustomTo] = useState<string>(todayLocal());
+  const periodState = usePeriod();
+  const { period, start, end, customInvalid, rangeLabel } = periodState;
+  const [compare, setCompare] = useState<string>(readStoredCompare);
   const { viewingUserId, getEffectiveUserId } = useMentorAccess();
 
-  const handlePeriodChange = (value: string) => {
-    setPeriod(value);
+  const handleCompareChange = (value: string) => {
+    setCompare(value);
     try {
-      localStorage.setItem(PERIOD_STORAGE_KEY, value);
+      localStorage.setItem(COMPARE_STORAGE_KEY, value);
     } catch {
       // ignore storage errors
     }
   };
 
-  // Resolve the selected period into business-date strings (never toISOString)
-  const resolveRange = (): { start: string | null; end: string | null } => {
-    const today = new Date();
-    switch (period) {
-      case "thisweek":
-        return { start: toLocalDateString(startOfWeek(today, { weekStartsOn: 1 })), end: toLocalDateString(today) };
-      case "lastweek": {
-        const ref = subWeeks(today, 1);
-        return {
-          start: toLocalDateString(startOfWeek(ref, { weekStartsOn: 1 })),
-          end: toLocalDateString(endOfWeek(ref, { weekStartsOn: 1 })),
-        };
-      }
-      case "thismonth":
-        return { start: toLocalDateString(startOfMonth(today)), end: toLocalDateString(today) };
-      case "lastmonth": {
-        const ref = subMonths(today, 1);
-        return { start: toLocalDateString(startOfMonth(ref)), end: toLocalDateString(endOfMonth(ref)) };
-      }
-      case "thisquarter":
-        return { start: toLocalDateString(startOfQuarter(today)), end: toLocalDateString(today) };
-      case "lastquarter": {
-        const ref = subQuarters(today, 1);
-        return { start: toLocalDateString(startOfQuarter(ref)), end: toLocalDateString(endOfQuarter(ref)) };
-      }
-      case "ytd":
-        return { start: toLocalDateString(startOfYear(today)), end: toLocalDateString(today) };
-      case "custom":
-        return { start: customFrom || null, end: customTo || null };
-      case "alltime":
-      default:
-        return { start: null, end: null };
-    }
-  };
+  const compareAvailable = period !== "alltime" && !!start && !!end;
+  const compareRange =
+    !compareAvailable || compare === "off"
+      ? null
+      : compare === "lastyear"
+        ? sameRangeLastYear(start, end)
+        : previousPeriodRange(period, start, end);
 
-  const { start, end } = resolveRange();
-  const customInvalid = period === "custom" && (!customFrom || !customTo || customFrom > customTo);
+  const comparisonLabel = compareRange ? formatRangeLabel(compareRange.start, compareRange.end) : "";
+  const comparisonShortLabel = compareRange
+    ? `${formatBusinessDate(compareRange.start, "MMM d")} – ${formatBusinessDate(compareRange.end, "MMM d")}`
+    : "";
 
-  const rangeLabel = (): string => {
-    if (!start && !end) return "All time";
-    if (!start || !end) return "All time";
-    const sameYear = start.slice(0, 4) === end.slice(0, 4);
-    return `${formatBusinessDate(start, sameYear ? "MMM d" : "MMM d, yyyy")} – ${formatBusinessDate(end, "MMM d, yyyy")}`;
-  };
+  // Trend grain: weekly for ranges up to 26 weeks, otherwise monthly
+  const grain: "week" | "month" =
+    !start || !end
+      ? "month"
+      : differenceInCalendarDays(new Date(end), new Date(start)) <= 26 * 7
+        ? "week"
+        : "month";
 
   // ISS-005: single RPC — all money math happens in the database
   const { data: metrics, isLoading: loadingMetrics } = useQuery({
@@ -134,6 +114,39 @@ export default function Dashboard() {
       });
       if (error) throw error;
       return data as unknown as DashboardMetrics;
+    },
+  });
+
+  // Comparison period — separate query, all totals still from the database
+  const { data: compareMetrics } = useQuery({
+    queryKey: ["dashboardMetricsCompare", viewingUserId, compareRange?.start, compareRange?.end],
+    enabled: !customInvalid && !!compareRange,
+    queryFn: async () => {
+      const userId = await getEffectiveUserId();
+      const { data, error } = await supabase.rpc("get_dashboard_metrics", {
+        p_user_id: userId,
+        p_start: compareRange!.start,
+        p_end: compareRange!.end,
+      });
+      if (error) throw error;
+      return data as unknown as DashboardMetrics;
+    },
+  });
+
+  // Trend series
+  const { data: series } = useQuery({
+    queryKey: ["periodSeries", viewingUserId, start, end, grain],
+    enabled: !customInvalid,
+    queryFn: async () => {
+      const userId = await getEffectiveUserId();
+      const { data, error } = await supabase.rpc("get_period_series", {
+        p_user_id: userId,
+        p_start: start,
+        p_end: end,
+        p_grain: grain,
+      });
+      if (error) throw error;
+      return (data || []) as unknown as PeriodSeriesRow[];
     },
   });
 
@@ -153,10 +166,11 @@ export default function Dashboard() {
     },
   });
 
-  // Recent Activity Query (unchanged)
+  // Recent Activity Query
   const { data: recentActivity, isLoading: loadingActivity } = useQuery({
-    queryKey: ["recentActivity"],
+    queryKey: ["recentActivity", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { data, error } = await supabase
         .from("transactions")
         .select(`
@@ -165,7 +179,7 @@ export default function Dashboard() {
           lots (source),
           shows (name)
         `)
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -174,14 +188,15 @@ export default function Dashboard() {
     },
   });
 
-  // Upcoming Shows Details Query (unchanged)
+  // Upcoming Shows Details Query
   const { data: upcomingShows, isLoading: loadingShows } = useQuery({
-    queryKey: ["upcomingShows"],
+    queryKey: ["upcomingShows", viewingUserId],
     queryFn: async () => {
+      const userId = await getEffectiveUserId();
       const { data, error } = await supabase
         .from("shows")
         .select("*")
-        .eq("user_id", (await supabase.auth.getUser()).data.user?.id)
+        .eq("user_id", userId)
         .in("status", ["planned", "active"])
         .order("show_date", { ascending: true })
         .limit(3);
@@ -267,59 +282,28 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-foreground uppercase tracking-wide">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">{rangeLabel()}</p>
-        </div>
-        <div className="w-full md:w-auto space-y-3">
-          <Select value={period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-full md:w-[220px] min-h-[44px] bg-card border-input text-foreground">
-              <Calendar className="mr-2 h-4 w-4 text-accent" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-card border-input text-foreground">
-              <SelectItem value="thisweek">This Week</SelectItem>
-              <SelectItem value="lastweek">Last Week</SelectItem>
-              <SelectItem value="thismonth">This Month</SelectItem>
-              <SelectItem value="lastmonth">Last Month</SelectItem>
-              <SelectItem value="thisquarter">This Quarter</SelectItem>
-              <SelectItem value="lastquarter">Last Quarter</SelectItem>
-              <SelectItem value="ytd">Year to Date</SelectItem>
-              <SelectItem value="alltime">All Time</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {period === "custom" && (
-            <div className="space-y-2">
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex-1">
-                  <label className="block text-xs text-muted-foreground mb-1" htmlFor="range-from">From</label>
-                  <input
-                    id="range-from"
-                    type="date"
-                    value={customFrom}
-                    max={todayLocal()}
-                    onChange={(e) => setCustomFrom(e.target.value)}
-                    className="w-full min-h-[44px] rounded-md border border-input bg-card px-3 text-foreground"
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-xs text-muted-foreground mb-1" htmlFor="range-to">To</label>
-                  <input
-                    id="range-to"
-                    type="date"
-                    value={customTo}
-                    max={todayLocal()}
-                    onChange={(e) => setCustomTo(e.target.value)}
-                    className="w-full min-h-[44px] rounded-md border border-input bg-card px-3 text-foreground"
-                  />
-                </div>
-              </div>
-              {customInvalid && (
-                <p className="text-sm metric-negative">From date must be on or before the To date.</p>
-              )}
-            </div>
+          <p className="text-sm text-muted-foreground mt-1">{rangeLabel}</p>
+          {compareRange && (
+            <p className="text-xs text-muted-foreground mt-1">Compared with {comparisonLabel}</p>
           )}
         </div>
+        <PeriodPicker state={periodState}>
+          {compareAvailable && (
+            <div>
+              <label className="block text-xs text-muted-foreground mb-1" htmlFor="compare-to">Compare to</label>
+              <Select value={compare} onValueChange={handleCompareChange}>
+                <SelectTrigger id="compare-to" className="w-full md:w-[220px] min-h-[44px] bg-card border-input text-foreground">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-input text-foreground">
+                  <SelectItem value="previous">Previous period</SelectItem>
+                  <SelectItem value="lastyear">Same period last year</SelectItem>
+                  <SelectItem value="off">Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </PeriodPicker>
       </div>
 
       {/* Section A: This Period */}
@@ -327,17 +311,46 @@ export default function Dashboard() {
         <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">This Period</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Tile icon={TrendingUp} title="Revenue" tooltip={kpiTooltips.revenue}
-            value={money(metrics?.revenue)} subtext={`${Number(metrics?.sale_count || 0)} sales`} />
+            value={money(metrics?.revenue)}
+            subtext={
+              compareRange && compareMetrics
+                ? `${Number(metrics?.sale_count || 0)} sales (was ${Number(compareMetrics.sale_count || 0)})`
+                : `${Number(metrics?.sale_count || 0)} sales`
+            }
+            footer={
+              compareRange && compareMetrics ? (
+                <ChangeLine current={metrics?.revenue} previous={compareMetrics.revenue}
+                  comparisonLabel={comparisonShortLabel} colored />
+              ) : undefined
+            } />
           <Tile icon={ShoppingCart} title="Buying" tooltip={kpiTooltips.buying}
-            value={money(metrics?.inventory_purchased)} subtext={`${Number(metrics?.lots_purchased || 0)} lots`} />
+            value={money(metrics?.inventory_purchased)} subtext={`${Number(metrics?.lots_purchased || 0)} lots`}
+            footer={
+              compareRange && compareMetrics ? (
+                <ChangeLine current={metrics?.inventory_purchased} previous={compareMetrics.inventory_purchased}
+                  comparisonLabel={comparisonShortLabel} />
+              ) : undefined
+            } />
           <Tile icon={Wallet} title="Cash In − Cash Out" tooltip={kpiTooltips.cashInMinusOut}
             value={money(metrics?.cash_in_minus_out)} valueClassName={cashFlowColor} />
           <Tile icon={Receipt} title="Expenses Logged" tooltip={kpiTooltips.expensesLogged}
-            value={money(metrics?.expenses)} subtext={`${Number(metrics?.expense_count || 0)} entries`} />
+            value={money(metrics?.expenses)} subtext={`${Number(metrics?.expense_count || 0)} entries`}
+            footer={
+              compareRange && compareMetrics ? (
+                <ChangeLine current={metrics?.expenses} previous={compareMetrics.expenses}
+                  comparisonLabel={comparisonShortLabel} />
+              ) : undefined
+            } />
           <Tile icon={PiggyBank} title="Tax Set-Aside" tooltip={kpiTooltips.taxSetAside}
             value={money(metrics?.tax_setaside)} subtext="4% of sales — move to Tax account" />
           <Tile icon={TrendingUp} title="Average Sale" tooltip={kpiTooltips.averageSale}
-            value={money(metrics?.avg_sale)} />
+            value={money(metrics?.avg_sale)}
+            footer={
+              compareRange && compareMetrics ? (
+                <ChangeLine current={metrics?.avg_sale} previous={compareMetrics.avg_sale}
+                  comparisonLabel={comparisonShortLabel} colored />
+              ) : undefined
+            } />
           <Tile icon={CreditCard} title="Show Card Sales" tooltip={kpiTooltips.premiumSales}
             value={money(metrics?.premium_revenue)} />
           <Tile icon={Package} title="Bulk Sales" tooltip={kpiTooltips.bulkSales}
@@ -346,6 +359,9 @@ export default function Dashboard() {
             value={money(metrics?.owner_draws)} subtext="Money you took out of the business" />
         </div>
       </div>
+
+      {/* Trend */}
+      {series && series.length > 0 && <TrendChart series={series} grain={grain} />}
 
       {/* Section B: Right Now */}
       <div className="space-y-4">

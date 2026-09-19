@@ -48,78 +48,28 @@ export function DeleteTransactionDialog({
         throw new Error("Deletion reason must be less than 500 characters");
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      // One atomic database call: mark deleted, free the show card, write the cash reversal
+      const { error } = await supabase.rpc("soft_delete_sale", {
+        p_transaction_id: transactionId,
+        p_reason: deletionReason.trim(),
+      });
 
-      // 1. Mark transaction as deleted
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .update({
-          deleted: true,
-          deleted_at: new Date().toISOString(),
-          deletion_reason: deletionReason.trim(),
-        })
-        .eq("id", transactionId)
-        .eq("user_id", user.id);
-
-      if (transactionError) throw transactionError;
-
-      // 2. If show_card_sale, update show card status back to available
-      if (transactionType === "show_card_sale" && showCardId) {
-        const { error: showCardError } = await supabase
-          .from("show_cards")
-          .update({ status: "available", updated_at: new Date().toISOString() })
-          .eq("id", showCardId)
-          .eq("user_id", user.id);
-
-        if (showCardError) throw showCardError;
-      }
-
-      // 3. Create offsetting cash transaction (reversal) on the sale's business date
-      const { data: saleRow, error: saleError } = await supabase
-        .from("transactions")
-        .select("transaction_date")
-        .eq("id", transactionId)
-        .single();
-
-      if (saleError) throw saleError;
-
-      const { data: defaultAccount, error: accountError } = await supabase
-        .from("cash_accounts")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("is_default", true)
-        .single();
-
-      if (accountError) throw accountError;
-
-      const { error: cashError } = await supabase
-        .from("cash_transactions")
-        .insert({
-          user_id: user.id,
-          account_id: defaultAccount.id,
-          transaction_type: "adjustment",
-          amount: -revenue,
-          notes: `Reversal for deleted transaction ${transactionId}`,
-          related_transaction_id: transactionId,
-          entry_date: toDateInputValue(saleRow.transaction_date),
-        });
-
-      if (cashError) throw cashError;
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["all-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["cash_transactions"] });
       queryClient.invalidateQueries({ queryKey: ["show_cards"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["totalRevenue"] });
       queryClient.invalidateQueries({ queryKey: ["premiumSales"] });
       queryClient.invalidateQueries({ queryKey: ["bulkSales"] });
-      
+
       toast({
         title: "Transaction deleted",
         description: "Transaction deleted and cash reversed",
       });
-      
+
       handleClose();
     },
     onError: (error: Error) => {

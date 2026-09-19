@@ -15,6 +15,13 @@
       "when": 1789847435949,
       "tag": "0001_round2_money_model",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789851612835,
+      "tag": "0002_round3_reporting_and_atomic_delete",
+      "breakpoints": true
     }
   ]
 }

@@ -22,6 +22,38 @@ interface MentorAccessContextType {
 
 const MentorAccessContext = createContext<MentorAccessContextType | undefined>(undefined);
 
+const MENTOR_VIEW_STORAGE_KEY = "mentorView";
+
+type StoredMentorView = { userId: string; email: string; sessionId: string };
+
+const readStoredMentorView = (): StoredMentorView | null => {
+  try {
+    const raw = sessionStorage.getItem(MENTOR_VIEW_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.userId && parsed?.sessionId) return parsed as StoredMentorView;
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredMentorView = (value: StoredMentorView) => {
+  try {
+    sessionStorage.setItem(MENTOR_VIEW_STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const clearStoredMentorView = () => {
+  try {
+    sessionStorage.removeItem(MENTOR_VIEW_STORAGE_KEY);
+  } catch {
+    // ignore storage errors
+  }
+};
+
 export function MentorAccessProvider({ children }: { children: ReactNode }) {
   const [isViewingAsMentor, setIsViewingAsMentor] = useState(false);
   const [viewingUserId, setViewingUserId] = useState<string | null>(null);
@@ -31,12 +63,13 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // Fetch available mentee accounts
+  // Fetch available mentee accounts and restore a saved mentor view (survives refresh)
   useEffect(() => {
-    const fetchMenteeAccounts = async () => {
+    const init = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
+          clearStoredMentorView();
           setIsLoading(false);
           return;
         }
@@ -50,7 +83,6 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         if (error) throw error;
 
         if (mentorAccess && mentorAccess.length > 0) {
-          // Map to accounts (email will be hardcoded in component)
           const accounts: MenteeAccount[] = mentorAccess.map(access => ({
             userId: access.mentee_user_id,
             email: "", // Email is hardcoded in AccountSwitcher
@@ -59,22 +91,53 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
 
           setAvailableMenteeAccounts(accounts);
         }
+
+        // Restore a saved mentor view only when access and session are still valid
+        const stored = readStoredMentorView();
+        if (stored) {
+          const nowIso = new Date().toISOString();
+          const { data: access } = await supabase
+            .from("mentor_access")
+            .select("id, expires_at")
+            .eq("mentor_user_id", user.id)
+            .eq("mentee_user_id", stored.userId)
+            .eq("is_active", true)
+            .maybeSingle();
+
+          const accessValid = !!access && (!access.expires_at || access.expires_at > nowIso);
+
+          const { data: session } = await supabase
+            .from("mentor_sessions")
+            .select("id, is_active")
+            .eq("id", stored.sessionId)
+            .eq("mentor_user_id", user.id)
+            .eq("mentee_user_id", stored.userId)
+            .maybeSingle();
+
+          if (accessValid && session?.is_active) {
+            setIsViewingAsMentor(true);
+            setViewingUserId(stored.userId);
+            setViewingUserEmail(stored.email);
+            setCurrentSessionId(stored.sessionId);
+          } else {
+            clearStoredMentorView();
+          }
+        }
+
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching mentee accounts:", error);
+        console.error("Error initialising mentor access:", error);
         setIsLoading(false);
       }
     };
 
-    fetchMenteeAccounts();
+    init();
   }, []);
 
   const switchToMenteeAccount = async (userId: string, email: string) => {
     try {
-      console.log("Starting mentor switch to:", userId, email);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      console.log("Current user (mentor):", user.id);
 
       // Verify mentor has access to this mentee
       const { data: accessCheck, error: accessError } = await supabase
@@ -85,14 +148,11 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         .eq("is_active", true)
         .single();
 
-      console.log("Access check result:", accessCheck, accessError);
-      
       if (accessError || !accessCheck) {
         throw new Error("No active mentor access found for this account");
       }
 
       // Create a new mentor session
-      console.log("Creating mentor session...");
       const { data: session, error: sessionError } = await supabase
         .from("mentor_sessions")
         .insert({
@@ -103,8 +163,6 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      console.log("Session creation result:", session, sessionError);
-      
       if (sessionError) {
         console.error("Session creation error details:", sessionError);
         throw new Error(`Failed to create session: ${sessionError.message}`);
@@ -114,6 +172,7 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
       setViewingUserId(userId);
       setViewingUserEmail(email);
       setCurrentSessionId(session.id);
+      writeStoredMentorView({ userId, email, sessionId: session.id });
 
       toast({
         title: "Switched to Mentor View",
@@ -139,6 +198,7 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
           .eq("id", currentSessionId);
       }
 
+      clearStoredMentorView();
       setIsViewingAsMentor(false);
       setViewingUserId(null);
       setViewingUserEmail(null);
@@ -152,6 +212,20 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
       console.error("Error switching back:", error);
     }
   };
+
+  // Clear the saved view on sign-out
+  useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT") {
+        clearStoredMentorView();
+        setIsViewingAsMentor(false);
+        setViewingUserId(null);
+        setViewingUserEmail(null);
+        setCurrentSessionId(null);
+      }
+    });
+    return () => subscription.subscription.unsubscribe();
+  }, []);
 
   const logActivity = async (action: string, pagePath: string) => {
     if (!isViewingAsMentor || !viewingUserId) return;
@@ -189,13 +263,11 @@ export function MentorAccessProvider({ children }: { children: ReactNode }) {
   // Helper to get effective user ID for queries
   const getEffectiveUserId = async (): Promise<string> => {
     if (isViewingAsMentor && viewingUserId) {
-      console.log("Using mentor view user ID:", viewingUserId);
       return viewingUserId;
     }
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("Not authenticated");
-    console.log("Using own user ID:", user.id);
     return user.id;
   };
 

@@ -599,6 +599,26 @@ export type Database = {
         Args: { p_end?: string; p_start?: string; p_user_id: string }
         Returns: Json
       }
+      get_expense_summary: {
+        Args: { p_end?: string; p_start?: string; p_user_id: string }
+        Returns: Json
+      }
+      get_period_series: {
+        Args: {
+          p_end?: string
+          p_grain?: string
+          p_start?: string
+          p_user_id: string
+        }
+        Returns: {
+          expenses: number
+          period_start: string
+          purchased: number
+          revenue: number
+          rolling_revenue: number
+          sale_count: number
+        }[]
+      }
       has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       reassign_show_card_sale_to_show: {
         Args: {
@@ -617,6 +637,10 @@ export type Database = {
           p_to_account: string
         }
         Returns: string
+      }
+      soft_delete_sale: {
+        Args: { p_reason: string; p_transaction_id: string }
+        Returns: undefined
       }
     }
     Enums: {
