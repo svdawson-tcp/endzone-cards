@@ -360,13 +360,21 @@ export default function TransactionHistory() {
       case "disposition":
         return { label: "Disposition", className: "bg-gray-500 text-white" };
       case "deposit":
-        return { label: "Deposit", className: "bg-green-600 text-white" };
+        return { label: CASH_TYPE_LABELS.deposit, className: "bg-green-600 text-white" };
       case "withdrawal":
-        return { label: "Withdrawal", className: "bg-red-600 text-white" };
+        return { label: CASH_TYPE_LABELS.withdrawal, className: "bg-red-600 text-white" };
       case "adjustment":
-        return { label: "Adjustment", className: "bg-yellow-600 text-white" };
+        return { label: CASH_TYPE_LABELS.adjustment, className: "bg-yellow-600 text-white" };
+      case "owner_contribution":
+        return { label: CASH_TYPE_LABELS.owner_contribution, className: "bg-green-700 text-white" };
+      case "owner_draw":
+        return { label: CASH_TYPE_LABELS.owner_draw, className: "bg-red-700 text-white" };
+      case "reimbursement":
+        return { label: CASH_TYPE_LABELS.reimbursement, className: "bg-orange-600 text-white" };
+      case "transfer":
+        return { label: CASH_TYPE_LABELS.transfer, className: "bg-blue-600 text-white" };
       default:
-        return { label: type, className: "bg-gray-500 text-white" };
+        return { label: CASH_TYPE_LABELS[type] || type, className: "bg-gray-500 text-white" };
     }
   };
 
