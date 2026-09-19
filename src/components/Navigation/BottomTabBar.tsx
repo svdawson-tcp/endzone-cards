@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingDown, Settings, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,7 @@ const BottomTabBar = () => {
     { icon: Package, label: "Lots", route: "/lots", description: "Manage inventory lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
+    { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
     { icon: BookText, label: "Business Glossary", route: "/glossary", description: "Learn business terms" },
     { icon: User, label: "Profile", route: "/profile", description: "View your profile settings", disabled: true },
     { icon: Users, label: "Switch Account", route: "/switch-account", description: "Switch to another user account", isAccountSwitcher: true },
@@ -71,21 +72,15 @@ const BottomTabBar = () => {
     },
     { 
       icon: DollarSign, 
-      label: "Cash Deposit", 
-      description: "Add cash from external source",
-      route: "/cash/new?type=deposit" 
+      label: "Money In / Out", 
+      description: "Owner money, reimbursements, deposits",
+      route: "/cash/new" 
     },
     { 
-      icon: TrendingDown, 
-      label: "Cash Withdrawal", 
-      description: "Remove cash for personal use",
-      route: "/cash/new?type=withdrawal" 
-    },
-    { 
-      icon: Settings, 
-      label: "Cash Adjustment", 
-      description: "Correct balance discrepancies",
-      route: "/cash/new?type=adjustment" 
+      icon: ArrowLeftRight, 
+      label: "Transfer Between Accounts", 
+      description: "Move money between your accounts",
+      route: "/cash/transfer" 
     },
   ];
 
