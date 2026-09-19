@@ -155,7 +155,7 @@ export function TrendChart({ series, grain, rangeLabel }: TrendChartProps) {
       <TrendChartBody series={series} grain={grain} />
 
       <Dialog open={expanded} onOpenChange={(open) => !open && closeExpandedChart()}>
-        <DialogContent className="left-0 top-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background p-0 shadow-none duration-0 [&>button:last-child]:hidden">
+        <DialogContent className="left-0 top-0 flex h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-background p-0 shadow-none duration-0 sm:rounded-none [&>button:last-child]:hidden">
           <div className="flex min-h-[64px] shrink-0 items-center justify-between gap-3 border-b border-border px-4 py-2">
             <div className="min-w-0">
               <DialogTitle className="text-2xl font-bold text-foreground uppercase tracking-wide">Trend</DialogTitle>
