@@ -509,6 +509,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_dashboard_metrics: {
+        Args: { p_end?: string; p_start?: string; p_user_id: string }
+        Returns: Json
+      }
       has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       reassign_show_card_sale_to_show: {
         Args: {
