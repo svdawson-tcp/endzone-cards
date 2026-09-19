@@ -5,6 +5,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { FormField } from "@/components/forms/FormField";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
@@ -22,14 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { parseRequiredAmount } from "@/lib/numericUtils";
-
-const EXPENSE_CATEGORIES = [
-  "Booth Fee",
-  "Travel",
-  "Supplies",
-  "Meals",
-  "Other",
-] as const;
+import { EXPENSE_CATEGORIES } from "@/lib/moneyConstants";
+import { useCashAccounts } from "@/hooks/useCashAccounts";
 
 interface Expense {
   id: string;
@@ -38,6 +34,8 @@ interface Expense {
   category: string;
   notes: string | null;
   show_id: string | null;
+  paid_personally?: boolean | null;
+  account_id?: string | null;
 }
 
 interface EditExpenseDialogProps {
@@ -55,11 +53,14 @@ export function EditExpenseDialog({
 }: EditExpenseDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { data: accounts = [] } = useCashAccounts();
 
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("");
   const [expenseDate, setExpenseDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [paidPersonally, setPaidPersonally] = useState(false);
+  const [accountId, setAccountId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Reset form when expense changes
@@ -69,9 +70,17 @@ export function EditExpenseDialog({
       setCategory(expense.category);
       setExpenseDate(expense.expense_date);
       setNotes(expense.notes || "");
+      setPaidPersonally(!!expense.paid_personally);
+      setAccountId(expense.account_id || "");
       setErrors({});
     }
   }, [expense]);
+
+  useEffect(() => {
+    if (!paidPersonally && !accountId && accounts.length > 0) {
+      setAccountId((accounts.find((a) => a.is_default) || accounts[0]).id);
+    }
+  }, [accounts, accountId, paidPersonally]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -106,15 +115,18 @@ export function EditExpenseDialog({
           category,
           expense_date: expenseDate,
           notes: notes.trim() || null,
+          paid_personally: paidPersonally,
+          account_id: paidPersonally ? null : accountId || null,
         })
         .eq("id", expense.id);
 
       if (error) throw error;
-      // Note: sync_cash_on_expense_update trigger handles cash_transactions update
+      // Note: the database trigger handles every cash_transactions change
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["show-expenses"] });
       queryClient.invalidateQueries({ queryKey: ["cash_transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardMetrics"] });
       toast({
         title: "Expense updated",
         description: `$${parseFloat(amount).toFixed(2)} ${category} expense saved`,
@@ -139,7 +151,7 @@ export function EditExpenseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">Edit Expense</DialogTitle>
         </DialogHeader>
@@ -196,6 +208,36 @@ export function EditExpenseDialog({
               className="bg-white text-gray-900"
             />
           </FormField>
+
+          {/* Paid personally */}
+          <div className="flex items-center justify-between gap-4 rounded-md border border-input p-3 min-h-[44px]">
+            <Label htmlFor="edit-paid-personally" className="cursor-pointer text-foreground">
+              I paid with my own money (reimburse me)
+            </Label>
+            <Switch
+              id="edit-paid-personally"
+              checked={paidPersonally}
+              onCheckedChange={setPaidPersonally}
+            />
+          </div>
+
+          {/* Paid from */}
+          {!paidPersonally && (
+            <FormField label="Paid from" htmlFor="edit-expense-account">
+              <Select value={accountId} onValueChange={setAccountId}>
+                <SelectTrigger className="bg-white text-gray-900">
+                  <SelectValue placeholder="Select account" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {accounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id} className="text-gray-900">
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+          )}
 
           {/* Notes */}
           <FormField label="Notes" htmlFor="edit-expense-notes">

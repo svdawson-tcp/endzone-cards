@@ -29,6 +29,8 @@ import { formatBusinessDate } from "@/lib/dateUtils";
 import { DollarSign, Calendar, FileText, Loader2, Package, Image as ImageIcon } from "lucide-react";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
+import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
+import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
 
 interface ShowCard {
   id: string;
@@ -53,8 +55,15 @@ export default function ShowCardSale() {
   const [selectedShowId, setSelectedShowId] = useState<string>("");
   const [saleDate, setSaleDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
+  const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [errors, setErrors] = useState<{ salePrice?: string; show?: string }>({});
+  const [errors, setErrors] = useState<{ salePrice?: string; show?: string; salesChannel?: string }>({});
+
+  // Keep entry fast: selecting a show means it sold at the show
+  useEffect(() => {
+    if (selectedShowId) setSalesChannel("card_show");
+  }, [selectedShowId]);
+
 
   // Get card from route state or fetch by ID
   const passedCard = location.state?.showCard as ShowCard | undefined;
@@ -122,6 +131,7 @@ export default function ShowCardSale() {
           quantity: 1,
           notes: notes || null,
           transaction_date: saleDate,
+          sales_channel: salesChannel,
         })
         .select()
         .single();
@@ -142,6 +152,7 @@ export default function ShowCardSale() {
       return transaction;
     },
     onSuccess: () => {
+      writeLastSalesChannel(salesChannel);
       toast({
         title: "Sale recorded!",
         description: `${showCard?.player_name} sold successfully.`,
@@ -170,11 +181,15 @@ export default function ShowCardSale() {
     setErrors({});
     
     const salePriceNum = parseFloat(salePrice);
-    const validationErrors: { salePrice?: string; show?: string } = {};
+    const validationErrors: { salePrice?: string; show?: string; salesChannel?: string } = {};
     
     // VALIDATE FIRST - before any dialogs
     if (!salePriceNum || salePriceNum <= 0) {
       validationErrors.salePrice = "Sale price must be greater than 0";
+    }
+
+    if (!salesChannel) {
+      validationErrors.salesChannel = "Please choose where this sold";
     }
     
     // If validation errors exist, show them and stop
@@ -325,6 +340,18 @@ export default function ShowCardSale() {
               Select show if sold at an event, leave blank for online/personal sales
             </p>
           </div>
+
+          {/* Sales Channel */}
+          <SalesChannelChips
+            value={salesChannel}
+            onChange={(value) => {
+              setSalesChannel(value);
+              setErrors({ ...errors, salesChannel: "" });
+            }}
+            error={errors.salesChannel}
+          />
+
+
 
           {/* Sale Date */}
           <div>

@@ -14,50 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      cash_accounts: {
+        Row: {
+          archived: boolean
+          created_at: string
+          id: string
+          is_default: boolean
+          kind: string
+          name: string
+          sort_order: number
+          target_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          archived?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind: string
+          name: string
+          sort_order?: number
+          target_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          archived?: boolean
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          kind?: string
+          name?: string
+          sort_order?: number
+          target_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cash_transactions: {
         Row: {
+          account_id: string
           amount: number
           corrected_at: string | null
           correction_count: number | null
           correction_note: string | null
           created_at: string
+          entry_date: string
           id: string
           notes: string | null
           related_expense_id: string | null
           related_lot_id: string | null
           related_transaction_id: string | null
           transaction_type: string
+          transfer_group_id: string | null
           user_id: string
         }
         Insert: {
+          account_id: string
           amount: number
           corrected_at?: string | null
           correction_count?: number | null
           correction_note?: string | null
           created_at?: string
+          entry_date?: string
           id?: string
           notes?: string | null
           related_expense_id?: string | null
           related_lot_id?: string | null
           related_transaction_id?: string | null
           transaction_type: string
+          transfer_group_id?: string | null
           user_id: string
         }
         Update: {
+          account_id?: string
           amount?: number
           corrected_at?: string | null
           correction_count?: number | null
           correction_note?: string | null
           created_at?: string
+          entry_date?: string
           id?: string
           notes?: string | null
           related_expense_id?: string | null
           related_lot_id?: string | null
           related_transaction_id?: string | null
           transaction_type?: string
+          transfer_group_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cash_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cash_transactions_related_expense_id_fkey"
             columns: ["related_expense_id"]
@@ -83,6 +138,7 @@ export type Database = {
       }
       expenses: {
         Row: {
+          account_id: string | null
           amount: number
           category: string
           corrected_at: string | null
@@ -92,11 +148,13 @@ export type Database = {
           expense_date: string
           id: string
           notes: string | null
+          paid_personally: boolean
           receipt_photo_url: string | null
           show_id: string | null
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           amount: number
           category: string
           corrected_at?: string | null
@@ -106,11 +164,13 @@ export type Database = {
           expense_date: string
           id?: string
           notes?: string | null
+          paid_personally?: boolean
           receipt_photo_url?: string | null
           show_id?: string | null
           user_id: string
         }
         Update: {
+          account_id?: string | null
           amount?: number
           category?: string
           corrected_at?: string | null
@@ -120,11 +180,19 @@ export type Database = {
           expense_date?: string
           id?: string
           notes?: string | null
+          paid_personally?: boolean
           receipt_photo_url?: string | null
           show_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_show_id_fkey"
             columns: ["show_id"]
@@ -142,6 +210,7 @@ export type Database = {
           id: string
           notes: string | null
           purchase_date: string
+          show_id: string | null
           source: string
           status: string
           total_cost: number
@@ -155,6 +224,7 @@ export type Database = {
           id?: string
           notes?: string | null
           purchase_date: string
+          show_id?: string | null
           source: string
           status?: string
           total_cost: number
@@ -168,13 +238,22 @@ export type Database = {
           id?: string
           notes?: string | null
           purchase_date?: string
+          show_id?: string | null
           source?: string
           status?: string
           total_cost?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lots_show_id_fkey"
+            columns: ["show_id"]
+            isOneToOne: false
+            referencedRelation: "shows"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mentor_access: {
         Row: {
@@ -388,6 +467,7 @@ export type Database = {
           notes: string | null
           quantity: number | null
           revenue: number
+          sales_channel: string | null
           show_card_id: string | null
           show_id: string | null
           transaction_date: string
@@ -407,6 +487,7 @@ export type Database = {
           notes?: string | null
           quantity?: number | null
           revenue?: number
+          sales_channel?: string | null
           show_card_id?: string | null
           show_id?: string | null
           transaction_date?: string
@@ -426,6 +507,7 @@ export type Database = {
           notes?: string | null
           quantity?: number | null
           revenue?: number
+          sales_channel?: string | null
           show_card_id?: string | null
           show_id?: string | null
           transaction_date?: string
@@ -509,6 +591,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      ensure_default_cash_account: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       get_dashboard_metrics: {
         Args: { p_end?: string; p_start?: string; p_user_id: string }
         Returns: Json
@@ -521,6 +607,16 @@ export type Database = {
           p_transaction_id: string
         }
         Returns: undefined
+      }
+      record_account_transfer: {
+        Args: {
+          p_amount: number
+          p_date: string
+          p_from_account: string
+          p_notes?: string
+          p_to_account: string
+        }
+        Returns: string
       }
     }
     Enums: {
