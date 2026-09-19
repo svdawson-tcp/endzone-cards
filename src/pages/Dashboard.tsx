@@ -5,6 +5,7 @@ import { TrendingUp, Package, CreditCard, Calendar, Wallet, Receipt, PiggyBank, 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, startOfQuarter, endOfQuarter, subQuarters, startOfYear } from "date-fns";
 import { formatBusinessDate, toLocalDateString, todayLocal } from "@/lib/dateUtils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -354,7 +355,43 @@ export default function Dashboard() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Tile icon={Wallet} title="Cash on Hand" tooltip={kpiTooltips.cashOnHand}
-            value={money(metrics?.cash_on_hand)} />
+            value={money(metrics?.cash_on_hand)}
+            footer={
+              accounts.length > 0 ? (
+                <div className="mt-3 space-y-1">
+                  {accounts.map((account) => (
+                    <div key={account.id} className="flex justify-between text-xs text-muted-foreground">
+                      <span>{account.name}</span>
+                      <span>{money(account.balance)}</span>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => navigate("/accounts")}
+                    className="text-xs text-accent underline min-h-[44px] pt-2"
+                  >
+                    View accounts
+                  </button>
+                </div>
+              ) : undefined
+            } />
+          <Tile icon={Landmark} title="Reserve" tooltip={kpiTooltips.reserve}
+            value={money(reserveBalance)}
+            subtext={reserveTarget > 0 ? `${reserveProgress.toFixed(0)}% of ${money(reserveTarget)} target` : "No target set"}
+            footer={
+              <div className="mt-3">
+                {reserveTarget > 0 && <Progress value={reserveProgress} className="h-2" />}
+                <button
+                  onClick={() => navigate("/accounts")}
+                  className="text-xs text-accent underline min-h-[44px] pt-2"
+                >
+                  Manage accounts
+                </button>
+              </div>
+            } />
+          {owedToOwner > 0 && (
+            <Tile icon={HandCoins} title="Owed to You" tooltip={kpiTooltips.owedToYou}
+              value={money(owedToOwner)} subtext="Expenses you paid personally" />
+          )}
           <Tile icon={Package} title="Active Lots" tooltip={kpiTooltips.activeLots}
             value={`${Number(metrics?.active_lots || 0)}`} />
           <Tile icon={CreditCard} title="Listed Cards" tooltip={kpiTooltips.listedCards}
