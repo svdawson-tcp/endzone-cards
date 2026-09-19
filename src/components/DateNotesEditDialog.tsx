@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { toDateInputValue } from "@/lib/dateUtils";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -32,7 +33,7 @@ export function DateNotesEditDialog({
   currentDate,
   currentNotes,
 }: DateNotesEditDialogProps) {
-  const [transactionDate, setTransactionDate] = useState(currentDate);
+  const [transactionDate, setTransactionDate] = useState(toDateInputValue(currentDate));
   const [notes, setNotes] = useState(currentNotes || "");
   const [correctionNote, setCorrectionNote] = useState("");
   const queryClient = useQueryClient();

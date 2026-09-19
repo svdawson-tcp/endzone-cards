@@ -12,6 +12,7 @@ import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { parseRequiredAmount } from "@/lib/numericUtils";
 
 export default function CreateShow() {
@@ -176,7 +177,7 @@ export default function CreateShow() {
 
         toast({
           title: "Show created!",
-          description: `${showName} scheduled for ${format(new Date(showDate), "MMM dd, yyyy")}`,
+          description: `${showName} scheduled for ${formatBusinessDate(showDate, "MMM dd, yyyy")}`,
         });
       }
 

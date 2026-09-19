@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import {
   ArrowLeft,
   Edit,
@@ -443,7 +444,7 @@ const ShowCardDetail = () => {
                 <div className="flex justify-between">
                   <span className="text-[hsl(var(--silver-base))]">Purchase Date:</span>
                   <span className="font-semibold text-white">
-                    {format(new Date(card.lots.purchase_date), "MMM dd, yyyy")}
+                    {formatBusinessDate(card.lots.purchase_date, "MMM dd, yyyy")}
                   </span>
                 </div>
               )}
@@ -519,7 +520,7 @@ const ShowCardDetail = () => {
                 <div className="flex justify-between">
                   <span className="text-[hsl(var(--silver-base))]">Sold Date:</span>
                   <span className="font-semibold text-white">
-                    {format(new Date(saleInfo.saleDate), "MMM dd, yyyy")}
+                    {formatBusinessDate(saleInfo.saleDate, "MMM dd, yyyy")}
                   </span>
                 </div>
               </div>

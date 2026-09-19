@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { useMemo, useState } from "react";
 import { 
   ArrowLeft, 
@@ -34,7 +35,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import AuthenticatedLayout from "@/components/Layout/AuthenticatedLayout";
 
 const LotDetail = () => {
   const { id } = useParams();
@@ -228,26 +228,26 @@ const LotDetail = () => {
 
   if (isLoading) {
     return (
-      <AuthenticatedLayout>
+      <>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Loading...</div>
         </div>
-      </AuthenticatedLayout>
+      </>
     );
   }
 
   if (!lot) {
     return (
-      <AuthenticatedLayout>
+      <>
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">Lot not found</div>
         </div>
-      </AuthenticatedLayout>
+      </>
     );
   }
 
   return (
-    <AuthenticatedLayout>
+    <>
       <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
@@ -263,7 +263,7 @@ const LotDetail = () => {
             <div>
               <h1 className="page-title">{lot.source}</h1>
               <p className="text-sm text-muted-foreground">
-                Purchased {format(new Date(lot.purchase_date), "MMM dd, yyyy")}
+                Purchased {formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")}
               </p>
             </div>
             <Badge variant={getStatusBadgeVariant(lot.status)}>
@@ -627,7 +627,7 @@ const LotDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AuthenticatedLayout>
+    </>
   );
 };
 

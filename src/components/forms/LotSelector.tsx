@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { formatBusinessDate } from "@/lib/dateUtils";
 import { Search, ChevronRight, Package, X, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -73,7 +73,7 @@ export function LotSelector({
                 {selectedLot.source}
               </span>
               <span className="text-xs text-muted-foreground">
-                {format(new Date(selectedLot.purchase_date), "MMM d, yyyy")} · ${Number(selectedLot.total_cost).toFixed(2)}
+                {formatBusinessDate(selectedLot.purchase_date, "MMM d, yyyy")} · ${Number(selectedLot.total_cost).toFixed(2)}
               </span>
             </div>
           ) : (
@@ -130,7 +130,7 @@ export function LotSelector({
                     <div>
                       <p className="font-medium">{lot.source}</p>
                       <p className="text-sm text-muted-foreground">
-                        {format(new Date(lot.purchase_date), "MMM d, yyyy")} · ${Number(lot.total_cost).toFixed(2)}
+                        {formatBusinessDate(lot.purchase_date, "MMM d, yyyy")} · ${Number(lot.total_cost).toFixed(2)}
                       </p>
                     </div>
                   </div>
