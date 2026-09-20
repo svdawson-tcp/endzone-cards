@@ -23,6 +23,8 @@ import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
+import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
+import { parseAmount } from "@/lib/numericUtils";
 
 export default function BulkSale() {
   const navigate = useNavigate();
@@ -36,6 +38,8 @@ export default function BulkSale() {
   const [saleDate, setSaleDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
   const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
+  const [grossAmount, setGrossAmount] = useState<string>("");
+  const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: lots = [], isLoading: lotsLoading } = useQuery({
@@ -94,6 +98,8 @@ export default function BulkSale() {
         show_id: selectedShowId || null,
         transaction_date: saleDate,
         sales_channel: salesChannel,
+        gross_amount: parseAmount(grossAmount),
+        shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
         notes: notes.trim() || null,
       };
 
@@ -109,6 +115,9 @@ export default function BulkSale() {
       writeLastSalesChannel(salesChannel);
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["active-lots"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["expensesList"] });
+      queryClient.invalidateQueries({ queryKey: ["expenseSummary"] });
 
       toast({
         title: "Bulk sale recorded",
@@ -137,6 +146,8 @@ export default function BulkSale() {
     if (!revenue || parseFloat(revenue) <= 0) newErrors.revenue = "Please enter valid revenue";
     if (!saleDate) newErrors.date = "Please select a date";
     if (!salesChannel) newErrors.salesChannel = "Please choose where this sold";
+    const grossError = validateGrossAmount(revenue, grossAmount);
+    if (grossError) newErrors.grossAmount = grossError;
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -210,17 +221,20 @@ export default function BulkSale() {
 
         {/* Revenue */}
         <div>
-          <label htmlFor="revenue" className="form-label">Total Revenue *</label>
+          <label htmlFor="revenue" className="form-label">Amount you received (net) *</label>
           <CurrencyInput
             id="revenue"
             value={revenue}
             onChange={(e) => {
               setRevenue(e.target.value);
-              setErrors((prev) => ({ ...prev, revenue: "" }));
+              setErrors((prev) => ({ ...prev, revenue: "", grossAmount: "" }));
             }}
             placeholder="0.00"
             className={errors.revenue ? "border-red-500" : ""}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            What actually hit your account, after platform fees.
+          </p>
           {errors.revenue && <p className="text-sm text-red-500 mt-1">{errors.revenue}</p>}
         </div>
 
@@ -256,7 +270,20 @@ export default function BulkSale() {
           error={errors.salesChannel}
         />
 
-
+        {/* Gross amount + out-of-pocket postage (both optional) */}
+        <SaleExtraFields
+          idPrefix="bulk-sale"
+          channel={salesChannel}
+          net={revenue}
+          gross={grossAmount}
+          onGrossChange={(value) => {
+            setGrossAmount(value);
+            setErrors((prev) => ({ ...prev, grossAmount: "" }));
+          }}
+          postage={shippingOutOfPocket}
+          onPostageChange={setShippingOutOfPocket}
+          grossError={errors.grossAmount}
+        />
 
         {/* Sale Date */}
         <div>
