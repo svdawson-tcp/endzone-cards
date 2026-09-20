@@ -183,6 +183,8 @@ export function EditExpenseDialog({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00"
+              readOnly={fromSale}
+              disabled={fromSale}
               className="bg-white text-gray-900"
             />
           </FormField>
@@ -194,7 +196,7 @@ export function EditExpenseDialog({
             required
             error={errors.category}
           >
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={setCategory} disabled={fromSale}>
               <SelectTrigger className="bg-white text-gray-900">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
@@ -219,6 +221,8 @@ export function EditExpenseDialog({
               id="edit-expense-date"
               value={expenseDate}
               onChange={(e) => setExpenseDate(e.target.value)}
+              readOnly={fromSale}
+              disabled={fromSale}
               className="bg-white text-gray-900"
             />
           </FormField>
