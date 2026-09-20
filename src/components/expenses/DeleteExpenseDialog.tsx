@@ -16,6 +16,7 @@ interface Expense {
   id: string;
   amount: number;
   category: string;
+  related_transaction_id?: string | null;
 }
 
 interface DeleteExpenseDialogProps {
@@ -64,6 +65,31 @@ export function DeleteExpenseDialog({
       });
     },
   });
+
+  const fromSale = !!expense?.related_transaction_id;
+
+  if (fromSale) {
+    return (
+      <AlertDialog open={open} onOpenChange={onOpenChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-foreground">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Can't delete this expense
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This comes from a sale. Change the postage amount on the sale itself.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
