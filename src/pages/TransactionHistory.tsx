@@ -74,6 +74,8 @@ interface SalesTransaction extends BaseTransaction {
   show_card_id: string | null;
   transaction_date?: string;
   sales_channel?: string | null;
+  gross_amount?: number | null;
+  platform_fee?: number | null;
   shows?: { name: string } | null;
   lots?: { source: string } | null;
   show_cards?: { player_name: string; year: string | null } | null;
@@ -302,7 +304,7 @@ export default function TransactionHistory() {
   };
 
   const handleExport = () => {
-    const headers = ["Date", "Type", "Source", "Lot", "Show", "Account", "Amount", "Quantity", "Notes"];
+    const headers = ["Date", "Type", "Source", "Lot", "Show", "Account", "Amount", "Buyer Paid", "Platform Fee", "Quantity", "Notes"];
     const rows = sortedTransactions.map(tx => {
       if (tx.source === "sales") {
         const salesTx = tx as SalesTransaction;
@@ -318,6 +320,8 @@ export default function TransactionHistory() {
           salesTx.shows?.name || "-",
           "-",
           salesTx.revenue.toFixed(2),
+          salesTx.gross_amount != null ? Number(salesTx.gross_amount).toFixed(2) : "",
+          salesTx.platform_fee != null ? Number(salesTx.platform_fee).toFixed(2) : "",
           salesTx.quantity || "-",
           tx.notes || "-"
         ];
@@ -331,6 +335,8 @@ export default function TransactionHistory() {
           "-",
           cashAccountLabel(cashTx),
           cashTx.amount.toFixed(2),
+          "",
+          "",
           "-",
           tx.notes || "-"
         ];
@@ -553,15 +559,23 @@ export default function TransactionHistory() {
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px] truncate text-[hsl(var(--text-body))]">
-                          {tx.source === "sales" ? (
-                            tx.transaction_type === "show_card_sale" && (tx as SalesTransaction).show_cards
-                              ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
-                              : (tx as SalesTransaction).lots?.source || "-"
-                          ) : (
-                            tx.transaction_type === "transfer"
-                              ? cashAccountLabel(tx as CashTransaction)
-                              : tx.notes || "Manual cash entry"
+                        <TableCell className="max-w-[200px] text-[hsl(var(--text-body))]">
+                          <div className="truncate">
+                            {tx.source === "sales" ? (
+                              tx.transaction_type === "show_card_sale" && (tx as SalesTransaction).show_cards
+                                ? `${(tx as SalesTransaction).show_cards!.player_name} (${(tx as SalesTransaction).show_cards!.year || ""})`
+                                : (tx as SalesTransaction).lots?.source || "-"
+                            ) : (
+                              tx.transaction_type === "transfer"
+                                ? cashAccountLabel(tx as CashTransaction)
+                                : tx.notes || "Manual cash entry"
+                            )}
+                          </div>
+                          {tx.source === "sales" && (tx as SalesTransaction).gross_amount != null && (
+                            <div className="text-xs text-[hsl(var(--text-secondary))]">
+                              Buyer paid ${Number((tx as SalesTransaction).gross_amount).toFixed(2)} · fee $
+                              {Number((tx as SalesTransaction).platform_fee || 0).toFixed(2)}
+                            </div>
                           )}
                         </TableCell>
                         <TableCell className="max-w-[150px] truncate text-[hsl(var(--text-body))]">
