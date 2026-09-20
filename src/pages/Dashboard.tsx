@@ -87,7 +87,7 @@ export default function Dashboard() {
   const periodState = usePeriod();
   const { period, start, end, customInvalid, rangeLabel } = periodState;
   const [compare, setCompare] = useState<string>(readStoredCompare);
-  const { viewingUserId, getEffectiveUserId } = useMentorAccess();
+  const { isViewingAsMentor, viewingUserId, getEffectiveUserId } = useMentorAccess();
 
   const handleCompareChange = (value: string) => {
     setCompare(value);
@@ -503,26 +503,34 @@ export default function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <Button 
-          onClick={() => navigate("/transactions/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
-        >
-          RECORD SALE
-        </Button>
-        <Button 
-          onClick={() => navigate("/show-cards/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
-        >
-          ADD SHOW CARD
-        </Button>
-        <Button 
-          onClick={() => navigate("/shows/new")}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase flex-1"
-        >
-          CREATE SHOW
-        </Button>
-      </div>
+      {!isViewingAsMentor && (
+        <div className="grid grid-cols-2 gap-3 md:flex md:flex-row md:gap-4">
+          <Button
+            onClick={() => navigate("/transactions/new")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase text-sm md:text-base md:flex-1"
+          >
+            RECORD SALE
+          </Button>
+          <Button
+            onClick={() => navigate("/show-cards/new")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase text-sm md:text-base md:flex-1"
+          >
+            ADD SHOW CARD
+          </Button>
+          <Button
+            onClick={() => navigate("/shows/new")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase text-sm md:text-base md:flex-1"
+          >
+            CREATE SHOW
+          </Button>
+          <Button
+            onClick={() => navigate("/expenses/new")}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 min-h-[44px] rounded-lg font-semibold uppercase text-sm md:text-base md:flex-1"
+          >
+            RECORD EXPENSE
+          </Button>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <div className="space-y-4">
