@@ -36,6 +36,7 @@ interface Expense {
   show_id: string | null;
   paid_personally?: boolean | null;
   account_id?: string | null;
+  related_transaction_id?: string | null;
 }
 
 interface EditExpenseDialogProps {
@@ -62,6 +63,8 @@ export function EditExpenseDialog({
   const [paidPersonally, setPaidPersonally] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const fromSale = !!expense?.related_transaction_id;
 
   // Reset form when expense changes
   useEffect(() => {
@@ -108,16 +111,21 @@ export function EditExpenseDialog({
 
       const parsedAmount = parseRequiredAmount(amount);
 
+      // Postage expenses created from a sale: only the notes are editable here.
+      const payload = fromSale
+        ? { notes: notes.trim() || null }
+        : {
+            amount: parsedAmount,
+            category,
+            expense_date: expenseDate,
+            notes: notes.trim() || null,
+            paid_personally: paidPersonally,
+            account_id: paidPersonally ? null : accountId || null,
+          };
+
       const { error } = await supabase
         .from("expenses")
-        .update({
-          amount: parsedAmount,
-          category,
-          expense_date: expenseDate,
-          notes: notes.trim() || null,
-          paid_personally: paidPersonally,
-          account_id: paidPersonally ? null : accountId || null,
-        })
+        .update(payload)
         .eq("id", expense.id);
 
       if (error) throw error;
@@ -157,6 +165,12 @@ export function EditExpenseDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-4">
+          {fromSale && (
+            <p className="text-sm text-muted-foreground">
+              This comes from a sale. Change the postage amount on the sale itself.
+            </p>
+          )}
+
           {/* Amount */}
           <FormField
             label="Amount"
