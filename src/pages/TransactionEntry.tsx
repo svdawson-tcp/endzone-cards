@@ -18,9 +18,10 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
-import { parseRequiredAmount } from "@/lib/numericUtils";
+import { parseRequiredAmount, parseAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
+import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
 import { useEffect } from "react";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
@@ -43,6 +44,9 @@ export default function TransactionEntry() {
   const [transactionDate, setTransactionDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
   const [channelError, setChannelError] = useState("");
+  const [grossAmount, setGrossAmount] = useState<string>("");
+  const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
+  const [grossError, setGrossError] = useState("");
 
   // Keep entry fast: selecting a show means it sold at the show
   useEffect(() => {
@@ -127,6 +131,14 @@ export default function TransactionEntry() {
       return;
     }
 
+    if (transactionType !== "disposition") {
+      const grossValidation = validateGrossAmount(revenue, grossAmount);
+      if (grossValidation) {
+        setGrossError(grossValidation);
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -145,6 +157,8 @@ export default function TransactionEntry() {
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             sales_channel: salesChannel,
+            gross_amount: parseAmount(grossAmount),
+            shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
             notes: notes || null,
           });
 
@@ -166,6 +180,8 @@ export default function TransactionEntry() {
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             sales_channel: salesChannel,
+            gross_amount: parseAmount(grossAmount),
+            shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
             notes: notes || null,
           });
 
@@ -301,7 +317,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <label htmlFor="revenue" className="form-label">Sale Amount *</label>
+                <label htmlFor="revenue" className="form-label">Amount you received (net) *</label>
                 <div className="relative mt-2">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
@@ -310,11 +326,17 @@ export default function TransactionEntry() {
                     step="0.01"
                     min="0.01"
                     value={revenue}
-                    onChange={(e) => setRevenue(e.target.value)}
+                    onChange={(e) => {
+                      setRevenue(e.target.value);
+                      setGrossError("");
+                    }}
                     placeholder="0.00"
                     className="pl-8 min-h-[44px]"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  What actually hit your account, after platform fees.
+                </p>
               </div>
 
               <div>
@@ -354,6 +376,21 @@ export default function TransactionEntry() {
                 }}
                 error={channelError}
               />
+
+              <SaleExtraFields
+                idPrefix="entry-card"
+                channel={salesChannel}
+                net={revenue}
+                gross={grossAmount}
+                onGrossChange={(value) => {
+                  setGrossAmount(value);
+                  setGrossError("");
+                }}
+                postage={shippingOutOfPocket}
+                onPostageChange={setShippingOutOfPocket}
+                grossError={grossError}
+              />
+
 
 
 
@@ -408,7 +445,7 @@ export default function TransactionEntry() {
               </div>
 
               <div>
-                <label htmlFor="bulk-revenue" className="form-label">Total Sale Amount *</label>
+                <label htmlFor="bulk-revenue" className="form-label">Amount you received (net) *</label>
                 <div className="relative mt-2">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
                   <Input
@@ -417,11 +454,17 @@ export default function TransactionEntry() {
                     step="0.01"
                     min="0.01"
                     value={revenue}
-                    onChange={(e) => setRevenue(e.target.value)}
+                    onChange={(e) => {
+                      setRevenue(e.target.value);
+                      setGrossError("");
+                    }}
                     placeholder="0.00"
                     className="pl-8 min-h-[44px]"
                   />
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  What actually hit your account, after platform fees.
+                </p>
               </div>
 
               <div>
@@ -461,6 +504,21 @@ export default function TransactionEntry() {
                 }}
                 error={channelError}
               />
+
+              <SaleExtraFields
+                idPrefix="entry-bulk"
+                channel={salesChannel}
+                net={revenue}
+                gross={grossAmount}
+                onGrossChange={(value) => {
+                  setGrossAmount(value);
+                  setGrossError("");
+                }}
+                postage={shippingOutOfPocket}
+                onPostageChange={setShippingOutOfPocket}
+                grossError={grossError}
+              />
+
 
 
 

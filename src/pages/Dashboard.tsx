@@ -17,6 +17,7 @@ import { usePeriod, formatRangeLabel } from "@/hooks/usePeriod";
 import { PeriodPicker } from "@/components/PeriodPicker";
 import { TrendChart, type PeriodSeriesRow } from "@/components/TrendChart";
 import { ChangeLine } from "@/components/ChangeLine";
+import { SALES_CHANNELS } from "@/lib/moneyConstants";
 
 const COMPARE_STORAGE_KEY = "dashboardCompare";
 
@@ -29,8 +30,20 @@ type DashboardAccount = {
   balance: number;
 };
 
+type ChannelRow = {
+  channel: string;
+  revenue: number;
+  sale_count: number;
+  gross: number;
+  fees: number;
+};
+
 type DashboardMetrics = {
   revenue: number;
+  gross_sales: number;
+  platform_fees: number;
+  sales_with_gross: number;
+  by_channel: ChannelRow[];
   premium_revenue: number;
   bulk_revenue: number;
   sale_count: number;
@@ -63,6 +76,11 @@ const readStoredCompare = (): string => {
 };
 
 const money = (value: unknown) => `$${Number(value || 0).toFixed(2)}`;
+
+const channelLabel = (channel: string) =>
+  channel === "unknown"
+    ? "Not recorded"
+    : SALES_CHANNELS.find((c) => c.value === channel)?.label || channel;
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -239,6 +257,16 @@ export default function Dashboard() {
   const reserveProgress = reserveTarget > 0 ? Math.min(100, (reserveBalance / reserveTarget) * 100) : 0;
   const owedToOwner = Number(metrics?.owed_to_owner || 0);
 
+  const salesWithGross = Number(metrics?.sales_with_gross || 0);
+  const grossSales = Number(metrics?.gross_sales || 0);
+  const platformFees = Number(metrics?.platform_fees || 0);
+  const feePctOfGross = grossSales > 0 ? (platformFees / grossSales) * 100 : 0;
+
+  const byChannel = metrics?.by_channel || [];
+  const largestChannelRevenue = byChannel.reduce((max, c) => Math.max(max, Number(c.revenue || 0)), 0);
+  const showByChannel =
+    byChannel.length > 1 || (byChannel.length === 1 && byChannel[0].channel !== "unknown");
+
   const Tile = ({
     icon: Icon,
     title,
@@ -342,7 +370,7 @@ export default function Dashboard() {
               ) : undefined
             } />
           <Tile icon={PiggyBank} title="Tax Set-Aside" tooltip={kpiTooltips.taxSetAside}
-            value={money(metrics?.tax_setaside)} subtext="4% of sales — move to Tax account" />
+            value={money(metrics?.tax_setaside)} subtext="4% of gross sales — move to Tax account" />
           <Tile icon={TrendingUp} title="Average Sale" tooltip={kpiTooltips.averageSale}
             value={money(metrics?.avg_sale)}
             footer={
@@ -357,8 +385,55 @@ export default function Dashboard() {
             value={money(metrics?.bulk_revenue)} />
           <Tile icon={HandCoins} title="Owner Draws" tooltip={kpiTooltips.ownerDraws}
             value={money(metrics?.owner_draws)} subtext="Money you took out of the business" />
+          {salesWithGross > 0 && (
+            <>
+              <Tile icon={TrendingUp} title="Gross Sales" tooltip={kpiTooltips.grossSales}
+                value={money(metrics?.gross_sales)} subtext="Before platform fees" />
+              <Tile icon={Receipt} title="Platform Fees" tooltip={kpiTooltips.platformFees}
+                value={money(metrics?.platform_fees)}
+                subtext={`${feePctOfGross.toFixed(1)}% of gross · from ${salesWithGross} of ${Number(metrics?.sale_count || 0)} sales`} />
+            </>
+          )}
         </div>
       </div>
+
+      {/* By Channel */}
+      {showByChannel && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">By Channel</h2>
+          <div className="night-game-card p-4 md:p-6 relative">
+            <KpiInfoPopover content={kpiTooltips.byChannel} />
+            <div className="space-y-4 pr-8">
+              {byChannel.map((row) => {
+                const rowRevenue = Number(row.revenue || 0);
+                const rowFees = Number(row.fees || 0);
+                const rowGross = Number(row.gross || 0);
+                const rowFeePct = rowGross > 0 ? (rowFees / rowGross) * 100 : 0;
+                return (
+                  <div key={row.channel} className="space-y-1">
+                    <div className="flex justify-between items-baseline gap-3">
+                      <span className="text-sm text-foreground">{channelLabel(row.channel)}</span>
+                      <span className="text-sm text-foreground">
+                        {money(rowRevenue)}{" "}
+                        <span className="text-xs text-muted-foreground">
+                          ({Number(row.sale_count || 0)})
+                          {rowFees > 0 && ` · fees ${money(rowFees)} (${rowFeePct.toFixed(1)}%)`}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-muted/30">
+                      <div
+                        className="h-1.5 rounded-full bg-accent"
+                        style={{ width: `${largestChannelRevenue > 0 ? (rowRevenue / largestChannelRevenue) * 100 : 0}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Trend */}
       {series && series.length > 0 && <TrendChart series={series} grain={grain} rangeLabel={rangeLabel} />}

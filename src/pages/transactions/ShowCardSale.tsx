@@ -28,9 +28,10 @@ import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { DollarSign, Calendar, FileText, Loader2, Package, Image as ImageIcon } from "lucide-react";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseRequiredAmount } from "@/lib/numericUtils";
+import { parseRequiredAmount, parseAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
+import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
 
 interface ShowCard {
   id: string;
@@ -56,8 +57,10 @@ export default function ShowCardSale() {
   const [saleDate, setSaleDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState<string>("");
   const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
+  const [grossAmount, setGrossAmount] = useState<string>("");
+  const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [errors, setErrors] = useState<{ salePrice?: string; show?: string; salesChannel?: string }>({});
+  const [errors, setErrors] = useState<{ salePrice?: string; show?: string; salesChannel?: string; grossAmount?: string }>({});
 
   // Keep entry fast: selecting a show means it sold at the show
   useEffect(() => {
@@ -132,6 +135,8 @@ export default function ShowCardSale() {
           notes: notes || null,
           transaction_date: saleDate,
           sales_channel: salesChannel,
+          gross_amount: parseAmount(grossAmount),
+          shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
         })
         .select()
         .single();
@@ -162,6 +167,9 @@ export default function ShowCardSale() {
       queryClient.invalidateQueries({ queryKey: ["show_cards"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["cash_transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboardMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["expensesList"] });
+      queryClient.invalidateQueries({ queryKey: ["expenseSummary"] });
       
       navigate("/show-cards");
     },
@@ -181,7 +189,7 @@ export default function ShowCardSale() {
     setErrors({});
     
     const salePriceNum = parseFloat(salePrice);
-    const validationErrors: { salePrice?: string; show?: string; salesChannel?: string } = {};
+    const validationErrors: { salePrice?: string; show?: string; salesChannel?: string; grossAmount?: string } = {};
     
     // VALIDATE FIRST - before any dialogs
     if (!salePriceNum || salePriceNum <= 0) {
@@ -190,6 +198,11 @@ export default function ShowCardSale() {
 
     if (!salesChannel) {
       validationErrors.salesChannel = "Please choose where this sold";
+    }
+
+    const grossError = validateGrossAmount(salePrice, grossAmount);
+    if (grossError) {
+      validationErrors.grossAmount = grossError;
     }
     
     // If validation errors exist, show them and stop
@@ -280,13 +293,13 @@ export default function ShowCardSale() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Sale Price */}
           <div>
-            <label htmlFor="sale-price" className="form-label">Sale Price *</label>
+            <label htmlFor="sale-price" className="form-label">Amount you received (net) *</label>
             <CurrencyInput
               id="sale-price"
               value={salePrice}
               onChange={(e) => {
                 setSalePrice(e.target.value);
-                if (errors.salePrice) setErrors({ ...errors, salePrice: "" });
+                setErrors({ ...errors, salePrice: "", grossAmount: "" });
               }}
               placeholder="0.00"
               required
@@ -295,8 +308,8 @@ export default function ShowCardSale() {
               autoFocus
               className="mt-2"
             />
-            <p className="text-xs text-gray-400 mt-1">
-              Final sale price for this card
+            <p className="text-xs text-muted-foreground mt-1">
+              What actually hit your account, after platform fees.
             </p>
             {errors.salePrice && (
               <p className="text-destructive text-sm mt-1">{errors.salePrice}</p>
@@ -351,7 +364,20 @@ export default function ShowCardSale() {
             error={errors.salesChannel}
           />
 
-
+          {/* Gross amount + out-of-pocket postage (both optional) */}
+          <SaleExtraFields
+            idPrefix="show-card-sale"
+            channel={salesChannel}
+            net={salePrice}
+            gross={grossAmount}
+            onGrossChange={(value) => {
+              setGrossAmount(value);
+              setErrors({ ...errors, grossAmount: "" });
+            }}
+            postage={shippingOutOfPocket}
+            onPostageChange={setShippingOutOfPocket}
+            grossError={errors.grossAmount}
+          />
 
           {/* Sale Date */}
           <div>

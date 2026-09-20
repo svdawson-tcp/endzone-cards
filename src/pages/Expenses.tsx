@@ -31,6 +31,7 @@ type ExpenseRow = {
   show_id: string | null;
   paid_personally: boolean | null;
   account_id: string | null;
+  related_transaction_id: string | null;
   shows?: { name: string } | null;
   cash_accounts?: { name: string } | null;
 };
@@ -219,7 +220,12 @@ export default function Expenses() {
                         <span className="text-xs text-muted-foreground">· {expense.shows.name}</span>
                       )}
                       {expense.paid_personally ? (
-                        <Badge variant="outline" className="text-xs">Paid personally</Badge>
+                        <>
+                          <Badge variant="outline" className="text-xs">Paid personally</Badge>
+                          {expense.related_transaction_id && (
+                            <Badge variant="outline" className="text-xs">From sale</Badge>
+                          )}
+                        </>
                       ) : (
                         expense.cash_accounts?.name && (
                           <span className="text-xs text-muted-foreground">· {expense.cash_accounts.name}</span>
@@ -238,15 +244,17 @@ export default function Expenses() {
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="min-h-[44px] min-w-[44px] text-destructive"
-                        aria-label="Delete expense"
-                        onClick={() => setDeleting(expense)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {!expense.related_transaction_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="min-h-[44px] min-w-[44px] text-destructive"
+                          aria-label="Delete expense"
+                          onClick={() => setDeleting(expense)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
