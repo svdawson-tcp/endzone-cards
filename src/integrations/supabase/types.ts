@@ -150,6 +150,7 @@ export type Database = {
           notes: string | null
           paid_personally: boolean
           receipt_photo_url: string | null
+          related_transaction_id: string | null
           show_id: string | null
           user_id: string
         }
@@ -166,6 +167,7 @@ export type Database = {
           notes?: string | null
           paid_personally?: boolean
           receipt_photo_url?: string | null
+          related_transaction_id?: string | null
           show_id?: string | null
           user_id: string
         }
@@ -182,6 +184,7 @@ export type Database = {
           notes?: string | null
           paid_personally?: boolean
           receipt_photo_url?: string | null
+          related_transaction_id?: string | null
           show_id?: string | null
           user_id?: string
         }
@@ -191,6 +194,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_related_transaction_id_fkey"
+            columns: ["related_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
           {
@@ -462,12 +472,15 @@ export type Database = {
           deleted: boolean | null
           deleted_at: string | null
           deletion_reason: string | null
+          gross_amount: number | null
           id: string
           lot_id: string | null
           notes: string | null
+          platform_fee: number | null
           quantity: number | null
           revenue: number
           sales_channel: string | null
+          shipping_out_of_pocket: number | null
           show_card_id: string | null
           show_id: string | null
           transaction_date: string
@@ -482,12 +495,15 @@ export type Database = {
           deleted?: boolean | null
           deleted_at?: string | null
           deletion_reason?: string | null
+          gross_amount?: number | null
           id?: string
           lot_id?: string | null
           notes?: string | null
+          platform_fee?: number | null
           quantity?: number | null
           revenue?: number
           sales_channel?: string | null
+          shipping_out_of_pocket?: number | null
           show_card_id?: string | null
           show_id?: string | null
           transaction_date?: string
@@ -502,12 +518,15 @@ export type Database = {
           deleted?: boolean | null
           deleted_at?: string | null
           deletion_reason?: string | null
+          gross_amount?: number | null
           id?: string
           lot_id?: string | null
           notes?: string | null
+          platform_fee?: number | null
           quantity?: number | null
           revenue?: number
           sales_channel?: string | null
+          shipping_out_of_pocket?: number | null
           show_card_id?: string | null
           show_id?: string | null
           transaction_date?: string
