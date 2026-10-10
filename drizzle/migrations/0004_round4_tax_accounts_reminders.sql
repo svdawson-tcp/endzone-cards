@@ -167,11 +167,22 @@ LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT d, p FROM rolled WHERE d BETWEEN p_from AND p_to ORDER BY d;
 $$;
 
+-- A quarter's estimates are done once BOTH the federal (IRS) and PA payments are recorded.
+CREATE OR REPLACE FUNCTION public.tax_quarter_paid(p_user_id uuid, p_period text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
+  SELECT count(DISTINCT c.tax_authority) = 2
+  FROM cash_transactions c
+  WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment'
+    AND c.tax_period = p_period AND c.tax_authority IN ('irs','pa');
+$$;
+
 -- ---------------------------------------------------------------------
 -- 8. WEEKLY TAX TRACKER
 --    Owed per week = round(rate x gross sales in that Mon-Sun week, 2); gross falls back to net.
---    Deposits = transfers / owner contributions INTO an account of kind 'tax'.
+--    Deposits = net movement in or out of accounts of kind 'tax' other than tax payments and interest.
 --    Position = deposits - owed for COMPLETED weeks (the current week is still accruing).
+--    A completed week is 'covered' when everything set aside so far covers it (the Monday
+--    transfer for last week lands in the new week, so per-week date matching would show 'open').
 -- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.get_tax_tracker(p_user_id uuid, p_today date DEFAULT NULL)
 RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public AS $$
@@ -213,7 +224,9 @@ BEGIN
     SELECT date_trunc('week', c.entry_date::timestamp)::date AS wk, SUM(c.amount) AS deposited
     FROM cash_transactions c JOIN cash_accounts a ON a.id = c.account_id
     WHERE c.user_id = p_user_id AND a.kind = 'tax'
-      AND c.transaction_type IN ('transfer','owner_contribution') AND c.amount > 0
+      -- net of every movement in or out of Tax (transfers both ways, draws, adjustments,
+      -- expenses paid from Tax); tax payments and interest are tracked separately
+      AND c.transaction_type NOT IN ('tax_payment','interest')
       AND c.entry_date BETWEEN v_start AND v_today
     GROUP BY 1
   ),
@@ -257,8 +270,7 @@ BEGIN
   next_due AS (
     SELECT s.due_date, s.tax_period
     FROM tax_estimate_schedule(GREATEST(v_first_est, v_today - 60), GREATEST(v_first_est, v_today) + 400) s
-    WHERE NOT EXISTS (SELECT 1 FROM cash_transactions c
-                      WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment' AND c.tax_period = s.tax_period)
+    WHERE NOT public.tax_quarter_paid(p_user_id, s.tax_period)
       AND s.due_date >= v_first_est
     ORDER BY s.due_date LIMIT 1
   )
@@ -287,8 +299,8 @@ BEGIN
                 'late_entries', late,
                 'status', CASE WHEN wk = v_cur_week THEN 'accruing'
                                WHEN owed = 0 THEN 'nothing_owed'
-                               WHEN cum_deposited >= cum_owed THEN 'covered'
-                               WHEN cum_deposited > cum_owed - owed THEN 'partial'
+                               WHEN c.deposited >= cum_owed THEN 'covered'
+                               WHEN c.deposited > cum_owed - owed THEN 'partial'
                                ELSE 'open' END)
               ORDER BY wk DESC), '[]'::jsonb) FROM cum)
   )
@@ -309,7 +321,7 @@ BEGIN
   IF v_user IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
   IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Payment amount must be greater than zero'; END IF;
   IF p_date IS NULL OR p_date > (now() AT TIME ZONE 'America/New_York')::date THEN RAISE EXCEPTION 'Payment date cannot be in the future'; END IF;
-  IF p_authority NOT IN ('irs','pa','local') THEN RAISE EXCEPTION 'Choose who the payment went to'; END IF;
+  IF p_authority IS NULL OR p_authority NOT IN ('irs','pa','local') THEN RAISE EXCEPTION 'Choose who the payment went to'; END IF;
   IF p_period IS NULL OR p_period !~ '^[0-9]{4}-Q[1-4]$' THEN RAISE EXCEPTION 'Choose the tax quarter'; END IF;
   IF NOT EXISTS (SELECT 1 FROM cash_accounts WHERE id = p_account_id AND user_id = v_user AND kind = 'tax' AND NOT archived) THEN
     RAISE EXCEPTION 'Tax payments must come out of your Tax account';
@@ -464,12 +476,18 @@ BEGIN
     SELECT s.due_date, s.tax_period
     FROM tax_estimate_schedule(COALESCE(v_set.first_estimate_due, DATE '2027-01-15'), v_today + 7) s
     WHERE s.due_date >= COALESCE(v_set.first_estimate_due, DATE '2027-01-15')
-      AND NOT EXISTS (SELECT 1 FROM cash_transactions c WHERE c.user_id = p_user_id
-                      AND c.transaction_type = 'tax_payment' AND c.tax_period = s.tax_period)
+      AND NOT public.tax_quarter_paid(p_user_id, s.tax_period)
   LOOP
     v_items := v_items || jsonb_build_object('key','estimated_tax','period', r.tax_period,'kind','estimated_tax',
       'title', 'Estimated tax due ' || to_char(r.due_date, 'Mon FMDD'),
-      'body',  'Federal and PA payments for ' || r.tax_period || '. Record them here once paid.',
+      'body',  CASE
+                 WHEN EXISTS (SELECT 1 FROM cash_transactions c WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment'
+                              AND c.tax_period = r.tax_period AND c.tax_authority = 'irs')
+                   THEN 'Federal payment recorded. PA payment for ' || r.tax_period || ' still to record.'
+                 WHEN EXISTS (SELECT 1 FROM cash_transactions c WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment'
+                              AND c.tax_period = r.tax_period AND c.tax_authority = 'pa')
+                   THEN 'PA payment recorded. Federal payment for ' || r.tax_period || ' still to record.'
+                 ELSE 'Federal and PA payments for ' || r.tax_period || '. Record them here once paid.' END,
       'due', r.due_date, 'overdue', r.due_date < v_today);
   END LOOP;
 
@@ -550,6 +568,8 @@ DECLARE
   v_recs  jsonb := '[]'::jsonb;
 BEGIN
   IF v_user IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  -- one setup at a time per user (a double tap must not post the opening money twice)
+  PERFORM pg_advisory_xact_lock(hashtext('complete_money_setup:' || v_user::text));
   IF EXISTS (SELECT 1 FROM money_settings WHERE user_id = v_user AND setup_completed_at IS NOT NULL) THEN
     RAISE EXCEPTION 'Your accounts are already set up';
   END IF;
@@ -631,6 +651,7 @@ END; $$;
 GRANT EXECUTE ON FUNCTION public.complete_money_setup(jsonb) TO authenticated;
 
 GRANT EXECUTE ON FUNCTION public.tax_estimate_schedule(date, date) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.tax_quarter_paid(uuid, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_tax_tracker(uuid, date) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.record_tax_payment(uuid, numeric, date, text, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_account_statement(uuid, date, date, int) TO authenticated;
@@ -644,4 +665,9 @@ GRANT EXECUTE ON FUNCTION public.get_reminders(uuid, date) TO authenticated;
 -- ---------------------------------------------------------------------
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.ensure_default_cash_account(uuid) FROM authenticated;
-ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon;
+-- PUBLIC's default can only be removed database-wide (an IN SCHEMA revoke has no effect on it)
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
+ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon;
+-- RLS policies call has_mentor_access; logged-out reads must get zero rows, not an error.
+-- It only ever returns true for the signed-in mentor (auth.uid() is null when logged out).
+GRANT EXECUTE ON FUNCTION public.has_mentor_access(uuid) TO anon;

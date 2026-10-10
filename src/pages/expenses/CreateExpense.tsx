@@ -21,7 +21,7 @@ import {
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseRequiredAmount } from "@/lib/numericUtils";
+import { normalizeMoneyInput } from "@/lib/numericUtils";
 import { EXPENSE_CATEGORIES, defaultAccountKindForCategory } from "@/lib/moneyConstants";
 import { useCashAccounts } from "@/hooks/useCashAccounts";
 import { Switch } from "@/components/ui/switch";
@@ -152,10 +152,14 @@ export default function CreateExpense() {
         receiptPhotoUrl = publicUrl;
       }
 
+      const exactAmount = normalizeMoneyInput(amount);
+      if (exactAmount === null) throw new Error("Enter a valid amount");
+
       // Insert expense (the database trigger handles the cash entry)
       const { error: insertError } = await supabase.from("expenses").insert({
         user_id: user.id,
-        amount: parseRequiredAmount(amount),
+        // TD-007: exact string; PostgREST casts it to numeric (generated types say number)
+        amount: exactAmount as unknown as number,
         category: category as ExpenseCategory,
         show_id: selectedShowId || null,
         expense_date: expenseDate,

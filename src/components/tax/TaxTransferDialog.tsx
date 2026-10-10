@@ -39,9 +39,15 @@ export function TaxTransferDialog({ open, onOpenChange, suggestedAmount }: TaxTr
     if (!open) return;
     setAmount(suggestedAmount > 0 ? Number(suggestedAmount).toFixed(2) : "");
     setDate(todayLocal());
+    setFromAccount("");
+  }, [open, suggestedAmount]);
+
+  // Default the source to Operating once accounts are loaded, without touching anything typed
+  useEffect(() => {
+    if (!open || fromAccount) return;
     const operating = accounts.find((a) => a.kind === "operating") || accounts.find((a) => a.is_default);
-    setFromAccount(operating?.id || "");
-  }, [open, suggestedAmount, accounts]);
+    if (operating) setFromAccount(operating.id);
+  }, [open, accounts, fromAccount]);
 
   const normalized = normalizeMoneyInput(amount);
 

@@ -21,6 +21,26 @@ export function normalizeMoneyInput(value: string | null | undefined): string | 
   return `${String(BigInt(whole))}.${frac.padEnd(2, "0")}`;
 }
 
+/** Exact cents for a money value from the database or a normalized string (negative allowed). */
+export function moneyToCents(value: string | number | null | undefined): bigint | null {
+  if (value === null || value === undefined) return null;
+  const raw = String(value).trim();
+  const negative = raw.startsWith("-");
+  const normalized = normalizeMoneyInput(negative ? raw.slice(1) : raw);
+  if (normalized === null) return null;
+  const cents = BigInt(normalized.replace(".", ""));
+  return negative ? -cents : cents;
+}
+
+/** Cents back to an exact "1234.56" / "-1234.56" string. */
+export function centsToMoney(cents: bigint): string {
+  const negative = cents < 0n;
+  const abs = negative ? -cents : cents;
+  const whole = abs / 100n;
+  const frac = (abs % 100n).toString().padStart(2, "0");
+  return `${negative ? "-" : ""}${whole}.${frac}`;
+}
+
 /** True when a normalized money string is greater than zero. */
 export function isPositiveMoney(value: string | null): boolean {
   return value !== null && /[1-9]/.test(value);

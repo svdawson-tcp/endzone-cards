@@ -182,7 +182,7 @@ BEGIN
 END $$;
 ROLLBACK;
 
-\echo T8 mentor (Scott) can read Colton's tracker, statement and reminders but cannot write to his accounts
+\echo T8 mentor (Scott) can read Colton tracker, statement and reminders but cannot write to his accounts
 BEGIN;
 SELECT pg_temp.act_as(:'scott');
 DO $$
@@ -206,7 +206,7 @@ BEGIN
 END $$;
 ROLLBACK;
 
-\echo T9 an unrelated user sees nothing of Colton's
+\echo T9 an unrelated user sees nothing of Colton
 BEGIN;
 SELECT pg_temp.act_as(:'second');
 DO $$
@@ -391,6 +391,94 @@ BEGIN
   IF (get_tax_tracker(auth.uid(), DATE '2026-10-10')->>'position')::numeric <> 367.05 THEN
     RAISE EXCEPTION 'T15 FAIL tracker position %', get_tax_tracker(auth.uid(), DATE '2026-10-10')->>'position'; END IF;
   RAISE NOTICE 'T15 PASS (Operating 8488.00 incl. $150 cash, Travel 2500, Tax 2500, Reserve 3900, Old M&T 419.91; one $12 adjustment)';
+END $$;
+ROLLBACK;
+
+\echo T16 money moved back out of Tax reduces the set-aside position
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE op uuid; tax uuid; t0 jsonb; t1 jsonb;
+BEGIN
+  SELECT id INTO op  FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'operating';
+  SELECT id INTO tax FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'tax';
+  t0 := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  PERFORM record_account_transfer(op, tax, 2500.00, DATE '2026-10-05', 'set aside');
+  PERFORM record_account_transfer(tax, op, 2000.00, DATE '2026-10-06', 'borrowed back');
+  t1 := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  IF (t1->>'deposited')::numeric - (t0->>'deposited')::numeric <> 500 THEN
+    RAISE EXCEPTION 'T16 FAIL deposited delta %', (t1->>'deposited')::numeric - (t0->>'deposited')::numeric; END IF;
+  IF (t1->>'position')::numeric - (t0->>'position')::numeric <> 500 THEN RAISE EXCEPTION 'T16 FAIL position'; END IF;
+  RAISE NOTICE 'T16 PASS (position % after $2,500 in and $2,000 back out)', t1->>'position';
+END $$;
+ROLLBACK;
+
+\echo T17 a Monday transfer for the week just finished marks every completed week covered
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE op uuid; tax uuid; t jsonb; owed numeric; n_open int;
+BEGIN
+  SELECT id INTO op  FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'operating';
+  SELECT id INTO tax FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'tax';
+  t := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  owed := -(t->>'position')::numeric;
+  PERFORM record_account_transfer(op, tax, owed, DATE '2026-10-05', 'Weekly tax set-aside');  -- Monday of the current week
+  t := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  IF (t->>'position')::numeric <> 0 THEN RAISE EXCEPTION 'T17 FAIL position %', t->>'position'; END IF;
+  SELECT count(*) INTO n_open FROM jsonb_array_elements(t->'weeks') w WHERE w->>'status' IN ('open','partial');
+  IF n_open > 0 THEN RAISE EXCEPTION 'T17 FAIL % completed weeks still open', n_open; END IF;
+  RAISE NOTICE 'T17 PASS (exact transfer of % covers all weeks)', owed;
+END $$;
+ROLLBACK;
+
+\echo T18 an estimated quarter needs both the IRS and the PA payment
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE tax uuid; r jsonb; body text; ok boolean := false;
+BEGIN
+  SELECT id INTO tax FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'tax';
+  INSERT INTO cash_transactions (user_id, account_id, transaction_type, amount, entry_date, tax_authority, tax_period)
+  VALUES (auth.uid(), tax, 'tax_payment', -300.00, CURRENT_DATE, 'irs', '2026-Q4');
+  r := get_reminders(auth.uid(), DATE '2027-01-09');
+  SELECT x->>'body' INTO body FROM jsonb_array_elements(r) x WHERE x->>'key' = 'estimated_tax' AND x->>'period' = '2026-Q4';
+  IF body IS NULL OR body NOT LIKE 'Federal payment recorded%' THEN RAISE EXCEPTION 'T18 FAIL IRS-only reminder: %', body; END IF;
+  IF get_tax_tracker(auth.uid(), DATE '2027-01-09')->>'next_estimate_period' <> '2026-Q4' THEN RAISE EXCEPTION 'T18 FAIL next period moved on'; END IF;
+  INSERT INTO cash_transactions (user_id, account_id, transaction_type, amount, entry_date, tax_authority, tax_period)
+  VALUES (auth.uid(), tax, 'tax_payment', -100.00, CURRENT_DATE, 'pa', '2026-Q4');
+  r := get_reminders(auth.uid(), DATE '2027-01-09');
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'key' = 'estimated_tax' AND x->>'period' = '2026-Q4') THEN
+    RAISE EXCEPTION 'T18 FAIL reminder still shown after both payments'; END IF;
+  BEGIN PERFORM record_tax_payment(tax, 10.00, CURRENT_DATE, NULL, '2026-Q4');
+  EXCEPTION WHEN OTHERS THEN ok := SQLERRM = 'Choose who the payment went to'; END;
+  IF NOT ok THEN RAISE EXCEPTION 'T18 FAIL missing authority message'; END IF;
+  RAISE NOTICE 'T18 PASS';
+END $$;
+ROLLBACK;
+
+\echo T19 functions added by later migrations are not executable by logged-out visitors
+BEGIN;
+CREATE FUNCTION public.zz_probe() RETURNS int LANGUAGE sql AS 'SELECT 1';
+DO $$
+BEGIN
+  IF has_function_privilege('anon', 'public.zz_probe()', 'EXECUTE') THEN RAISE EXCEPTION 'T19 FAIL anon can run new functions'; END IF;
+  IF NOT has_function_privilege('authenticated', 'public.zz_probe()', 'EXECUTE') THEN RAISE NOTICE 'T19 note: new functions need an explicit GRANT to authenticated'; END IF;
+  RAISE NOTICE 'T19 PASS';
+END $$;
+ROLLBACK;
+
+\echo T20 logged-out table reads return no rows instead of an error
+BEGIN;
+SET LOCAL ROLE anon;
+DO $$
+DECLARE n int;
+BEGIN
+  SELECT count(*) INTO n FROM cash_transactions;
+  IF n <> 0 THEN RAISE EXCEPTION 'T20 FAIL anon saw % rows', n; END IF;
+  SELECT count(*) INTO n FROM transactions;
+  IF n <> 0 THEN RAISE EXCEPTION 'T20 FAIL anon saw % sales', n; END IF;
+  RAISE NOTICE 'T20 PASS';
 END $$;
 ROLLBACK;
 

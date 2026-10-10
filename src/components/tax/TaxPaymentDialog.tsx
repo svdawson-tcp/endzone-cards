@@ -10,7 +10,7 @@ import { FormField } from "@/components/forms/FormField";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { DateInput } from "@/components/forms/DateInput";
 import { useCashAccounts } from "@/hooks/useCashAccounts";
-import { MONEY_QUERY_KEYS, TAX_AUTHORITIES, formatTaxPeriod } from "@/hooks/useTaxTracker";
+import { MONEY_QUERY_KEYS, TAX_AUTHORITIES, formatTaxPeriod, useTaxTracker } from "@/hooks/useTaxTracker";
 import { parseBusinessDate, todayLocal } from "@/lib/dateUtils";
 import { formatMoney, isPositiveMoney, normalizeMoneyInput } from "@/lib/numericUtils";
 
@@ -21,21 +21,33 @@ interface TaxPaymentDialogProps {
   defaultPeriod?: string | null;
 }
 
-/** The last six estimated-tax quarters up to the current one, newest first. */
-function recentQuarters(today: string): string[] {
-  const d = parseBusinessDate(today);
-  let year = d.getFullYear();
-  let q = Math.floor(d.getMonth() / 3) + 1;
-  const out: string[] = [];
-  for (let i = 0; i < 6; i++) {
-    out.push(`${year}-Q${q}`);
-    q -= 1;
-    if (q === 0) {
-      q = 4;
-      year -= 1;
-    }
+/**
+ * Estimated-tax quarters and their (unrolled) due dates. These are not calendar quarters:
+ * Q1 is due Apr 15, Q2 Jun 15, Q3 Sep 15, Q4 Jan 15 of the next year.
+ */
+function estimatePeriods(today: string): { period: string; due: string }[] {
+  const year = parseBusinessDate(today).getFullYear();
+  const out: { period: string; due: string }[] = [];
+  for (let y = year - 2; y <= year + 1; y++) {
+    out.push({ period: `${y}-Q1`, due: `${y}-04-15` });
+    out.push({ period: `${y}-Q2`, due: `${y}-06-15` });
+    out.push({ period: `${y}-Q3`, due: `${y}-09-15` });
+    out.push({ period: `${y}-Q4`, due: `${y + 1}-01-15` });
   }
   return out;
+}
+
+/** Six quarters newest first (due within the next ~4 months or earlier), and the one due nearest today. */
+function quarterChoices(today: string): { list: string[]; nearest: string } {
+  const todayMs = parseBusinessDate(today).getTime();
+  const all = estimatePeriods(today).map((p) => ({ ...p, ms: parseBusinessDate(p.due).getTime() }));
+  const nearest = all.reduce((best, p) => (Math.abs(p.ms - todayMs) < Math.abs(best.ms - todayMs) ? p : best)).period;
+  const list = all
+    .filter((p) => p.ms <= todayMs + 120 * 86400000)
+    .sort((a, b) => b.ms - a.ms)
+    .slice(0, 6)
+    .map((p) => p.period);
+  return { list, nearest };
 }
 
 /** Records an estimated tax payment paid out of the Tax account. */
@@ -44,10 +56,11 @@ export function TaxPaymentDialog({ open, onOpenChange, defaultPeriod }: TaxPayme
   const { data: accounts = [] } = useCashAccounts();
   const taxAccount = accounts.find((a) => a.kind === "tax");
 
-  const quarters = useMemo(() => {
-    const list = recentQuarters(todayLocal());
+  const { data: tracker } = useTaxTracker();
+  const { quarters, nearest } = useMemo(() => {
+    const { list, nearest } = quarterChoices(todayLocal());
     if (defaultPeriod && !list.includes(defaultPeriod)) list.unshift(defaultPeriod);
-    return list;
+    return { quarters: list, nearest };
   }, [defaultPeriod]);
 
   const [authority, setAuthority] = useState<string>("irs");
@@ -58,12 +71,16 @@ export function TaxPaymentDialog({ open, onOpenChange, defaultPeriod }: TaxPayme
 
   useEffect(() => {
     if (!open) return;
-    setAuthority("irs");
-    setPeriod(defaultPeriod || quarters[1] || quarters[0]);
+    const chosen = defaultPeriod || nearest;
+    setPeriod(chosen);
+    // If the federal payment for this quarter is already recorded, the next one is usually PA
+    const paid = new Set((tracker?.payments || []).filter((p) => p.period === chosen).map((p) => p.authority));
+    setAuthority(paid.has("irs") && !paid.has("pa") ? "pa" : "irs");
     setAmount("");
     setDate(todayLocal());
     setNotes("");
-  }, [open, defaultPeriod, quarters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when the sheet opens
+  }, [open, defaultPeriod, nearest]);
 
   const normalized = normalizeMoneyInput(amount);
 

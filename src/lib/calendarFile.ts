@@ -149,6 +149,13 @@ export function buildMoneyCalendar(s: CalendarSettings, now: Date = new Date()):
 
 /** Triggers a browser download of the calendar file. */
 export function downloadCalendarFile(ics: string, filename = "endzone-money-reminders.ics") {
+  // iPhone/iPad Safari saves blob downloads to Files; opening the calendar data directly
+  // shows the "Add All to Calendar" sheet instead. Needs a check on Colton's phone.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (isIOS) {
+    window.location.href = `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+    return;
+  }
   const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

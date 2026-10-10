@@ -14,7 +14,7 @@ import { PageContainer } from "@/components/layout/AppLayout";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { MONEY_QUERY_KEYS } from "@/hooks/useTaxTracker";
 import { todayLocal, formatBusinessDate } from "@/lib/dateUtils";
-import { formatMoney, normalizeMoneyInput } from "@/lib/numericUtils";
+import { centsToMoney, formatMoney, moneyToCents, normalizeMoneyInput } from "@/lib/numericUtils";
 import { ArrowLeft, ArrowRight, CheckCircle2, AlertTriangle } from "lucide-react";
 
 type AccountKind = "operating" | "travel" | "tax" | "reserve";
@@ -59,7 +59,7 @@ export default function MoneySetup() {
   const [result, setResult] = useState<SetupResult | null>(null);
 
   // Current balances, so money already recorded (e.g. a transfer entered before setup) isn't counted twice
-  const { data: accounts = [] } = useQuery({
+  const { data: accounts = [], error: balancesError } = useQuery({
     queryKey: ["accountBalances", viewingUserId],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
@@ -79,17 +79,19 @@ export default function MoneySetup() {
     },
   });
 
-  const balanceOf = (kind: string) => Number(accounts.find((a) => a.kind === kind)?.balance || 0);
+  // Exact cents (TD-007): the pre-fill below goes to the server unless Colton edits it
+  const balanceCentsOf = (kind: string) => moneyToCents(accounts.find((a) => a.kind === kind)?.balance ?? 0) ?? 0n;
 
   // Pre-fill the opening rows once balances are known: subtract anything already recorded in Travel/Tax/Reserve
   useEffect(() => {
     if (opening.length > 0 || accounts.length === 0) return;
     setOpening(
       PLANNED.map((row) => {
-        const already = row.kind === "operating" ? 0 : balanceOf(row.kind);
-        const planned = row.amount ? Number(row.amount) : 0;
-        const remaining = planned > 0 ? Math.max(0, planned - already) : 0;
-        return { ...row, amount: planned > 0 ? remaining.toFixed(2) : "", date: todayLocal() };
+        const planned = moneyToCents(row.amount || null);
+        if (planned === null || planned <= 0n) return { ...row, amount: "", date: todayLocal() };
+        const already = row.kind === "operating" ? 0n : balanceCentsOf(row.kind);
+        const remaining = planned > already ? planned - already : 0n;
+        return { ...row, amount: centsToMoney(remaining), date: todayLocal() };
       }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -107,7 +109,7 @@ export default function MoneySetup() {
       case 0:
         return oldStatus === "closed" || (oldStatus === "open" && normalizeMoneyInput(oldBalance) !== null);
       case 1:
-        return opening.every((r) => !invalidAmount(r.amount) && (!r.amount || (r.date && r.date <= todayLocal())));
+        return opening.length > 0 && opening.every((r) => !invalidAmount(r.amount) && (!r.amount || (r.date && r.date <= todayLocal())));
       case 2:
         return !invalidAmount(cashOutside);
       case 3:
@@ -228,6 +230,12 @@ export default function MoneySetup() {
         <Progress value={((step + 1) / STEPS.length) * 100} className="h-1.5 mt-3" />
       </div>
 
+      {balancesError && (
+        <div className="night-game-card p-4 mb-4 text-sm metric-negative">
+          Could not load your current balances, so setup can't continue. Check your connection and reopen this page.
+        </div>
+      )}
+
       <div className="night-game-card p-5 md:p-6 space-y-5 mb-6">
         {step === 0 && (
           <>
@@ -250,14 +258,14 @@ export default function MoneySetup() {
               Check each amount and the date it actually landed. Leave an amount blank if that money didn't move.
             </p>
             {opening.map((row, i) => {
-              const already = row.kind === "operating" ? 0 : balanceOf(row.kind);
+              const already = row.kind === "operating" ? 0n : balanceCentsOf(row.kind);
               return (
                 <div key={row.kind} className="rounded-lg border border-border p-4 space-y-3">
                   <div>
                     <div className="font-semibold text-foreground">{row.label}</div>
                     <div className="text-xs text-muted-foreground">
                       {row.source}
-                      {already > 0 && ` · ${formatMoney(already)} already recorded in ${ACCOUNT_LABEL[row.kind]}`}
+                      {already > 0n && ` · ${formatMoney(centsToMoney(already))} already recorded in ${ACCOUNT_LABEL[row.kind]}`}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
