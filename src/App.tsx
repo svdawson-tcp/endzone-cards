@@ -16,6 +16,7 @@ import CreateExpense from "./pages/expenses/CreateExpense";
 import Expenses from "./pages/Expenses";
 import ManualCashTransaction from "./pages/ManualCashTransaction";
 import Accounts from "./pages/Accounts";
+import Tax from "./pages/Tax";
 import CashTransfer from "./pages/CashTransfer";
 import CreateShowCard from "./pages/CreateShowCard";
 import CreateShow from "./pages/CreateShow";
@@ -70,6 +71,7 @@ const App = () => (
           <Route path="/cash/new" element={<ProtectedRoute><AuthenticatedLayout><ManualCashTransaction /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/cash/transfer" element={<ProtectedRoute><AuthenticatedLayout><CashTransfer /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/accounts" element={<ProtectedRoute><AuthenticatedLayout><Accounts /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/tax" element={<ProtectedRoute><AuthenticatedLayout><Tax /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/new" element={<ProtectedRoute><AuthenticatedLayout><CreateShowCard /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards/:id" element={<ProtectedRoute><AuthenticatedLayout><ShowCardDetail /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/show-cards" element={<ProtectedRoute><AuthenticatedLayout><ShowCards /></AuthenticatedLayout></ProtectedRoute>} />

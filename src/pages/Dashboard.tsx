@@ -18,6 +18,10 @@ import { PeriodPicker } from "@/components/PeriodPicker";
 import { TrendChart, type PeriodSeriesRow } from "@/components/TrendChart";
 import { ChangeLine } from "@/components/ChangeLine";
 import { SALES_CHANNELS } from "@/lib/moneyConstants";
+import { useTaxTracker } from "@/hooks/useTaxTracker";
+import { TaxTransferDialog } from "@/components/tax/TaxTransferDialog";
+import { formatMoney } from "@/lib/numericUtils";
+import { Send } from "lucide-react";
 
 const COMPARE_STORAGE_KEY = "dashboardCompare";
 
@@ -87,6 +91,10 @@ export default function Dashboard() {
   const periodState = usePeriod();
   const { period, start, end, customInvalid, rangeLabel } = periodState;
   const [compare, setCompare] = useState<string>(readStoredCompare);
+  const [taxTransferOpen, setTaxTransferOpen] = useState(false);
+  const { data: taxTracker, isLoading: loadingTax } = useTaxTracker();
+  const taxPosition = Number(taxTracker?.position || 0);
+  const taxBehind = !!taxTracker && taxPosition < -0.004;
   const { isViewingAsMentor, viewingUserId, getEffectiveUserId } = useMentorAccess();
 
   const handleCompareChange = (value: string) => {
@@ -334,6 +342,37 @@ export default function Dashboard() {
         </PeriodPicker>
       </div>
 
+      {/* Weekly tax transfer due */}
+      {taxBehind && (
+        <div className="night-game-card p-4 md:p-5 border border-amber-400/60">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <div className="text-xs font-medium text-amber-400 uppercase tracking-wider">Tax transfer due</div>
+              <div className="text-xl md:text-2xl font-bold text-foreground">
+                Send {formatMoney(taxTracker?.suggested_transfer)} to Tax
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatMoney(-taxPosition)} owed for completed weeks · 4% of every sale
+              </p>
+            </div>
+            <div className="flex gap-2">
+              {!isViewingAsMentor && (
+                <Button
+                  onClick={() => setTaxTransferOpen(true)}
+                  className="min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  I SENT IT
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => navigate("/tax")} className="min-h-[44px]">
+                Details
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Section A: This Period */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">This Period</h2>
@@ -369,8 +408,6 @@ export default function Dashboard() {
                   comparisonLabel={comparisonShortLabel} />
               ) : undefined
             } />
-          <Tile icon={PiggyBank} title="Tax Set-Aside" tooltip={kpiTooltips.taxSetAside}
-            value={money(metrics?.tax_setaside)} subtext="4% of gross sales — move to Tax account" />
           <Tile icon={TrendingUp} title="Average Sale" tooltip={kpiTooltips.averageSale}
             value={money(metrics?.avg_sale)}
             footer={
@@ -478,6 +515,23 @@ export default function Dashboard() {
                   Manage accounts
                 </button>
               </div>
+            } />
+          <Tile icon={PiggyBank} title="Tax" tooltip={kpiTooltips.taxStatus}
+            value={
+              loadingTax
+                ? "…"
+                : taxBehind
+                  ? `${formatMoney(-taxPosition)} behind`
+                  : taxPosition > 0
+                    ? `${formatMoney(taxPosition)} ahead`
+                    : "Up to date"
+            }
+            valueClassName={taxBehind ? "text-amber-400" : "metric-positive"}
+            subtext={`Tax account ${formatMoney(taxTracker?.tax_account_balance)}`}
+            footer={
+              <button onClick={() => navigate("/tax")} className="text-xs text-accent underline min-h-[44px] pt-2">
+                Open tax tracker
+              </button>
             } />
           {owedToOwner > 0 && (
             <Tile icon={HandCoins} title="Owed to You" tooltip={kpiTooltips.owedToYou}
@@ -630,6 +684,11 @@ export default function Dashboard() {
           </>
         )}
       </div>
+      <TaxTransferDialog
+        open={taxTransferOpen}
+        onOpenChange={setTaxTransferOpen}
+        suggestedAmount={Number(taxTracker?.suggested_transfer || 0)}
+      />
     </div>
   );
 }

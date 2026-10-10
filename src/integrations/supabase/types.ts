@@ -14,6 +14,61 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_reconciliations: {
+        Row: {
+          account_id: string
+          adjustment_id: string | null
+          app_balance: number
+          as_of: string
+          bank_balance: number
+          created_at: string
+          difference: number | null
+          id: string
+          note: string | null
+          undeposited: number
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          adjustment_id?: string | null
+          app_balance: number
+          as_of: string
+          bank_balance: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          undeposited?: number
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          adjustment_id?: string | null
+          app_balance?: number
+          as_of?: string
+          bank_balance?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          undeposited?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_reconciliations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_reconciliations_adjustment_id_fkey"
+            columns: ["adjustment_id"]
+            isOneToOne: false
+            referencedRelation: "cash_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cash_accounts: {
         Row: {
           archived: boolean
@@ -55,6 +110,8 @@ export type Database = {
       }
       cash_transactions: {
         Row: {
+          tax_authority: string | null
+          tax_period: string | null
           account_id: string
           amount: number
           corrected_at: string | null
@@ -72,6 +129,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          tax_authority?: string | null
+          tax_period?: string | null
           account_id: string
           amount: number
           corrected_at?: string | null
@@ -89,6 +148,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          tax_authority?: string | null
+          tax_period?: string | null
           account_id?: string
           amount?: number
           corrected_at?: string | null
@@ -214,6 +275,7 @@ export type Database = {
       }
       lots: {
         Row: {
+          account_id: string | null
           closure_date: string | null
           closure_reason: string | null
           created_at: string
@@ -228,6 +290,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           closure_date?: string | null
           closure_reason?: string | null
           created_at?: string
@@ -242,6 +305,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
           closure_date?: string | null
           closure_reason?: string | null
           created_at?: string
@@ -349,6 +413,72 @@ export type Database = {
           mentee_user_id?: string
           mentor_user_id?: string
           started_at?: string
+        }
+        Relationships: []
+      }
+      money_settings: {
+        Row: {
+          annual_report_from: number
+          created_at: string
+          first_estimate_due: string
+          round_up_transfers: boolean
+          setup_completed_at: string | null
+          tax_rate: number
+          tracker_start: string
+          transfer_weekday: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          annual_report_from?: number
+          created_at?: string
+          first_estimate_due?: string
+          round_up_transfers?: boolean
+          setup_completed_at?: string | null
+          tax_rate?: number
+          tracker_start?: string
+          transfer_weekday?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          annual_report_from?: number
+          created_at?: string
+          first_estimate_due?: string
+          round_up_transfers?: boolean
+          setup_completed_at?: string | null
+          tax_rate?: number
+          tracker_start?: string
+          transfer_weekday?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reminders_state: {
+        Row: {
+          dismissed_at: string | null
+          period_key: string
+          reminder_key: string
+          snoozed_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          dismissed_at?: string | null
+          period_key: string
+          reminder_key: string
+          snoozed_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          dismissed_at?: string | null
+          period_key?: string
+          reminder_key?: string
+          snoozed_until?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -638,6 +768,23 @@ export type Database = {
           sale_count: number
         }[]
       }
+      get_account_statement: {
+        Args: {
+          p_account_id: string
+          p_from?: string
+          p_limit?: number
+          p_to?: string
+        }
+        Returns: Json
+      }
+      get_reminders: {
+        Args: { p_today?: string; p_user_id: string }
+        Returns: Json
+      }
+      get_tax_tracker: {
+        Args: { p_today?: string; p_user_id: string }
+        Returns: Json
+      }
       has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       reassign_show_card_sale_to_show: {
         Args: {
@@ -649,7 +796,7 @@ export type Database = {
       }
       record_account_transfer: {
         Args: {
-          p_amount: number
+          p_amount: number | string
           p_date: string
           p_from_account: string
           p_notes?: string
@@ -657,9 +804,35 @@ export type Database = {
         }
         Returns: string
       }
+      record_reconciliation: {
+        Args: {
+          p_account_id: string
+          p_as_of: string
+          p_bank_balance: number | string
+          p_note?: string
+          p_post_adjustment?: boolean
+          p_undeposited?: number | string
+        }
+        Returns: Json
+      }
+      record_tax_payment: {
+        Args: {
+          p_account_id: string
+          p_amount: number | string
+          p_authority: string
+          p_date: string
+          p_notes?: string
+          p_period: string
+        }
+        Returns: string
+      }
       soft_delete_sale: {
         Args: { p_reason: string; p_transaction_id: string }
         Returns: undefined
+      }
+      tax_estimate_schedule: {
+        Args: { p_from: string; p_to: string }
+        Returns: { due_date: string; tax_period: string }[]
       }
     }
     Enums: {
