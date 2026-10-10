@@ -70,7 +70,11 @@ export function ReminderCards() {
       );
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reminders"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      // marking an estimated quarter done moves the tracker's next due date on
+      queryClient.invalidateQueries({ queryKey: ["taxTracker"] });
+    },
     onError: (error: Error) => toast({ title: "Could not update reminder", description: error.message, variant: "destructive" }),
   });
 
@@ -121,6 +125,16 @@ export function ReminderCards() {
                     {r.kind === "tax_transfer" && (
                       <Button variant="outline" className="min-h-[44px]" onClick={() => navigate("/tax")}>
                         Details
+                      </Button>
+                    )}
+                    {r.kind === "estimated_tax" && (
+                      <Button
+                        variant="outline"
+                        className="min-h-[44px]"
+                        disabled={stateMutation.isPending}
+                        onClick={() => stateMutation.mutate({ reminder: r })}
+                      >
+                        All paid for this quarter
                       </Button>
                     )}
                     {r.kind !== "setup" && (

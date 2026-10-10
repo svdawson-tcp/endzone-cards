@@ -131,8 +131,9 @@ export function ReconcileDialog({ open, onOpenChange, accountId, accountName, ac
             )}
             {difference !== null && difference !== 0 && (
               <p className="text-xs text-muted-foreground mt-2">
-                Usual causes: a bank fee or interest not entered, a debit-card expense not recorded, or a transfer sent in the
-                last few days that hasn't landed yet.
+                {accountKind === "tax"
+                  ? "Usual causes: an estimated tax payment or interest not entered yet. Record those on the Tax page instead of adjusting, so the tax tracker stays right."
+                  : "Usual causes: a bank fee or interest not entered, a debit-card expense not recorded, or a transfer sent in the last few days that hasn't landed yet."}
               </p>
             )}
           </div>

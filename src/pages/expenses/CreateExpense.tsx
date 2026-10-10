@@ -21,7 +21,7 @@ import {
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { normalizeMoneyInput } from "@/lib/numericUtils";
+import { isPositiveMoney, normalizeMoneyInput } from "@/lib/numericUtils";
 import { EXPENSE_CATEGORIES, defaultAccountKindForCategory } from "@/lib/moneyConstants";
 import { useCashAccounts } from "@/hooks/useCashAccounts";
 import { Switch } from "@/components/ui/switch";
@@ -82,8 +82,8 @@ export default function CreateExpense() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!amount || parseFloat(amount) <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
+    if (!isPositiveMoney(normalizeMoneyInput(amount))) {
+      newErrors.amount = "Enter an amount greater than 0 (dollars and cents)";
     }
 
     if (!category) {
@@ -99,7 +99,7 @@ export default function CreateExpense() {
   };
 
   const isFormValid = () => {
-    return amount && parseFloat(amount) > 0 && category && expenseDate;
+    return isPositiveMoney(normalizeMoneyInput(amount)) && category && expenseDate;
   };
 
   const handlePhotoCapture = (file: File) => {

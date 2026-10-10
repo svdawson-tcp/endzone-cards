@@ -59,7 +59,7 @@ export default function MoneySetup() {
   const [result, setResult] = useState<SetupResult | null>(null);
 
   // Current balances, so money already recorded (e.g. a transfer entered before setup) isn't counted twice
-  const { data: accounts = [], error: balancesError } = useQuery({
+  const { data: accounts = [], error: balancesError, isSuccess: balancesLoaded } = useQuery({
     queryKey: ["accountBalances", viewingUserId],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
@@ -233,6 +233,11 @@ export default function MoneySetup() {
       {balancesError && (
         <div className="night-game-card p-4 mb-4 text-sm metric-negative">
           Could not load your current balances, so setup can't continue. Check your connection and reopen this page.
+        </div>
+      )}
+      {balancesLoaded && accounts.length === 0 && (
+        <div className="night-game-card p-4 mb-4 text-sm metric-negative">
+          No accounts found. Add Operating, Travel, Tax and Reserve on the Accounts page, then come back.
         </div>
       )}
 

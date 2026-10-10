@@ -482,4 +482,42 @@ BEGIN
 END $$;
 ROLLBACK;
 
+\echo T21 a bank-check adjustment on Tax does not change what Colton owes the Tax account
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE tax uuid; op uuid; t0 jsonb; t1 jsonb; bal numeric;
+BEGIN
+  SELECT id INTO tax FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'tax';
+  SELECT id INTO op  FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'operating';
+  PERFORM record_account_transfer(op, tax, 1000.00, DATE '2026-10-05', 'set aside');
+  t0 := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  SELECT COALESCE(SUM(amount),0) INTO bal FROM cash_transactions WHERE account_id = tax;
+  PERFORM record_reconciliation(tax, DATE '2026-10-09', bal - 100, 0, 'IRS payment not recorded yet', true);
+  t1 := get_tax_tracker(auth.uid(), DATE '2026-10-10');
+  IF (t1->>'position')::numeric <> (t0->>'position')::numeric THEN RAISE EXCEPTION 'T21 FAIL position % -> %', t0->>'position', t1->>'position'; END IF;
+  IF (t1->>'tax_account_balance')::numeric <> (t0->>'tax_account_balance')::numeric - 100 THEN RAISE EXCEPTION 'T21 FAIL balance not adjusted'; END IF;
+  RAISE NOTICE 'T21 PASS';
+END $$;
+ROLLBACK;
+
+\echo T22 marking an estimated quarter done clears it when no PA payment was due
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE tax uuid; r jsonb;
+BEGIN
+  SELECT id INTO tax FROM cash_accounts WHERE user_id = auth.uid() AND kind = 'tax';
+  INSERT INTO cash_transactions (user_id, account_id, transaction_type, amount, entry_date, tax_authority, tax_period)
+  VALUES (auth.uid(), tax, 'tax_payment', -300.00, CURRENT_DATE, 'irs', '2026-Q4');
+  INSERT INTO reminders_state (user_id, reminder_key, period_key, dismissed_at) VALUES (auth.uid(), 'estimated_tax', '2026-Q4', now());
+  IF NOT tax_quarter_paid(auth.uid(), '2026-Q4') THEN RAISE EXCEPTION 'T22 FAIL quarter not done'; END IF;
+  IF get_tax_tracker(auth.uid(), DATE '2027-01-09')->>'next_estimate_period' <> '2027-Q1' THEN
+    RAISE EXCEPTION 'T22 FAIL next period %', get_tax_tracker(auth.uid(), DATE '2027-01-09')->>'next_estimate_period'; END IF;
+  r := get_reminders(auth.uid(), DATE '2027-01-09');
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(r) x WHERE x->>'key' = 'estimated_tax') THEN RAISE EXCEPTION 'T22 FAIL reminder still shown'; END IF;
+  RAISE NOTICE 'T22 PASS';
+END $$;
+ROLLBACK;
+
 \echo ALL TESTS PASSED

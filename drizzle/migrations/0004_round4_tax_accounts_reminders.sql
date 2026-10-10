@@ -167,13 +167,17 @@ LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT d, p FROM rolled WHERE d BETWEEN p_from AND p_to ORDER BY d;
 $$;
 
--- A quarter's estimates are done once BOTH the federal (IRS) and PA payments are recorded.
+-- A quarter's estimates are done once BOTH the federal (IRS) and PA payments are recorded,
+-- or Colton marked the quarter done (e.g. no PA estimate was due) by dismissing its reminder.
 CREATE OR REPLACE FUNCTION public.tax_quarter_paid(p_user_id uuid, p_period text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path = public AS $$
-  SELECT count(DISTINCT c.tax_authority) = 2
-  FROM cash_transactions c
-  WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment'
-    AND c.tax_period = p_period AND c.tax_authority IN ('irs','pa');
+  SELECT (SELECT count(DISTINCT c.tax_authority)
+          FROM cash_transactions c
+          WHERE c.user_id = p_user_id AND c.transaction_type = 'tax_payment'
+            AND c.tax_period = p_period AND c.tax_authority IN ('irs','pa')) = 2
+      OR EXISTS (SELECT 1 FROM reminders_state rs
+                 WHERE rs.user_id = p_user_id AND rs.reminder_key = 'estimated_tax'
+                   AND rs.period_key = p_period AND rs.dismissed_at IS NOT NULL);
 $$;
 
 -- ---------------------------------------------------------------------
@@ -224,9 +228,11 @@ BEGIN
     SELECT date_trunc('week', c.entry_date::timestamp)::date AS wk, SUM(c.amount) AS deposited
     FROM cash_transactions c JOIN cash_accounts a ON a.id = c.account_id
     WHERE c.user_id = p_user_id AND a.kind = 'tax'
-      -- net of every movement in or out of Tax (transfers both ways, draws, adjustments,
-      -- expenses paid from Tax); tax payments and interest are tracked separately
-      AND c.transaction_type NOT IN ('tax_payment','interest')
+      -- net of every movement in or out of Tax (transfers both ways, draws, expenses paid
+      -- from Tax). Tax payments and interest are tracked separately. Bank-check adjustments are
+      -- left out: a gap on Tax is almost always an unrecorded payment or interest, and must not
+      -- make Colton send more (or less) to Tax.
+      AND c.transaction_type NOT IN ('tax_payment','interest','adjustment')
       AND c.entry_date BETWEEN v_start AND v_today
     GROUP BY 1
   ),
@@ -665,7 +671,10 @@ GRANT EXECUTE ON FUNCTION public.get_reminders(uuid, date) TO authenticated;
 -- ---------------------------------------------------------------------
 REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA public FROM PUBLIC, anon;
 REVOKE EXECUTE ON FUNCTION public.ensure_default_cash_account(uuid) FROM authenticated;
--- PUBLIC's default can only be removed database-wide (an IN SCHEMA revoke has no effect on it)
+-- PUBLIC's default can only be removed database-wide (an IN SCHEMA revoke has no effect on it).
+-- Side effect: functions the postgres role creates OUTSIDE public/storage (e.g. an extension
+-- installed into "extensions") get owner-only EXECUTE; grant to authenticated explicitly then.
+-- Supabase's own schemas are created by supabase_admin and are unaffected.
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon;
 -- RLS policies call has_mentor_access; logged-out reads must get zero rows, not an error.
