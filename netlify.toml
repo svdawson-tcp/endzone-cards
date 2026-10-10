@@ -1,0 +1,14 @@
+# Netlify hosting for EndZone (added Oct 2026 when moving off Lovable Cloud).
+# Lovable ignores this file, so the Lovable-hosted app is unaffected.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: let React Router handle every path (e.g. /lots/<id> on reload).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
