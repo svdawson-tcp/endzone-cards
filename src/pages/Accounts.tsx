@@ -25,7 +25,9 @@ import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { CASH_ACCOUNT_KINDS } from "@/lib/moneyConstants";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
-import { ArrowLeftRight, Plus, Archive } from "lucide-react";
+import { ArrowLeftRight, Plus, Archive, Pencil, ChevronRight } from "lucide-react";
+import { useMoneySettings } from "@/hooks/useMoneySettings";
+import { formatMoney, normalizeMoneyInput } from "@/lib/numericUtils";
 
 interface AccountMetric {
   id: string;
@@ -41,6 +43,7 @@ export default function Accounts() {
   const queryClient = useQueryClient();
   const { isViewingAsMentor, viewingUserId, getEffectiveUserId } = useMentorAccess();
 
+  const { data: moneySettings, isLoading: loadingSettings } = useMoneySettings();
   const [editing, setEditing] = useState<AccountMetric | null>(null);
   const [editName, setEditName] = useState("");
   const [editTarget, setEditTarget] = useState("");
@@ -75,14 +78,14 @@ export default function Accounts() {
       if (!editing) throw new Error("No account selected");
       const trimmed = editName.trim();
       if (!trimmed) throw new Error("Please enter an account name");
-      const target = editTarget.trim() === "" ? null : Number(editTarget);
-      if (target !== null && (isNaN(target) || target < 0)) {
-        throw new Error("Target must be zero or more");
+      const target = editTarget.trim() === "" ? null : normalizeMoneyInput(editTarget);
+      if (editTarget.trim() !== "" && target === null) {
+        throw new Error("Target must be dollars and cents, like 4000.00");
       }
 
       const { error } = await supabase
         .from("cash_accounts")
-        .update({ name: trimmed, target_amount: target })
+        .update({ name: trimmed, target_amount: target as unknown as number }) // TD-007: numeric sent as exact string
         .eq("id", editing.id);
 
       if (error) throw error;
@@ -101,9 +104,9 @@ export default function Accounts() {
       const userId = await getEffectiveUserId();
       const trimmed = newName.trim();
       if (!trimmed) throw new Error("Please enter an account name");
-      const target = newTarget.trim() === "" ? null : Number(newTarget);
-      if (target !== null && (isNaN(target) || target < 0)) {
-        throw new Error("Target must be zero or more");
+      const target = newTarget.trim() === "" ? null : normalizeMoneyInput(newTarget);
+      if (newTarget.trim() !== "" && target === null) {
+        throw new Error("Target must be dollars and cents, like 4000.00");
       }
 
       const maxSort = (accounts || []).length;
@@ -111,7 +114,7 @@ export default function Accounts() {
         user_id: userId,
         name: trimmed,
         kind: newKind,
-        target_amount: target,
+        target_amount: target as unknown as number, // TD-007: numeric sent as exact string
         sort_order: maxSort + 1,
       });
 
@@ -178,6 +181,22 @@ export default function Accounts() {
         </div>
       )}
 
+      {!loadingSettings && !moneySettings?.setup_completed_at && (
+        <div className="night-game-card p-4 mb-6 border border-amber-400/60">
+          <div className="font-semibold text-foreground">Set up your four accounts</div>
+          <p className="text-sm text-muted-foreground mt-1">
+            {isViewingAsMentor
+              ? "Not done yet — the account owner completes this."
+              : "About two minutes: how each account was funded and today's bank balances, so EndZone matches the bank."}
+          </p>
+          {!isViewingAsMentor && (
+            <Button onClick={() => navigate("/accounts/setup")} className="mt-3 min-h-[44px] bg-primary text-primary-foreground">
+              Start setup
+            </Button>
+          )}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => (
@@ -191,26 +210,41 @@ export default function Accounts() {
             const balance = Number(account.balance);
             const pct = target && target > 0 ? Math.max(0, Math.min(100, (balance / target) * 100)) : 0;
             return (
-              <button
-                key={account.id}
-                type="button"
-                onClick={() => openEdit(account)}
-                disabled={isViewingAsMentor}
-                className="w-full text-left night-game-card p-4 min-h-[44px]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-foreground">{account.name}</span>
-                  <span className="text-xl font-bold text-foreground">${balance.toFixed(2)}</span>
+              <div key={account.id} className="night-game-card p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/accounts/${account.id}`)}
+                    className="flex-1 min-w-0 flex items-center justify-between gap-3 text-left min-h-[44px]"
+                    aria-label={`Open ${account.name} statement`}
+                  >
+                    <span className="font-semibold text-foreground truncate">{account.name}</span>
+                    <span className="flex items-center gap-1 text-xl font-bold text-foreground">
+                      {formatMoney(balance)}
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </span>
+                  </button>
+                  {!isViewingAsMentor && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="min-h-[44px] min-w-[44px]"
+                      onClick={() => openEdit(account)}
+                      aria-label={`Edit ${account.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
                 {target !== null && (
                   <div className="mt-3">
                     <Progress value={pct} className="h-2" />
                     <p className="text-xs text-muted-foreground mt-1">
-                      ${balance.toFixed(2)} / ${target.toFixed(2)} target
+                      {formatMoney(balance)} / {formatMoney(target)} target
                     </p>
                   </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>

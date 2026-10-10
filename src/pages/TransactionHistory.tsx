@@ -53,7 +53,9 @@ type TransactionType =
   | "owner_contribution"
   | "owner_draw"
   | "reimbursement"
-  | "transfer";
+  | "transfer"
+  | "tax_payment"
+  | "interest";
 type FilterCategory = "all" | "sales" | "cash";
 type SortOption = "date-desc" | "date-asc" | "amount-desc" | "amount-asc";
 
@@ -161,6 +163,8 @@ export default function TransactionHistory() {
           "owner_draw",
           "reimbursement",
           "transfer",
+          "tax_payment",
+          "interest",
         ])
         .order("entry_date", { ascending: false });
 
@@ -379,6 +383,10 @@ export default function TransactionHistory() {
         return { label: CASH_TYPE_LABELS.reimbursement, className: "bg-orange-600 text-white" };
       case "transfer":
         return { label: CASH_TYPE_LABELS.transfer, className: "bg-blue-600 text-white" };
+      case "tax_payment":
+        return { label: CASH_TYPE_LABELS.tax_payment, className: "bg-purple-700 text-primary-foreground" };
+      case "interest":
+        return { label: CASH_TYPE_LABELS.interest, className: "bg-green-600 text-primary-foreground" };
       default:
         return { label: CASH_TYPE_LABELS[type] || type, className: "bg-gray-500 text-white" };
     }

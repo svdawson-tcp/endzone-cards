@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
@@ -20,13 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseRequiredAmount } from "@/lib/numericUtils";
+import { normalizeMoneyInput } from "@/lib/numericUtils";
 import { todayLocal } from "@/lib/dateUtils";
 import { CASH_TYPE_LABELS } from "@/lib/moneyConstants";
 import { useCashAccounts } from "@/hooks/useCashAccounts";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
-type CashEntryType = "owner_contribution" | "owner_draw" | "reimbursement" | "deposit" | "adjustment";
+type CashEntryType = "owner_contribution" | "owner_draw" | "reimbursement" | "deposit" | "adjustment" | "interest";
 
 const ALLOWED_TYPES: CashEntryType[] = [
   "owner_contribution",
@@ -34,6 +33,7 @@ const ALLOWED_TYPES: CashEntryType[] = [
   "reimbursement",
   "deposit",
   "adjustment",
+  "interest",
 ];
 
 const HELPER_TEXT: Record<CashEntryType, string> = {
@@ -43,12 +43,13 @@ const HELPER_TEXT: Record<CashEntryType, string> = {
   reimbursement: "Paying yourself back for business costs you covered personally.",
   deposit: "Add cash to the business from an external source.",
   adjustment: "Correct cash balance discrepancies.",
+  interest: "Interest the bank paid into this account (usually Tax or Reserve). Counts as income, not as a tax deposit.",
 };
 
 const ManualCashTransaction = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const requested = searchParams.get("type") as CashEntryType | null;
   const type: CashEntryType = requested && ALLOWED_TYPES.includes(requested) ? requested : "deposit";
 
@@ -96,14 +97,12 @@ const ManualCashTransaction = () => {
       if (!user) throw new Error("Not authenticated");
       if (!accountId) throw new Error("Please choose an account");
 
-      const magnitude = parseRequiredAmount(amount);
-      let signedAmount = magnitude;
-
-      if (type === "owner_draw" || type === "reimbursement") {
-        signedAmount = -magnitude;
-      } else if (type === "adjustment") {
-        signedAmount = adjustmentDirection === "remove" ? -magnitude : magnitude;
-      }
+      // TD-007: keep the amount an exact string all the way to PostgreSQL numeric
+      const magnitude = normalizeMoneyInput(amount);
+      if (magnitude === null) throw new Error("Amount must be dollars and cents, like 25.00");
+      const negative =
+        type === "owner_draw" || type === "reimbursement" || (type === "adjustment" && adjustmentDirection === "remove");
+      const signedAmount = (negative ? `-${magnitude}` : magnitude) as unknown as number;
 
       const { error } = await supabase.from("cash_transactions").insert({
         user_id: user.id,
@@ -125,6 +124,9 @@ const ManualCashTransaction = () => {
       queryClient.invalidateQueries({ queryKey: ["all-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["dashboardMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["owedToOwner"] });
+      queryClient.invalidateQueries({ queryKey: ["taxTracker"] });
+      queryClient.invalidateQueries({ queryKey: ["accountStatement"] });
+      queryClient.invalidateQueries({ queryKey: ["accountBalances"] });
       navigate("/dashboard");
     },
     onError: (error) => {
@@ -196,9 +198,23 @@ const ManualCashTransaction = () => {
 
       <div className="bg-card shadow-card-shadow rounded-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <Badge className="bg-[hsl(var(--navy-base))] text-white">{CASH_TYPE_LABELS[type]}</Badge>
-          </div>
+          <FormField label="What is this?" htmlFor="cash-type" required>
+            <Select
+              value={type}
+              onValueChange={(value) => setSearchParams({ type: value }, { replace: true })}
+            >
+              <SelectTrigger id="cash-type" className="min-h-[44px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {ALLOWED_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {CASH_TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
 
           {type === "adjustment" && (
             <FormField

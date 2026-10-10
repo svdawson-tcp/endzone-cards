@@ -341,4 +341,57 @@ BEGIN
 END $$;
 ROLLBACK;
 
+\echo T15 first-use setup: one call funds, splits and reconciles all accounts; refuses a second run
+BEGIN;
+SELECT pg_temp.act_as(:'colton');
+DO $$
+DECLARE r jsonb; ok boolean := false; op_bank numeric; bal record; total_before numeric; total_after numeric; n int;
+BEGIN
+  SELECT SUM(amount) INTO total_before FROM cash_transactions WHERE user_id = auth.uid();
+  -- Operating's app balance on 10 Oct is 7819.91 of old business cash. Real-world story:
+  --   Scott's $7,500 into Operating and $2,500 into Travel; $2,500 old cash to Tax; $3,900 old cash to Reserve;
+  --   old M&T savings still holds $419.91; Colton carries $150 of show cash.
+  -- Operating bank = 7819.91 + 7500 - 2500 - 3900 - 419.91 - 150 cash - 12.00 fees we don't know about = 8338.00
+  r := complete_money_setup(jsonb_build_object(
+    'setup_date', '2026-10-10',
+    'old_account', jsonb_build_object('status', 'open', 'balance', '419.91'),
+    'opening', jsonb_build_array(
+      jsonb_build_object('type','contribution','account','operating','amount','7500.00','date','2026-10-09','note','Gift from Scott'),
+      jsonb_build_object('type','contribution','account','travel','amount','2500.00','date','2026-10-09','note','Gift from Scott'),
+      jsonb_build_object('type','transfer','account','tax','amount','2500.00','date','2026-10-09'),
+      jsonb_build_object('type','transfer','account','reserve','amount','3900.00','date','2026-10-09')),
+    'cash_outside_bank', '150.00',
+    'bank_balances', jsonb_build_object('operating','8338.00','travel','2500.00','tax','2500.00','reserve','3900.00','old','419.91'),
+    'round_up_transfers', false,
+    'note', 'Opening setup, small bank fees not yet entered'));
+  SELECT count(*) INTO n FROM jsonb_array_elements(r->'reconciliations');
+  IF n <> 5 THEN RAISE EXCEPTION 'T15 FAIL expected 5 reconciliations, got % (%)', n, r; END IF;
+  -- Operating should have needed exactly one -12.00 adjustment; others matched
+  IF NOT EXISTS (SELECT 1 FROM jsonb_array_elements(r->'reconciliations') x
+                 WHERE x->>'account' = 'operating' AND (x->>'difference')::numeric = 12.00 AND x->>'adjustment_id' IS NOT NULL) THEN
+    RAISE EXCEPTION 'T15 FAIL operating difference %', r->'reconciliations'; END IF;
+  IF EXISTS (SELECT 1 FROM jsonb_array_elements(r->'reconciliations') x
+             WHERE x->>'account' <> 'operating' AND (x->>'difference')::numeric <> 0) THEN
+    RAISE EXCEPTION 'T15 FAIL unexpected difference %', r->'reconciliations'; END IF;
+  -- balances now equal the bank (Operating = bank + cash outside the bank)
+  FOR bal IN SELECT a.name, a.kind, COALESCE(SUM(c.amount),0) AS b FROM cash_accounts a LEFT JOIN cash_transactions c ON c.account_id = a.id
+             WHERE a.user_id = auth.uid() AND NOT a.archived GROUP BY a.name, a.kind LOOP
+    IF (bal.kind = 'operating' AND bal.b <> 8488.00) OR (bal.kind = 'travel' AND bal.b <> 2500)
+       OR (bal.kind = 'tax' AND bal.b <> 2500) OR (bal.kind = 'reserve' AND bal.b <> 3900)
+       OR (bal.kind = 'other' AND bal.b <> 419.91) THEN
+      RAISE EXCEPTION 'T15 FAIL % balance %', bal.name, bal.b; END IF;
+  END LOOP;
+  -- total cash moved only by the two contributions (10,000) and the -12.00 adjustment
+  SELECT SUM(amount) INTO total_after FROM cash_transactions WHERE user_id = auth.uid();
+  IF total_after - total_before <> 9988.00 THEN RAISE EXCEPTION 'T15 FAIL total delta %', total_after - total_before; END IF;
+  IF (SELECT round_up_transfers FROM money_settings WHERE user_id = auth.uid()) THEN RAISE EXCEPTION 'T15 FAIL rounding pref'; END IF;
+  BEGIN PERFORM complete_money_setup('{}'::jsonb); EXCEPTION WHEN OTHERS THEN ok := true; END;
+  IF NOT ok THEN RAISE EXCEPTION 'T15 FAIL second setup allowed'; END IF;
+  -- tracker now sees the $2,500 catch-up
+  IF (get_tax_tracker(auth.uid(), DATE '2026-10-10')->>'position')::numeric <> 367.05 THEN
+    RAISE EXCEPTION 'T15 FAIL tracker position %', get_tax_tracker(auth.uid(), DATE '2026-10-10')->>'position'; END IF;
+  RAISE NOTICE 'T15 PASS (Operating 8488.00 incl. $150 cash, Travel 2500, Tax 2500, Reserve 3900, Old M&T 419.91; one $12 adjustment)';
+END $$;
+ROLLBACK;
+
 \echo ALL TESTS PASSED

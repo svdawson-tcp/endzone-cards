@@ -518,6 +518,118 @@ BEGIN
   ), '[]'::jsonb);
 END; $$;
 
+-- ---------------------------------------------------------------------
+-- 12b. FIRST-USE MONEY SETUP (all-or-nothing)
+--      Records how the four bank accounts were funded, an optional "Old M&T savings" account,
+--      the weekly-transfer rounding choice, and an opening reconciliation of every account.
+--      Payload (all amounts as strings, all dates YYYY-MM-DD):
+--      { "setup_date": "2026-10-12",
+--        "old_account": { "status": "closed" | "open", "balance": "0.00" },
+--        "opening": [ { "type": "contribution" | "transfer", "account": "operating|travel|tax|reserve",
+--                       "amount": "7500.00", "date": "2026-10-12", "note": "..." } ],
+--        "cash_outside_bank": "250.00",
+--        "bank_balances": { "operating": "...", "travel": "...", "tax": "...", "reserve": "...", "old": "..." },
+--        "round_up_transfers": true,
+--        "note": "explanation for any opening differences (optional)" }
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.complete_money_setup(p jsonb)
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path TO 'public' AS $$
+DECLARE
+  v_user  uuid := auth.uid();
+  v_today date := (now() AT TIME ZONE 'America/New_York')::date;
+  v_date  date;
+  v_acct  jsonb := '{}'::jsonb;   -- kind -> account id
+  v_old   uuid;
+  v_bal   numeric;
+  v_item  jsonb;
+  v_amt   numeric;
+  v_d     date;
+  v_note  text := COALESCE(NULLIF(btrim(p->>'note'), ''), 'Opening balance at account setup');
+  v_k     text;
+  v_rec   jsonb;
+  v_recs  jsonb := '[]'::jsonb;
+BEGIN
+  IF v_user IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+  IF EXISTS (SELECT 1 FROM money_settings WHERE user_id = v_user AND setup_completed_at IS NOT NULL) THEN
+    RAISE EXCEPTION 'Your accounts are already set up';
+  END IF;
+  IF length(v_note) < 10 THEN v_note := 'Opening balance at account setup: ' || v_note; END IF;
+
+  v_date := COALESCE(NULLIF(p->>'setup_date', '')::date, v_today);
+  IF v_date > v_today THEN RAISE EXCEPTION 'Setup date cannot be in the future'; END IF;
+
+  SELECT jsonb_object_agg(kind, id) INTO v_acct
+  FROM (SELECT DISTINCT ON (kind) kind, id FROM cash_accounts
+        WHERE user_id = v_user AND NOT archived AND kind IN ('operating','travel','tax','reserve')
+        ORDER BY kind, is_default DESC, sort_order, created_at) a;
+  IF v_acct IS NULL OR NOT (v_acct ?& ARRAY['operating','travel','tax','reserve']) THEN
+    RAISE EXCEPTION 'Operating, Travel & Shows, Tax and Reserve accounts must all exist before setup';
+  END IF;
+
+  -- 1. Old M&T savings: if still open, give it its own account and move its money there from Operating
+  IF COALESCE(p->'old_account'->>'status', 'closed') = 'open' THEN
+    SELECT id INTO v_old FROM cash_accounts
+    WHERE user_id = v_user AND lower(btrim(name)) = 'old m&t savings' AND NOT archived;
+    IF v_old IS NULL THEN
+      INSERT INTO cash_accounts (user_id, name, kind, sort_order)
+      VALUES (v_user, 'Old M&T savings', 'other', 9) RETURNING id INTO v_old;
+    END IF;
+    v_bal := round(COALESCE(NULLIF(p->'old_account'->>'balance', '')::numeric, 0), 2);
+    IF v_bal < 0 THEN RAISE EXCEPTION 'Old account balance cannot be negative'; END IF;
+    IF v_bal > 0 THEN
+      PERFORM record_account_transfer((v_acct->>'operating')::uuid, v_old, v_bal, v_date,
+                                      'Money still in the old M&T savings account at setup');
+    END IF;
+  END IF;
+
+  -- 2. Opening money, as it actually moved
+  FOR v_item IN SELECT * FROM jsonb_array_elements(COALESCE(p->'opening', '[]'::jsonb)) LOOP
+    v_k := v_item->>'account';
+    IF NOT (v_acct ? v_k) THEN RAISE EXCEPTION 'Unknown account "%" in opening entries', v_k; END IF;
+    v_amt := round(NULLIF(v_item->>'amount', '')::numeric, 2);
+    IF v_amt IS NULL OR v_amt = 0 THEN CONTINUE; END IF;
+    IF v_amt < 0 THEN RAISE EXCEPTION 'Opening amounts must be positive'; END IF;
+    v_d := COALESCE(NULLIF(v_item->>'date', '')::date, v_date);
+    IF v_d > v_today THEN RAISE EXCEPTION 'Opening dates cannot be in the future'; END IF;
+
+    IF v_item->>'type' = 'contribution' THEN
+      INSERT INTO cash_transactions (user_id, account_id, transaction_type, amount, entry_date, notes)
+      VALUES (v_user, (v_acct->>v_k)::uuid, 'owner_contribution', v_amt, v_d,
+              COALESCE(NULLIF(btrim(v_item->>'note'), ''), 'Opening funding at account setup'));
+    ELSIF v_item->>'type' = 'transfer' THEN
+      IF v_k = 'operating' THEN RAISE EXCEPTION 'An opening transfer must go to Travel, Tax or Reserve'; END IF;
+      PERFORM record_account_transfer((v_acct->>'operating')::uuid, (v_acct->>v_k)::uuid, v_amt, v_d,
+                                      COALESCE(NULLIF(btrim(v_item->>'note'), ''), 'Opening transfer at account setup'));
+    ELSE
+      RAISE EXCEPTION 'Opening entries must be a contribution or a transfer';
+    END IF;
+  END LOOP;
+
+  -- 3. Settings
+  INSERT INTO money_settings (user_id, round_up_transfers)
+  VALUES (v_user, COALESCE((p->>'round_up_transfers')::boolean, true))
+  ON CONFLICT (user_id) DO UPDATE SET round_up_transfers = EXCLUDED.round_up_transfers;
+
+  -- 4. Opening reconciliation of every account against the bank; differences become one noted adjustment each
+  FOREACH v_k IN ARRAY ARRAY['operating','travel','tax','reserve','old'] LOOP
+    CONTINUE WHEN NULLIF(p->'bank_balances'->>v_k, '') IS NULL;
+    CONTINUE WHEN v_k = 'old' AND v_old IS NULL;
+    v_rec := record_reconciliation(
+      CASE WHEN v_k = 'old' THEN v_old ELSE (v_acct->>v_k)::uuid END,
+      v_date,
+      (p->'bank_balances'->>v_k)::numeric,
+      CASE WHEN v_k = 'operating' THEN COALESCE(NULLIF(p->>'cash_outside_bank', '')::numeric, 0) ELSE 0 END,
+      v_note,
+      true);
+    v_recs := v_recs || jsonb_build_array(jsonb_build_object('account', v_k) || v_rec);
+  END LOOP;
+
+  UPDATE money_settings SET setup_completed_at = now() WHERE user_id = v_user;
+
+  RETURN jsonb_build_object('setup_date', v_date, 'old_account_id', v_old, 'reconciliations', v_recs);
+END; $$;
+GRANT EXECUTE ON FUNCTION public.complete_money_setup(jsonb) TO authenticated;
+
 GRANT EXECUTE ON FUNCTION public.tax_estimate_schedule(date, date) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_tax_tracker(uuid, date) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.record_tax_payment(uuid, numeric, date, text, text, text) TO authenticated;

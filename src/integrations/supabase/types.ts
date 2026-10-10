@@ -740,6 +740,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_money_setup: {
+        Args: { p: Json }
+        Returns: Json
+      }
       ensure_default_cash_account: {
         Args: { p_user_id: string }
         Returns: string
