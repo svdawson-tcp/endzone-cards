@@ -1,4 +1,8 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useMoneySettings } from "@/hooks/useMoneySettings";
+import { buildMoneyCalendar, downloadCalendarFile } from "@/lib/calendarFile";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageContainer } from "@/components/layout/AppLayout";
@@ -7,11 +11,11 @@ import { TaxTransferDialog } from "@/components/tax/TaxTransferDialog";
 import { TaxPaymentDialog } from "@/components/tax/TaxPaymentDialog";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useTaxTracker, taxAuthorityLabel, formatTaxPeriod, type TaxWeek } from "@/hooks/useTaxTracker";
-import { formatBusinessDate, parseBusinessDate } from "@/lib/dateUtils";
+import { formatBusinessDate, parseBusinessDate, todayLocal } from "@/lib/dateUtils";
 import { formatMoney } from "@/lib/numericUtils";
 import { kpiTooltips } from "@/data/kpiTooltips";
 import { addDays, format } from "date-fns";
-import { AlertTriangle, CheckCircle2, Landmark, Send } from "lucide-react";
+import { AlertTriangle, CalendarPlus, CheckCircle2, Landmark, Send } from "lucide-react";
 
 const WEEKS_SHOWN = 8;
 
@@ -37,6 +41,33 @@ export default function Tax() {
   const [transferOpen, setTransferOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [showAllWeeks, setShowAllWeeks] = useState(false);
+  const [calendarBusy, setCalendarBusy] = useState(false);
+  const { data: settings } = useMoneySettings();
+
+  const handleCalendar = async () => {
+    setCalendarBusy(true);
+    try {
+      const today = tracker?.today || todayLocal();
+      const firstDue = settings?.first_estimate_due || "2027-01-15";
+      const from = firstDue > today ? firstDue : today;
+      const to = `${Number(from.slice(0, 4)) + 2}-12-31`;
+      const { data, error: scheduleError } = await supabase.rpc("tax_estimate_schedule", { p_from: from, p_to: to });
+      if (scheduleError) throw scheduleError;
+      const ics = buildMoneyCalendar({
+        transferWeekday: settings?.transfer_weekday ?? 1,
+        startDate: today,
+        estimateDueDates: data || [],
+        annualReportFrom: settings?.annual_report_from ?? 2027,
+        yearEndFrom: 2027,
+      });
+      downloadCalendarFile(ics);
+      toast({ title: "Calendar file downloaded", description: "Open it to add the reminders to your phone's calendar." });
+    } catch (e) {
+      toast({ title: "Could not build the calendar file", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setCalendarBusy(false);
+    }
+  };
 
   const position = Number(tracker?.position || 0);
   const behind = position < -0.004;
@@ -185,7 +216,7 @@ export default function Tax() {
 
       {/* Payments */}
       <h2 className="text-lg font-bold text-foreground uppercase tracking-wide mb-3">Estimated payments {currentYear}</h2>
-      <div className="night-game-card divide-y divide-border/40 mb-24">
+      <div className="night-game-card divide-y divide-border/40 mb-6">
         {paymentsThisYear.length === 0 ? (
           <p className="p-4 text-sm text-muted-foreground">No estimated payments recorded this year.</p>
         ) : (
@@ -202,6 +233,18 @@ export default function Tax() {
             </div>
           ))
         )}
+      </div>
+
+      {/* Phone calendar reminders */}
+      <div className="night-game-card p-4 md:p-5 mb-24">
+        <div className="text-sm font-semibold text-foreground">Get reminders on your phone</div>
+        <p className="text-sm text-muted-foreground mt-1">
+          Adds the weekly tax transfer, the monthly bank check, estimated tax due dates and yearly deadlines to your calendar.
+        </p>
+        <Button variant="outline" className="min-h-[44px] mt-3 w-full sm:w-auto" disabled={calendarBusy} onClick={handleCalendar}>
+          <CalendarPlus className="mr-2 h-4 w-4" />
+          Add to my calendar
+        </Button>
       </div>
 
       <TaxTransferDialog
