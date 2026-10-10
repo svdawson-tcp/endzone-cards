@@ -1,0 +1,142 @@
+T1 weekly owed matches an independent calculation (ISO weeks, 4% of gross with net fallback)
+ act_as 
+--------
+ 
+(1 row)
+
+41: NOTICE:  tracker owed_due=2132.95 independent=2132.95 gross=54476.73 accruing=46.13 weeks=41
+41: NOTICE:  T1 PASS
+T2 gross_amount is used when present, net otherwise
+ act_as 
+--------
+ 
+(1 row)
+
+61: NOTICE:  T2 PASS (owed_due 2132.95 -> 2138.95)
+T3 backdated sale lands in its own week and is flagged late; soft-deleted sale drops out
+ act_as 
+--------
+ 
+(1 row)
+
+83: NOTICE:  T3 PASS
+T4 a transfer into Tax counts as a deposit and leaves total cash unchanged
+ act_as 
+--------
+ 
+(1 row)
+
+104: NOTICE:  T4 PASS: 2026 owed through last week = 2132.95, after $2,500 catch-up position = 367.05 (positive = surplus)
+T5 tax payment reduces the Tax balance but not the set-aside position; validations hold
+ act_as 
+--------
+ 
+(1 row)
+
+133: NOTICE:  T5 PASS
+T6 interest raises the Tax balance but is not a deposit
+ act_as 
+--------
+ 
+(1 row)
+
+153: NOTICE:  T6 PASS
+T7 reconciliation: server-computed balance, adjustment needs a note, direct writes blocked
+ act_as 
+--------
+ 
+(1 row)
+
+182: NOTICE:  T7 PASS
+T8 mentor (Scott) can read Colton tracker, statement and reminders but cannot write to his accounts
+ act_as 
+--------
+ 
+(1 row)
+
+206: NOTICE:  T8 PASS (statement closing 7819.91, reminders 2)
+T9 an unrelated user sees nothing of Colton
+ act_as 
+--------
+ 
+(1 row)
+
+222: NOTICE:  T9 PASS
+T10 logged-out visitors cannot call functions; triggers still fire for signed-in users
+238: NOTICE:  T10a PASS
+ act_as 
+--------
+ 
+(1 row)
+
+247: NOTICE:  T10b PASS
+T11 lot purchases land in the chosen account; moving the lot moves the cash; foreign accounts rejected
+ act_as 
+--------
+ 
+(1 row)
+
+274: NOTICE:  T11 PASS
+T12 estimated-tax schedule and weekend roll
+289: NOTICE:  T12 PASS
+T13 reminders: setup, weekly transfer, estimated payment window, reconciliation, dismiss and snooze
+ act_as 
+--------
+ 
+(1 row)
+
+323: NOTICE:  T13 PASS
+T14 statement arithmetic: opening + rows = closing; transfer pair nets to zero across accounts
+ act_as 
+--------
+ 
+(1 row)
+
+341: NOTICE:  T14 PASS (Sept 1 opening 9669.56, in 8200.46, out 10050.11, closing 7819.91)
+T15 first-use setup: one call funds, splits and reconciles all accounts; refuses a second run
+ act_as 
+--------
+ 
+(1 row)
+
+394: NOTICE:  T15 PASS (Operating 8488.00 incl. $150 cash, Travel 2500, Tax 2500, Reserve 3900, Old M&T 419.91; one $12 adjustment)
+T16 money moved back out of Tax reduces the set-aside position
+ act_as 
+--------
+ 
+(1 row)
+
+413: NOTICE:  T16 PASS (position -1632.95 after $2,500 in and $2,000 back out)
+T17 a Monday transfer for the week just finished marks every completed week covered
+ act_as 
+--------
+ 
+(1 row)
+
+432: NOTICE:  T17 PASS (exact transfer of 2132.95 covers all weeks)
+T18 an estimated quarter needs both the IRS and the PA payment
+ act_as 
+--------
+ 
+(1 row)
+
+457: NOTICE:  T18 PASS
+T19 functions added by later migrations are not executable by logged-out visitors
+468: NOTICE:  T19 PASS
+T20 logged-out table reads return no rows instead of an error
+482: NOTICE:  T20 PASS
+T21 a bank-check adjustment on Tax does not change what Colton owes the Tax account
+ act_as 
+--------
+ 
+(1 row)
+
+501: NOTICE:  T21 PASS
+T22 marking an estimated quarter done clears it when no PA payment was due
+ act_as 
+--------
+ 
+(1 row)
+
+520: NOTICE:  T22 PASS
+ALL TESTS PASSED

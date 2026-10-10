@@ -1,0 +1,81 @@
+2026-10-12 2026-11-02 2026-10-05
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//EndZone//Money reminders//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:EndZone money
+BEGIN:VEVENT
+UID:weekly-tax-transfer@endzone
+DTSTAMP:20261010T120000Z
+SUMMARY:EndZone: move last week's tax money
+DESCRIPTION:Open EndZone > Tax to see the amount\, send it from Operating t
+ o Tax\, then tap I SENT IT.
+DTSTART:20261012T090000
+DURATION:PT15M
+RRULE:FREQ=WEEKLY;BYDAY=MO
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:EndZone: move last week's tax money
+TRIGGER:-PT0M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:monthly-bank-check@endzone
+DTSTAMP:20261010T120000Z
+SUMMARY:EndZone: check accounts against the bank
+DESCRIPTION:Open EndZone > Accounts\, tap each account and use Check vs ban
+ k.
+DTSTART:20261102T090000
+DURATION:PT15M
+RRULE:FREQ=MONTHLY;BYDAY=1MO
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:EndZone: check accounts against the bank
+TRIGGER:-PT0M
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:year-end-accountant@endzone
+DTSTAMP:20261010T120000Z
+SUMMARY:EndZone: send your books to the accountant
+DESCRIPTION:Collect 1099-K forms from eBay\, Whatnot and PayPal and send th
+ em with your EndZone export.
+DTSTART;VALUE=DATE:20270131
+DTEND;VALUE=DATE:20270201
+RRULE:FREQ=YEARLY
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:EndZone: send your books to the accountant
+TRIGGER:-P14D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:pa-annual-report@endzone
+DTSTAMP:20261010T120000Z
+SUMMARY:PA LLC annual report due
+DESCRIPTION:File for CS Sports Cards & Collectibles LLC at file.dos.pa.gov.
+DTSTART;VALUE=DATE:20270930
+DTEND;VALUE=DATE:20271001
+RRULE:FREQ=YEARLY
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:PA LLC annual report due
+TRIGGER:-P14D
+END:VALARM
+END:VEVENT
+BEGIN:VEVENT
+UID:estimated-tax-2026-Q4@endzone
+DTSTAMP:20261010T120000Z
+SUMMARY:Estimated tax due (2026 Q4)
+DESCRIPTION:Pay the IRS and PA estimates\, then record each payment in EndZ
+ one > Tax.
+DTSTART;VALUE=DATE:20270115
+DTEND;VALUE=DATE:20270116
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Estimated tax due (2026 Q4)
+TRIGGER:-P7D
+END:VALARM
+END:VEVENT
+END:VCALENDAR

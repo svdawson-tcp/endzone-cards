@@ -1,0 +1,6 @@
+2ec406e Round 4: second review pass
+d964384 Round 4: fixes from independent review
+066b88e Round 4 pass 3: reminder cards, mentor weekly call card, calendar download
+8ddec3b Round 4 pass 2: first-use setup, statements, bank checks, account defaults
+627e4e2 Round 4 pass 1: Tax screen, dashboard tax card, transfer and payment sheets
+6169bd7 Round 4 migration 0004: tax tracker, account reconciliation, reminders
