@@ -3,6 +3,8 @@ export const kpiTooltips = {
   buying: "Money spent buying lots in this period. The strongest predictor of next month's sales.",
   cashInMinusOut: "Sales minus lot purchases minus logged expenses for this period. This is cash flow, not profit: a big buying week can show negative even when the business is healthy, because those cards haven't sold yet.",
   expensesLogged: "Business expenses you've recorded for this period. If this looks low, costs are probably going unrecorded.",
+  taxPosition: "Every sale adds 4% of what the buyer paid (or what you received, if you didn't enter the buyer price) to what you owe the Tax account. Each Monday you move last week's amount from Operating to Tax. 'Behind' means completed weeks haven't been covered yet; the current week is still adding up and isn't due until the next transfer day.",
+  taxStatus: "Whether the Tax account is caught up with 4% of sales for completed weeks. Tap to see each week and record transfers and estimated payments.",
   taxSetAside: "4% of gross sales in this period. Move it to the Tax account. Platforms report your gross sales to the IRS, so reserve on gross, not on what you received.",
   averageSale: "Revenue ÷ number of sales in this period.",
   premiumSales: "Revenue from individually listed show cards.",

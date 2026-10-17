@@ -21,8 +21,8 @@ import {
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseRequiredAmount } from "@/lib/numericUtils";
-import { EXPENSE_CATEGORIES } from "@/lib/moneyConstants";
+import { isPositiveMoney, normalizeMoneyInput } from "@/lib/numericUtils";
+import { EXPENSE_CATEGORIES, defaultAccountKindForCategory } from "@/lib/moneyConstants";
 import { useCashAccounts } from "@/hooks/useCashAccounts";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -47,11 +47,15 @@ export default function CreateExpense() {
 
   const { data: accounts = [] } = useCashAccounts();
 
+  // Round 4: the account follows the category (hotel, travel, meals, table fees -> Travel & Shows;
+  // everything else -> Operating) until the user picks one themselves.
+  const [accountTouched, setAccountTouched] = useState(false);
   useEffect(() => {
-    if (!accountId && accounts.length > 0) {
-      setAccountId((accounts.find((a) => a.is_default) || accounts[0]).id);
-    }
-  }, [accounts, accountId]);
+    if (accountTouched || accounts.length === 0) return;
+    const kind = defaultAccountKindForCategory(category);
+    const match = accounts.find((a) => a.kind === kind) || accounts.find((a) => a.is_default) || accounts[0];
+    setAccountId(match.id);
+  }, [accounts, category, accountTouched]);
 
   // Pre-select show from URL param
   const showIdFromUrl = searchParams.get("showId");
@@ -78,8 +82,8 @@ export default function CreateExpense() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!amount || parseFloat(amount) <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
+    if (!isPositiveMoney(normalizeMoneyInput(amount))) {
+      newErrors.amount = "Enter an amount greater than 0 (dollars and cents)";
     }
 
     if (!category) {
@@ -95,7 +99,7 @@ export default function CreateExpense() {
   };
 
   const isFormValid = () => {
-    return amount && parseFloat(amount) > 0 && category && expenseDate;
+    return isPositiveMoney(normalizeMoneyInput(amount)) && category && expenseDate;
   };
 
   const handlePhotoCapture = (file: File) => {
@@ -148,10 +152,14 @@ export default function CreateExpense() {
         receiptPhotoUrl = publicUrl;
       }
 
+      const exactAmount = normalizeMoneyInput(amount);
+      if (exactAmount === null) throw new Error("Enter a valid amount");
+
       // Insert expense (the database trigger handles the cash entry)
       const { error: insertError } = await supabase.from("expenses").insert({
         user_id: user.id,
-        amount: parseRequiredAmount(amount),
+        // TD-007: exact string; PostgREST casts it to numeric (generated types say number)
+        amount: exactAmount as unknown as number,
         category: category as ExpenseCategory,
         show_id: selectedShowId || null,
         expense_date: expenseDate,
@@ -261,9 +269,15 @@ export default function CreateExpense() {
           <FormField
             label="Paid from"
             htmlFor="paid-from"
-            helperText="Which account the money came out of"
+            helperText="Set from the category — change it if a different card paid"
           >
-            <Select value={accountId} onValueChange={setAccountId}>
+            <Select
+              value={accountId}
+              onValueChange={(value) => {
+                setAccountTouched(true);
+                setAccountId(value);
+              }}
+            >
               <SelectTrigger id="paid-from" className="min-h-[44px]">
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>

@@ -18,6 +18,10 @@ import { PeriodPicker } from "@/components/PeriodPicker";
 import { TrendChart, type PeriodSeriesRow } from "@/components/TrendChart";
 import { ChangeLine } from "@/components/ChangeLine";
 import { SALES_CHANNELS } from "@/lib/moneyConstants";
+import { useTaxTracker } from "@/hooks/useTaxTracker";
+import { ReminderCards } from "@/components/reminders/ReminderCards";
+import { WeeklyCallCard } from "@/components/mentor/WeeklyCallCard";
+import { formatMoney } from "@/lib/numericUtils";
 
 const COMPARE_STORAGE_KEY = "dashboardCompare";
 
@@ -87,6 +91,9 @@ export default function Dashboard() {
   const periodState = usePeriod();
   const { period, start, end, customInvalid, rangeLabel } = periodState;
   const [compare, setCompare] = useState<string>(readStoredCompare);
+  const { data: taxTracker, isLoading: loadingTax } = useTaxTracker();
+  const taxPosition = Number(taxTracker?.position || 0);
+  const taxBehind = !!taxTracker && taxPosition < -0.004;
   const { isViewingAsMentor, viewingUserId, getEffectiveUserId } = useMentorAccess();
 
   const handleCompareChange = (value: string) => {
@@ -334,6 +341,10 @@ export default function Dashboard() {
         </PeriodPicker>
       </div>
 
+      {/* Reminders (owner) / weekly call card (mentor) */}
+      {isViewingAsMentor && <WeeklyCallCard />}
+      <ReminderCards />
+
       {/* Section A: This Period */}
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-foreground uppercase tracking-wide">This Period</h2>
@@ -369,8 +380,6 @@ export default function Dashboard() {
                   comparisonLabel={comparisonShortLabel} />
               ) : undefined
             } />
-          <Tile icon={PiggyBank} title="Tax Set-Aside" tooltip={kpiTooltips.taxSetAside}
-            value={money(metrics?.tax_setaside)} subtext="4% of gross sales — move to Tax account" />
           <Tile icon={TrendingUp} title="Average Sale" tooltip={kpiTooltips.averageSale}
             value={money(metrics?.avg_sale)}
             footer={
@@ -478,6 +487,23 @@ export default function Dashboard() {
                   Manage accounts
                 </button>
               </div>
+            } />
+          <Tile icon={PiggyBank} title="Tax" tooltip={kpiTooltips.taxStatus}
+            value={
+              loadingTax
+                ? "…"
+                : taxBehind
+                  ? `${formatMoney(-taxPosition)} behind`
+                  : taxPosition > 0
+                    ? `${formatMoney(taxPosition)} ahead`
+                    : "Up to date"
+            }
+            valueClassName={taxBehind ? "text-amber-400" : "metric-positive"}
+            subtext={`Tax account ${formatMoney(taxTracker?.tax_account_balance)}`}
+            footer={
+              <button onClick={() => navigate("/tax")} className="text-xs text-accent underline min-h-[44px] pt-2">
+                Open tax tracker
+              </button>
             } />
           {owedToOwner > 0 && (
             <Tile icon={HandCoins} title="Owed to You" tooltip={kpiTooltips.owedToYou}

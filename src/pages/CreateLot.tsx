@@ -13,7 +13,8 @@ import { DateInput } from "@/components/forms/DateInput";
 import { FormField } from "@/components/forms/FormField";
 import { format } from "date-fns";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseRequiredAmount } from "@/lib/numericUtils";
+import { normalizeMoneyInput } from "@/lib/numericUtils";
+import { useCashAccounts } from "@/hooks/useCashAccounts";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import {
   Select,
@@ -36,6 +37,9 @@ export default function CreateLot() {
   const [totalCost, setTotalCost] = useState("");
   const [notes, setNotes] = useState("");
   const [showId, setShowId] = useState("");
+  // Round 4: which account paid. "" = the default account (Operating), stored as NULL.
+  const [accountId, setAccountId] = useState("");
+  const { data: cashAccounts = [] } = useCashAccounts();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: existingLot, isLoading: loadingLot } = useQuery({
@@ -75,6 +79,7 @@ export default function CreateLot() {
       setTotalCost(existingLot.total_cost.toString());
       setNotes(existingLot.notes || "");
       setShowId(existingLot.show_id || "");
+      setAccountId(existingLot.account_id || "");
     }
   }, [existingLot]);
 
@@ -151,12 +156,17 @@ export default function CreateLot() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const normalizedCost = normalizeMoneyInput(totalCost);
+      if (normalizedCost === null) throw new Error("Total cost must be dollars and cents, like 125.00");
+
       const lotData = {
         purchase_date: purchaseDate,
         source: source.trim(),
-        total_cost: parseRequiredAmount(totalCost),
+        // TD-007: exact string to PostgreSQL numeric, never a JS float
+        total_cost: normalizedCost as unknown as number,
         notes: notes.trim() || null,
         show_id: showId || null,
+        account_id: accountId || null,
       };
 
       if (isEditMode) {
@@ -316,6 +326,28 @@ export default function CreateLot() {
             </SelectContent>
           </Select>
         </FormField>
+
+        {cashAccounts.length > 1 && (
+          <FormField label="Paid from" helperText="Leave on Operating unless another account paid" htmlFor="lot-account">
+            <Select value={accountId || "default"} onValueChange={(value) => setAccountId(value === "default" ? "" : value)}>
+              <SelectTrigger id="lot-account" className="min-h-[44px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">
+                  {(cashAccounts.find((a) => a.is_default) || cashAccounts[0]).name} (default)
+                </SelectItem>
+                {cashAccounts
+                  .filter((a) => !a.is_default)
+                  .map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        )}
 
         <div>
           <label htmlFor="notes" className="form-label">Notes (Optional)</label>
