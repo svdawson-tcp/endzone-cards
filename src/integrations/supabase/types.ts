@@ -495,9 +495,13 @@ export type Database = {
           photo_back_url: string | null
           photo_front_url: string | null
           player_name: string
+          show_on_website: boolean
+          sport: string | null
           status: string
+          team: string | null
           updated_at: string
           user_id: string
+          website_listed_at: string | null
           year: string | null
         }
         Insert: {
@@ -512,9 +516,13 @@ export type Database = {
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name: string
+          show_on_website?: boolean
+          sport?: string | null
           status?: string
+          team?: string | null
           updated_at?: string
           user_id: string
+          website_listed_at?: string | null
           year?: string | null
         }
         Update: {
@@ -529,9 +537,13 @@ export type Database = {
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name?: string
+          show_on_website?: boolean
+          sport?: string | null
           status?: string
+          team?: string | null
           updated_at?: string
           user_id?: string
+          website_listed_at?: string | null
           year?: string | null
         }
         Relationships: [

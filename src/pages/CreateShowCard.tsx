@@ -8,6 +8,7 @@ import { Loader2, Info, Upload, X, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import {
@@ -37,6 +38,10 @@ export default function CreateShowCard() {
   const [condition, setCondition] = useState("");
   const [costBasis, setCostBasis] = useState("");
   const [askingPrice, setAskingPrice] = useState("");
+  // Website (cssportscards.com "Shop the Case")
+  const [showOnWebsite, setShowOnWebsite] = useState(false);
+  const [sport, setSport] = useState("");
+  const [team, setTeam] = useState("");
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
   const [backPhoto, setBackPhoto] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -91,6 +96,9 @@ export default function CreateShowCard() {
       
       setCostBasis(existingCard.cost_basis ? existingCard.cost_basis.toString() : "");
       setAskingPrice(existingCard.asking_price ? existingCard.asking_price.toString() : "");
+      setShowOnWebsite(!!existingCard.show_on_website);
+      setSport(existingCard.sport || "");
+      setTeam(existingCard.team || "");
       
       // Set existing photo URLs (not File objects)
       if (existingCard.photo_front_url) {
@@ -130,6 +138,29 @@ export default function CreateShowCard() {
       return data;
     },
   });
+
+  // Teams already used on the user's cards, for the Team suggestions list
+  const { data: knownTeams } = useQuery({
+    queryKey: ["show-card-teams"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("show_cards")
+        .select("team")
+        .not("team", "is", null);
+      if (error) throw error;
+      return Array.from(new Set((data || []).map((r) => r.team as string))).sort();
+    },
+  });
+
+  // Why a card can't go on the website yet (null = it can). Mirrors the
+  // show_cards_website_ready rule in the database.
+  const websiteBlocker = (() => {
+    const price = parseFloat(askingPrice);
+    if (!(price >= 10)) return "Asking price must be $10 or more to list on the website.";
+    if (!frontPreview) return "Add a front photo to list on the website.";
+    return null;
+  })();
+  const websiteOn = showOnWebsite && !websiteBlocker;
 
   const handleFrontPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -241,7 +272,8 @@ export default function CreateShowCard() {
       parseInt(year) >= 1950 &&
       parseInt(year) <= currentYear + 1 &&
       askingPrice !== "" &&
-      parseFloat(askingPrice) > 0
+      parseFloat(askingPrice) > 0 &&
+      (!websiteOn || (sport !== "" && team.trim() !== ""))
     );
   };
 
@@ -356,6 +388,10 @@ export default function CreateShowCard() {
         asking_price: parseAmount(askingPrice),
         photo_front_url: frontPhotoUrl,
         photo_back_url: backPhotoUrl,
+        sport: sport || null,
+        team: team.trim() || null,
+        // Never send "on" for a card that isn't ready; the database rejects it anyway.
+        show_on_website: websiteOn && !!frontPhotoUrl && sport !== "" && team.trim() !== "",
       };
 
       if (isEditMode) {
@@ -774,6 +810,73 @@ export default function CreateShowCard() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Website (cssportscards.com) */}
+          <div className="rounded-lg border-2 border-primary p-4 space-y-4">
+            <h2 className="text-lg font-bold">Website</h2>
+            <div className="flex items-center justify-between gap-4 min-h-[44px]">
+              <label htmlFor="show-on-website" className="flex-1">
+                <span className="font-semibold block">Show on cssportscards.com</span>
+                <span className="text-xs text-gray-600">Appears in Shop the Case within a minute of saving</span>
+              </label>
+              <Switch
+                id="show-on-website"
+                checked={websiteOn}
+                disabled={!!websiteBlocker}
+                onCheckedChange={setShowOnWebsite}
+                className="scale-125"
+              />
+            </div>
+            {websiteBlocker && (
+              <p className="text-sm rounded-md border border-amber-400 bg-amber-50 text-amber-900 px-3 py-2">
+                {websiteBlocker}
+                {showOnWebsite && " It will be taken off the website when you save."}
+              </p>
+            )}
+            <div>
+              <label htmlFor="website-sport" className="form-label">
+                Sport {websiteOn && "*"}
+              </label>
+              <Select value={sport} onValueChange={setSport}>
+                <SelectTrigger id="website-sport" className="mt-2 min-h-[44px]">
+                  <SelectValue placeholder="Choose a sport" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="football">Football</SelectItem>
+                  <SelectItem value="basketball">Basketball</SelectItem>
+                  <SelectItem value="baseball">Baseball</SelectItem>
+                  <SelectItem value="hockey">Hockey</SelectItem>
+                  <SelectItem value="soccer">Soccer</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label htmlFor="website-team" className="form-label">
+                Team {websiteOn && "*"}
+              </label>
+              <Input
+                id="website-team"
+                value={team}
+                onChange={(e) => setTeam(e.target.value)}
+                list="website-team-options"
+                maxLength={60}
+                placeholder="e.g. Commanders"
+                className="mt-2 min-h-[44px]"
+              />
+              <datalist id="website-team-options">
+                {(knownTeams || []).map((t) => (
+                  <option key={t} value={t} />
+                ))}
+              </datalist>
+              {websiteOn && (sport === "" || team.trim() === "") && (
+                <p className="text-sm text-destructive mt-1">Sport and team are needed to list on the website.</p>
+              )}
+            </div>
+            <p className="text-xs text-gray-600">
+              Marking this card sold anywhere in EndZone takes it off the website automatically.
+            </p>
           </div>
 
           {/* Buttons */}
