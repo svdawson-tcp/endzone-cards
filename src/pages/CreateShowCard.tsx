@@ -4,11 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
-import { Loader2, Info, Upload, X, Camera } from "lucide-react";
+import { Loader2, Info, Upload, X, Camera, ScanLine, Check, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { prepareForReading, readCard, type CardReadFields } from "@/lib/cardReader";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import {
@@ -23,6 +25,16 @@ import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseAmount } from "@/lib/numericUtils";
 
+// Raw-card conditions Colton picks by hand. A graded card's condition is its grade, e.g. "PSA 10".
+const RAW_CONDITIONS = ["Mint", "Near Mint", "Excellent", "Good", "Fair", "Poor"];
+
+// Fields the card reader can fill. Lot, cost basis and asking price are never filled for you.
+type ReadKey =
+  | "playerName" | "year" | "brand" | "set" | "cardNumber" | "parallel" | "serialNumber"
+  | "condition" | "certNumber" | "rookie" | "autograph" | "sport" | "team";
+type ReadMark = { kind: "read" | "check"; note: string | null };
+type ReadState = "idle" | "reading" | "done" | "graded" | "not_card" | "limit" | "error";
+
 export default function CreateShowCard() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -36,6 +48,11 @@ export default function CreateShowCard() {
   const [set, setSet] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [condition, setCondition] = useState("");
+  const [parallel, setParallel] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [certNumber, setCertNumber] = useState("");
+  const [rookie, setRookie] = useState(false);
+  const [autograph, setAutograph] = useState(false);
   const [costBasis, setCostBasis] = useState("");
   const [askingPrice, setAskingPrice] = useState("");
   // Website (cssportscards.com "Shop the Case")
@@ -54,6 +71,13 @@ export default function CreateShowCard() {
   const [showBackCamera, setShowBackCamera] = useState(false);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
   const backFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Card reader state
+  const [readState, setReadState] = useState<ReadState>("idle");
+  const [marks, setMarks] = useState<Partial<Record<ReadKey, ReadMark>>>({});
+  const userEdited = useRef<Set<ReadKey>>(new Set()); // typed by hand: the reader never overwrites these
+  const readFilled = useRef<Set<ReadKey>>(new Set()); // filled by the reader: a new read may replace these
+  const readSeq = useRef(0);
 
   const [errors, setErrors] = useState({
     lot: "",
@@ -93,6 +117,11 @@ export default function CreateShowCard() {
       setSet(details?.set || "");
       setCardNumber(details?.card_number || "");
       setCondition(details?.condition || "");
+      setParallel(details?.parallel || "");
+      setSerialNumber(details?.serial_number || "");
+      setCertNumber(details?.cert_number || "");
+      setRookie(details?.rookie === true);
+      setAutograph(details?.autograph === true);
       
       setCostBasis(existingCard.cost_basis ? existingCard.cost_basis.toString() : "");
       setAskingPrice(existingCard.asking_price ? existingCard.asking_price.toString() : "");
@@ -162,6 +191,143 @@ export default function CreateShowCard() {
   })();
   const websiteOn = showOnWebsite && !websiteBlocker;
 
+  // ---------------------------------------------------------------------------
+  // Card reader: reads the details off the photos and fills the empty fields.
+  // ---------------------------------------------------------------------------
+  const textSetters: Record<Exclude<ReadKey, "rookie" | "autograph">, (v: string) => void> = {
+    playerName: setPlayerName, year: setYear, brand: setBrand, set: setSet, cardNumber: setCardNumber,
+    parallel: setParallel, serialNumber: setSerialNumber, condition: setCondition, certNumber: setCertNumber,
+    sport: setSport, team: setTeam,
+  };
+  const current: Record<ReadKey, string | boolean> = {
+    playerName, year, brand, set, cardNumber, parallel, serialNumber, condition, certNumber, sport, team, rookie, autograph,
+  };
+  const currentRef = useRef(current);
+  currentRef.current = current;
+
+  /** Call from a field's onChange: the user's own value wins over the reader from now on. */
+  const markEdited = (key: ReadKey) => {
+    userEdited.current.add(key);
+    readFilled.current.delete(key);
+    setMarks((m) => {
+      if (!m[key]) return m;
+      const next = { ...m };
+      delete next[key];
+      return next;
+    });
+  };
+
+  const applyRead = (f: CardReadFields) => {
+    const now = currentRef.current;
+    const nextMarks: Partial<Record<ReadKey, ReadMark>> = {};
+    const canFill = (k: ReadKey) => !userEdited.current.has(k) && (readFilled.current.has(k) || !now[k]);
+    const put = (k: Exclude<ReadKey, "rookie" | "autograph">, value: string | null, sure: boolean, note: string | null) => {
+      if (!canFill(k)) return;
+      if (!value) {
+        // Nothing readable. For the required fields, say why so it's clear what to type.
+        if ((k === "playerName" || k === "year") && note) nextMarks[k] = { kind: "check", note };
+        if (readFilled.current.has(k)) { textSetters[k](""); readFilled.current.delete(k); }
+        return;
+      }
+      textSetters[k](value);
+      readFilled.current.add(k);
+      nextMarks[k] = sure ? { kind: "read", note: null } : { kind: "check", note };
+    };
+    const flag = (k: "rookie" | "autograph", field: CardReadFields["rookie"], set: (v: boolean) => void) => {
+      if (!canFill(k) || !field.value) return;
+      set(true);
+      readFilled.current.add(k);
+      nextMarks[k] = field.sure ? { kind: "read", note: null } : { kind: "check", note: field.note };
+    };
+
+    put("playerName", f.player_name.value, f.player_name.sure, f.player_name.note);
+    put("year", f.year.value, f.year.sure, f.year.note);
+    put("brand", f.brand.value, f.brand.sure, f.brand.note);
+    put("set", f.set_name.value, f.set_name.sure, f.set_name.note);
+    put("cardNumber", f.card_number.value, f.card_number.sure, f.card_number.note);
+    put("parallel", f.parallel.value, f.parallel.sure, f.parallel.note);
+    put("serialNumber", f.serial_number.value, f.serial_number.sure, f.serial_number.note);
+    flag("rookie", f.rookie, setRookie);
+    flag("autograph", f.autograph, setAutograph);
+    const graded = f.graded.value && !!f.grade.value;
+    if (graded) {
+      const label = [f.grading_company.value, f.grade.value].filter(Boolean).join(" ");
+      put("condition", label, f.grade.sure && f.grading_company.sure, f.grade.note ?? f.grading_company.note);
+      put("certNumber", f.cert_number.value, f.cert_number.sure, f.cert_number.note);
+    }
+    put("sport", f.sport.value, f.sport.sure, f.sport.note);
+    put("team", f.team.value, f.team.sure, f.team.note);
+
+    setMarks(nextMarks);
+    return graded;
+  };
+
+  const runRead = async () => {
+    const frontSource = frontPhoto ?? frontPreview;
+    if (!frontSource) return;
+    const seq = ++readSeq.current;
+    setReadState("reading");
+    try {
+      const backSource = backPhoto ?? backPreview;
+      const [front, back] = await Promise.all([
+        prepareForReading(frontSource),
+        backSource ? prepareForReading(backSource) : Promise.resolve(null),
+      ]);
+      const result = await readCard(front, back);
+      if (seq !== readSeq.current) return; // a newer read (or Clear) superseded this one
+      if (result.status === "limit") return setReadState("limit");
+      if (result.status === "error") return setReadState("error");
+      if (!result.isSportsCard) return setReadState("not_card");
+      const graded = applyRead(result.fields);
+      setReadState(graded ? "graded" : "done");
+    } catch (e) {
+      console.error("Card read failed:", e);
+      if (seq === readSeq.current) setReadState("error");
+    }
+  };
+
+  const clearRead = () => {
+    readSeq.current++;
+    for (const k of readFilled.current) {
+      if (k === "rookie") setRookie(false);
+      else if (k === "autograph") setAutograph(false);
+      else textSetters[k]("");
+    }
+    readFilled.current.clear();
+    setMarks({});
+    setReadState("idle");
+  };
+
+  // Adding a new photo while adding a card reads it automatically, after a short pause so that
+  // taking the front and then the back costs one read, not two. Editing a card reads only on request.
+  useEffect(() => {
+    if (isEditMode || !frontPhoto) return;
+    const t = setTimeout(() => { void runRead(); }, 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frontPhoto, backPhoto, isEditMode]);
+
+  const markOf = (k: ReadKey) => marks[k];
+  const markInputClass = (k: ReadKey) =>
+    marks[k]?.kind === "check" ? "border-amber-500 ring-1 ring-amber-400" : marks[k]?.kind === "read" ? "border-green-600" : "";
+  const MarkBadge = ({ k }: { k: ReadKey }) => {
+    const m = markOf(k);
+    if (!m) return null;
+    return m.kind === "read" ? (
+      <span className="ml-2 inline-flex items-center gap-0.5 rounded bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-800">
+        <Check className="h-3 w-3" /> read
+      </span>
+    ) : (
+      <span className="ml-2 inline-flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-900">
+        <AlertTriangle className="h-3 w-3" /> check
+      </span>
+    );
+  };
+  const MarkNote = ({ k }: { k: ReadKey }) => {
+    const m = markOf(k);
+    return m?.kind === "check" && m.note ? <p className="mt-1 text-sm text-amber-300">{m.note}</p> : null;
+  };
+
   const handleFrontPhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -205,6 +371,8 @@ export default function CreateShowCard() {
   };
 
   const removeFrontPhoto = () => {
+    readSeq.current++;
+    if (readState === "reading") setReadState("idle");
     setFrontPhoto(null);
     setFrontPreview(null);
     setExistingFrontUrl(null);
@@ -378,6 +546,11 @@ export default function CreateShowCard() {
         set: set || null,
         card_number: cardNumber || null,
         condition: condition || null,
+        parallel: parallel.trim() || null,
+        serial_number: serialNumber.trim() || null,
+        cert_number: certNumber.trim() || null,
+        rookie: rookie || null,
+        autograph: autograph || null,
       };
 
       const cardData = {
@@ -505,188 +678,12 @@ export default function CreateShowCard() {
         onSubmit={handleSubmit}
         className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4"
       >
-          {/* Select Lot */}
-          <div>
-            <label htmlFor="lot" className="form-label">Lot *</label>
-            <Select 
-              value={selectedLotId} 
-              onValueChange={setSelectedLotId}
-              disabled={isEditMode}
-            >
-              <SelectTrigger className="mt-2 min-h-[44px]">
-                <SelectValue placeholder="Select lot this card came from" />
-              </SelectTrigger>
-              <SelectContent>
-                {isEditMode && existingCard ? (
-                  <SelectItem value={existingCard.lot_id}>
-                    {existingCard.lots?.source || "Unknown Lot"}
-                  </SelectItem>
-                ) : (
-                  lots?.map((lot) => (
-                    <SelectItem key={lot.id} value={lot.id}>
-                      {lot.source} - ${lot.total_cost} (
-                      {formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")})
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-gray-600 mt-1">
-              {isEditMode ? "Lot cannot be changed in edit mode" : "Which purchase did this card come from?"}
-            </p>
-            {errors.lot && <p className="text-destructive text-sm mt-1">{errors.lot}</p>}
-          </div>
-
-          {/* Player Name */}
-          <div>
-            <label htmlFor="player-name" className="form-label">Player Name *</label>
-            <Input
-              id="player-name"
-              type="text"
-              value={playerName}
-              onChange={(e) => {
-                setPlayerName(e.target.value);
-                if (errors.playerName) setErrors({ ...errors, playerName: "" });
-              }}
-              placeholder="Dak Prescott"
-              maxLength={100}
-              className="mt-2 min-h-[44px]"
-            />
-            {errors.playerName && (
-              <p className="text-destructive text-sm mt-1">{errors.playerName}</p>
-            )}
-          </div>
-
-          {/* Year */}
-          <div>
-            <label htmlFor="year" className="form-label">
-              Year * <span className="text-xs text-gray-600 font-normal">(1950-{currentYear + 1})</span>
-            </label>
-            <Input
-              id="year"
-              type="number"
-              min="1950"
-              max={currentYear + 1}
-              value={year}
-              onChange={(e) => {
-                setYear(e.target.value);
-                if (errors.year) setErrors({ ...errors, year: "" });
-              }}
-              placeholder="2016"
-              className="mt-2 min-h-[44px]"
-            />
-            {errors.year && <p className="text-destructive text-sm mt-1">{errors.year}</p>}
-          </div>
-
-          {/* Card Details - Collapsible Section */}
-          <div className="border border-border rounded-lg p-4">
-            <label className="form-label text-base font-semibold mb-3 block">
-              Card Details (Optional)
-            </label>
-            <div className="space-y-3">
-              <div>
-                <label htmlFor="brand" className="form-label text-sm">
-                  Brand
-                </label>
-                <Input
-                  id="brand"
-                  type="text"
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="Panini, Topps, Upper Deck..."
-                  className="mt-1 min-h-[44px]"
-                />
-              </div>
-              <div>
-                <label htmlFor="set" className="form-label text-sm">
-                  Set
-                </label>
-                <Input
-                  id="set"
-                  type="text"
-                  value={set}
-                  onChange={(e) => setSet(e.target.value)}
-                  placeholder="Prizm, Donruss, Select..."
-                  className="mt-1 min-h-[44px]"
-                />
-              </div>
-              <div>
-                <label htmlFor="card-number" className="form-label text-sm">
-                  Card Number
-                </label>
-                <Input
-                  id="card-number"
-                  type="text"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(e.target.value)}
-                  placeholder="#145"
-                  className="mt-1 min-h-[44px]"
-                />
-              </div>
-              <div>
-                <label htmlFor="condition" className="form-label text-sm">
-                  Condition
-                </label>
-                <Select value={condition} onValueChange={setCondition}>
-                  <SelectTrigger className="mt-1 min-h-[44px]">
-                    <SelectValue placeholder="Select condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Mint">Mint</SelectItem>
-                    <SelectItem value="Near Mint">Near Mint</SelectItem>
-                    <SelectItem value="Excellent">Excellent</SelectItem>
-                    <SelectItem value="Good">Good</SelectItem>
-                    <SelectItem value="Fair">Fair</SelectItem>
-                    <SelectItem value="Poor">Poor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          {/* Cost Basis */}
-          <div>
-            <label htmlFor="cost-basis" className="form-label">Cost Basis (Optional)</label>
-            <CurrencyInput
-              id="cost-basis"
-              value={costBasis}
-              onChange={(e) => setCostBasis(e.target.value)}
-              placeholder="Leave empty to auto-calculate"
-              min={0}
-              step={0.01}
-              className="mt-2"
-            />
-            <p className="text-xs text-gray-600 mt-1">
-              Card's cost from lot. Leave blank to calculate later.
-            </p>
-          </div>
-
-          {/* Asking Price */}
-          <div>
-            <label htmlFor="asking-price" className="form-label">Asking Price *</label>
-            <CurrencyInput
-              id="asking-price"
-              value={askingPrice}
-              onChange={(e) => {
-                setAskingPrice(e.target.value);
-                if (errors.askingPrice) setErrors({ ...errors, askingPrice: "" });
-              }}
-              placeholder="25.00"
-              min={0.01}
-              step={0.01}
-              className="mt-2"
-            />
-            <p className="text-xs text-gray-600 mt-1">
-              What price will you list this card at?
-            </p>
-            {errors.askingPrice && (
-              <p className="text-destructive text-sm mt-1">{errors.askingPrice}</p>
-            )}
-          </div>
-
           {/* Front Photo */}
           <div>
             <label className="form-label">Front Photo (Optional)</label>
+            {!frontPreview && !isEditMode && (
+              <p className="mt-1 text-xs text-muted-foreground">Add the front (and back) and EndZone reads the card details for you.</p>
+            )}
             <div className="mt-2">
               {!frontPreview ? (
                 <div className="space-y-3">
@@ -812,6 +809,307 @@ export default function CreateShowCard() {
             </div>
           </div>
 
+          {/* Card reader status */}
+          {readState === "reading" && (
+            <div className="flex items-start gap-3 rounded-lg border border-blue-300 bg-blue-50 p-3 text-blue-900" role="status">
+              <Loader2 className="mt-0.5 h-5 w-5 shrink-0 animate-spin" />
+              <div>
+                <p className="font-semibold">Reading card…</p>
+                <p className="text-sm">Takes a few seconds. You can keep typing.</p>
+              </div>
+            </div>
+          )}
+          {(readState === "done" || readState === "graded") && (
+            <div className="rounded-lg border border-green-300 bg-green-50 p-3 text-green-900" role="status">
+              <p className="text-sm">
+                {readState === "graded"
+                  ? "Graded card read from the label. Grade and cert number filled in."
+                  : "Card read. Green fields came from the photos."}{" "}
+                Check anything marked ⚠, then add the lot and price.
+              </p>
+              <p className="mt-2 text-sm">
+                <button type="button" onClick={() => void runRead()} className="font-semibold underline">Read again</button>
+                {" · "}
+                <button type="button" onClick={clearRead} className="font-semibold underline">Clear what was read</button>
+              </p>
+            </div>
+          )}
+          {(readState === "not_card" || readState === "limit" || readState === "error") && (
+            <div className="rounded-lg border border-amber-400 bg-amber-50 p-3 text-amber-900" role="status">
+              <p className="text-sm">
+                {readState === "not_card" && "This photo doesn't look like a sports card. Fill in the details by hand."}
+                {readState === "limit" && "Today's card-reading limit is used up. Fill in the details by hand; reading is back tomorrow."}
+                {readState === "error" && "Couldn't read the card just now. Fill in the details by hand, or try again."}
+              </p>
+              {readState !== "limit" && (
+                <button type="button" onClick={() => void runRead()} className="mt-2 text-sm font-semibold underline">Read again</button>
+              )}
+            </div>
+          )}
+          {readState === "idle" && frontPreview && (isEditMode || readSeq.current > 0) && (
+            <Button type="button" variant="outline" onClick={() => void runRead()} className="w-full min-h-[44px] font-semibold uppercase">
+              <ScanLine className="mr-2 h-5 w-5" />
+              Read card from photos
+            </Button>
+          )}
+
+          {/* Select Lot */}
+          <div>
+            <label htmlFor="lot" className="form-label">Lot *</label>
+            <Select 
+              value={selectedLotId} 
+              onValueChange={setSelectedLotId}
+              disabled={isEditMode}
+            >
+              <SelectTrigger className="mt-2 min-h-[44px]">
+                <SelectValue placeholder="Select lot this card came from" />
+              </SelectTrigger>
+              <SelectContent>
+                {isEditMode && existingCard ? (
+                  <SelectItem value={existingCard.lot_id}>
+                    {existingCard.lots?.source || "Unknown Lot"}
+                  </SelectItem>
+                ) : (
+                  lots?.map((lot) => (
+                    <SelectItem key={lot.id} value={lot.id}>
+                      {lot.source} - ${lot.total_cost} (
+                      {formatBusinessDate(lot.purchase_date, "MMM dd, yyyy")})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-600 mt-1">
+              {isEditMode ? "Lot cannot be changed in edit mode" : "Which purchase did this card come from?"}
+            </p>
+            {errors.lot && <p className="text-destructive text-sm mt-1">{errors.lot}</p>}
+          </div>
+
+          {/* Player Name */}
+          <div>
+            <label htmlFor="player-name" className="form-label">Player Name *<MarkBadge k="playerName" /></label>
+            <Input
+              id="player-name"
+              type="text"
+              value={playerName}
+              onChange={(e) => {
+                setPlayerName(e.target.value);
+                markEdited("playerName");
+                if (errors.playerName) setErrors({ ...errors, playerName: "" });
+              }}
+              placeholder="Dak Prescott"
+              maxLength={100}
+              className={`mt-2 min-h-[44px] ${markInputClass("playerName")}`}
+            />
+            <MarkNote k="playerName" />
+            {errors.playerName && (
+              <p className="text-destructive text-sm mt-1">{errors.playerName}</p>
+            )}
+          </div>
+
+          {/* Year */}
+          <div>
+            <label htmlFor="year" className="form-label">
+              Year * <span className="text-xs text-gray-600 font-normal">(1950-{currentYear + 1})</span><MarkBadge k="year" />
+            </label>
+            <Input
+              id="year"
+              type="number"
+              min="1950"
+              max={currentYear + 1}
+              value={year}
+              onChange={(e) => {
+                setYear(e.target.value);
+                markEdited("year");
+                if (errors.year) setErrors({ ...errors, year: "" });
+              }}
+              placeholder="2016"
+              className={`mt-2 min-h-[44px] ${markInputClass("year")}`}
+            />
+            <MarkNote k="year" />
+            {errors.year && <p className="text-destructive text-sm mt-1">{errors.year}</p>}
+          </div>
+
+          {/* Card Details - Collapsible Section */}
+          <div className="border border-border rounded-lg p-4">
+            <label className="form-label text-base font-semibold mb-3 block">
+              Card Details (Optional)
+            </label>
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="brand" className="form-label text-sm">
+                  Brand<MarkBadge k="brand" />
+                </label>
+                <Input
+                  id="brand"
+                  type="text"
+                  value={brand}
+                  onChange={(e) => { setBrand(e.target.value); markEdited("brand"); }}
+                  placeholder="Panini, Topps, Upper Deck..."
+                  className={`mt-1 min-h-[44px] ${markInputClass("brand")}`}
+                />
+                <MarkNote k="brand" />
+              </div>
+              <div>
+                <label htmlFor="set" className="form-label text-sm">
+                  Set<MarkBadge k="set" />
+                </label>
+                <Input
+                  id="set"
+                  type="text"
+                  value={set}
+                  onChange={(e) => { setSet(e.target.value); markEdited("set"); }}
+                  placeholder="Prizm, Donruss, Select..."
+                  className={`mt-1 min-h-[44px] ${markInputClass("set")}`}
+                />
+                <MarkNote k="set" />
+              </div>
+              <div>
+                <label htmlFor="card-number" className="form-label text-sm">
+                  Card Number<MarkBadge k="cardNumber" />
+                </label>
+                <Input
+                  id="card-number"
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => { setCardNumber(e.target.value); markEdited("cardNumber"); }}
+                  placeholder="#145"
+                  className={`mt-1 min-h-[44px] ${markInputClass("cardNumber")}`}
+                />
+                <MarkNote k="cardNumber" />
+              </div>
+              <div>
+                <label htmlFor="parallel" className="form-label text-sm">
+                  Parallel<MarkBadge k="parallel" />
+                </label>
+                <Input
+                  id="parallel"
+                  type="text"
+                  value={parallel}
+                  onChange={(e) => { setParallel(e.target.value); markEdited("parallel"); }}
+                  placeholder="Silver, Gold... (blank for base)"
+                  maxLength={40}
+                  className={`mt-1 min-h-[44px] ${markInputClass("parallel")}`}
+                />
+                <MarkNote k="parallel" />
+              </div>
+              <div>
+                <label htmlFor="serial-number" className="form-label text-sm">
+                  Serial #<MarkBadge k="serialNumber" />
+                </label>
+                <Input
+                  id="serial-number"
+                  type="text"
+                  value={serialNumber}
+                  onChange={(e) => { setSerialNumber(e.target.value); markEdited("serialNumber"); }}
+                  placeholder="e.g. 23/99"
+                  maxLength={20}
+                  className={`mt-1 min-h-[44px] ${markInputClass("serialNumber")}`}
+                />
+                <MarkNote k="serialNumber" />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold">
+                  <Checkbox
+                    checked={rookie}
+                    onCheckedChange={(v) => { setRookie(v === true); markEdited("rookie"); }}
+                    className="h-5 w-5"
+                  />
+                  RC · Rookie<MarkBadge k="rookie" />
+                </label>
+                <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold">
+                  <Checkbox
+                    checked={autograph}
+                    onCheckedChange={(v) => { setAutograph(v === true); markEdited("autograph"); }}
+                    className="h-5 w-5"
+                  />
+                  Auto<MarkBadge k="autograph" />
+                </label>
+              </div>
+              <div>
+                <label htmlFor="condition" className="form-label text-sm">
+                  Condition<MarkBadge k="condition" />
+                </label>
+                {/* Keyed so the menu rebuilds when a graded value like "PSA 10" arrives with its own item. */}
+                <Select
+                  key={condition && !RAW_CONDITIONS.includes(condition) ? `graded:${condition}` : "raw"}
+                  value={condition}
+                  onValueChange={(v) => { setCondition(v); markEdited("condition"); }}
+                >
+                  <SelectTrigger id="condition" className={`mt-1 min-h-[44px] ${markInputClass("condition")}`}>
+                    <SelectValue placeholder="Select condition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {condition && !RAW_CONDITIONS.includes(condition) && (
+                      <SelectItem value={condition}>{condition} (graded)</SelectItem>
+                    )}
+                    {RAW_CONDITIONS.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <MarkNote k="condition" />
+              </div>
+              {(certNumber || (condition && !RAW_CONDITIONS.includes(condition))) && (
+                <div>
+                  <label htmlFor="cert-number" className="form-label text-sm">
+                    Cert #<MarkBadge k="certNumber" />
+                  </label>
+                  <Input
+                    id="cert-number"
+                    type="text"
+                    inputMode="numeric"
+                    value={certNumber}
+                    onChange={(e) => { setCertNumber(e.target.value); markEdited("certNumber"); }}
+                    maxLength={20}
+                    className={`mt-1 min-h-[44px] ${markInputClass("certNumber")}`}
+                  />
+                  <MarkNote k="certNumber" />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Cost Basis */}
+          <div>
+            <label htmlFor="cost-basis" className="form-label">Cost Basis (Optional)</label>
+            <CurrencyInput
+              id="cost-basis"
+              value={costBasis}
+              onChange={(e) => setCostBasis(e.target.value)}
+              placeholder="Leave empty to auto-calculate"
+              min={0}
+              step={0.01}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              Card's cost from lot. Leave blank to calculate later.
+            </p>
+          </div>
+
+          {/* Asking Price */}
+          <div>
+            <label htmlFor="asking-price" className="form-label">Asking Price *</label>
+            <CurrencyInput
+              id="asking-price"
+              value={askingPrice}
+              onChange={(e) => {
+                setAskingPrice(e.target.value);
+                if (errors.askingPrice) setErrors({ ...errors, askingPrice: "" });
+              }}
+              placeholder="25.00"
+              min={0.01}
+              step={0.01}
+              className="mt-2"
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              What price will you list this card at?
+            </p>
+            {errors.askingPrice && (
+              <p className="text-destructive text-sm mt-1">{errors.askingPrice}</p>
+            )}
+          </div>
+
           {/* Website (cssportscards.com) */}
           <div className="rounded-lg border-2 border-primary p-4 space-y-4">
             <h2 className="text-lg font-bold">Website</h2>
@@ -836,10 +1134,10 @@ export default function CreateShowCard() {
             )}
             <div>
               <label htmlFor="website-sport" className="form-label">
-                Sport {websiteOn && "*"}
+                Sport {websiteOn && "*"}<MarkBadge k="sport" />
               </label>
-              <Select value={sport} onValueChange={setSport}>
-                <SelectTrigger id="website-sport" className="mt-2 min-h-[44px]">
+              <Select value={sport} onValueChange={(v) => { setSport(v); markEdited("sport"); }}>
+                <SelectTrigger id="website-sport" className={`mt-2 min-h-[44px] ${markInputClass("sport")}`}>
                   <SelectValue placeholder="Choose a sport" />
                 </SelectTrigger>
                 <SelectContent>
@@ -854,17 +1152,19 @@ export default function CreateShowCard() {
             </div>
             <div>
               <label htmlFor="website-team" className="form-label">
-                Team {websiteOn && "*"}
+                Team {websiteOn && "*"}<MarkBadge k="team" />
               </label>
               <Input
                 id="website-team"
                 value={team}
-                onChange={(e) => setTeam(e.target.value)}
+                onChange={(e) => { setTeam(e.target.value); markEdited("team"); }}
                 list="website-team-options"
                 maxLength={60}
                 placeholder="e.g. Commanders"
-                className="mt-2 min-h-[44px]"
+                className={`mt-2 min-h-[44px] ${markInputClass("team")}`}
               />
+              <MarkNote k="sport" />
+              <MarkNote k="team" />
               <datalist id="website-team-options">
                 {(knownTeams || []).map((t) => (
                   <option key={t} value={t} />
