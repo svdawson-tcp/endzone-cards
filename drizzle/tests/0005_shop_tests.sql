@@ -53,8 +53,9 @@ BEGIN
   SELECT string_agg(a, ',' ORDER BY a) INTO cols
   FROM unnest((SELECT proargnames FROM pg_proc WHERE proname = 'get_shop_cards')) a;
   RAISE NOTICE 'columns: %', cols;
-  IF cols ~ '(cost|lot|user|status|disposition|profit|revenue)' THEN RAISE EXCEPTION 'T2 FAIL exposes %', cols; END IF;
-  IF cols <> 'brand,card_number,condition,id,listed_at,photo_back_url,photo_front_url,player_name,price,set_name,sport,team,year'
+  IF cols ~ '(cost|lot|user|status|disposition|profit|revenue|floor|hold)' THEN RAISE EXCEPTION 'T2 FAIL exposes %', cols; END IF;
+  -- 0007 added parallel, serial_number, rookie, autograph, accept_offers, min_offer (never the offer floor).
+  IF cols <> 'accept_offers,autograph,brand,card_number,condition,id,listed_at,min_offer,parallel,photo_back_url,photo_front_url,player_name,price,rookie,serial_number,set_name,sport,team,year'
     THEN RAISE EXCEPTION 'T2 FAIL unexpected column list %', cols; END IF;
   RAISE NOTICE 'T2 PASS';
 END $$;
