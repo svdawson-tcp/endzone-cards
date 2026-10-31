@@ -56,15 +56,17 @@ export function adminClient() {
 // ---------------------------------------------------------------------------
 // What Claude is asked to return
 // ---------------------------------------------------------------------------
+// Structured output (output_config.format). No nullable types: an empty string means "not on the card".
 const textField = (description: string) => ({
   type: "object",
   description,
   properties: {
-    value: { type: ["string", "null"], description: "What the card shows, or null if it is not on the card." },
+    value: { type: "string", description: "What the card shows, or an empty string if it is not on the card." },
     sure: { type: "boolean", description: "true only if you can clearly read it on the card." },
-    note: { type: ["string", "null"], description: "Only when not sure: a few words on why, e.g. 'Could be Silver or Hyper; check the shine.'" },
+    note: { type: "string", description: "Only when not sure: a few words on why, e.g. 'Could be Silver or Hyper; check the shine.' Otherwise an empty string." },
   },
-  required: ["value", "sure"],
+  required: ["value", "sure", "note"],
+  additionalProperties: false,
 });
 const flagField = (description: string) => ({
   type: "object",
@@ -72,15 +74,13 @@ const flagField = (description: string) => ({
   properties: {
     value: { type: "boolean" },
     sure: { type: "boolean" },
-    note: { type: ["string", "null"] },
+    note: { type: "string" },
   },
-  required: ["value", "sure"],
+  required: ["value", "sure", "note"],
+  additionalProperties: false,
 });
 
-const TOOL = {
-  name: "record_card",
-  description: "Record the details read from the sports card photos.",
-  input_schema: {
+const SCHEMA = {
     type: "object",
     properties: {
       is_sports_card: { type: "boolean", description: "false if the photo is not a sports trading card (or a slab holding one)." },
@@ -89,22 +89,23 @@ const TOOL = {
       brand: textField("Manufacturer only: Panini, Topps, Upper Deck, Fleer, Leaf, Donruss (pre-Panini), Bowman (pre-Topps), etc. Modern Donruss/Prizm/Select/Optic are Panini; modern Bowman/Chrome/Finest are Topps."),
       set_name: textField("Product/set name without the brand and year, e.g. 'Prizm', 'Donruss Optic', 'Select', 'Chrome', 'Bowman Chrome'. Include an insert name if this is an insert, e.g. 'Prizm No Huddle'. Do not include the parallel colour here."),
       card_number: textField("Card number as printed, without '#', e.g. '347' or 'RC-12'. Usually on the back; on a slab, on the label."),
-      parallel: textField("Parallel / colour variant if any, e.g. 'Silver', 'Gold', 'Pink Ice', 'Refractor'. null for a base card. Shiny or patterned finishes are often hard to judge from a photo: set sure=false unless it is printed (e.g. on a slab label)."),
-      serial_number: textField("Serial numbering if stamped, exactly as shown, e.g. '23/99'. null if not numbered."),
+      parallel: textField("Parallel / colour variant if any, e.g. 'Silver', 'Gold', 'Pink Ice', 'Refractor'. empty for a base card. Shiny or patterned finishes are often hard to judge from a photo: set sure=false unless it is printed (e.g. on a slab label)."),
+      serial_number: textField("Serial numbering if stamped, exactly as shown, e.g. '23/99'. empty if not numbered."),
       rookie: flagField("true if the card is marked as a rookie card (RC logo, 'Rookie', 'Rated Rookie', etc.)."),
       autograph: flagField("true if the card is autographed (on-card or sticker auto)."),
       graded: flagField("true if the card is in a grading company slab (PSA, BGS/Beckett, SGC, CGC, etc.)."),
-      grading_company: textField("Grading company if graded: PSA, BGS, SGC, CGC, ... null if raw."),
-      grade: textField("Numeric grade from the slab label if graded, e.g. '10' or '9.5'. null if raw. Never estimate a grade for a raw card."),
-      cert_number: textField("Certification number from the slab label if graded. null if raw."),
+      grading_company: textField("Grading company if graded: PSA, BGS, SGC, CGC, ... empty if raw."),
+      grade: textField("Numeric grade from the slab label if graded, e.g. '10' or '9.5'. Empty if raw. Never estimate a grade for a raw card."),
+      cert_number: textField("Certification number from the slab label if graded. Empty if raw."),
       sport: {
         type: "object",
         properties: {
-          value: { type: ["string", "null"], enum: [...SPORTS, null] },
+          value: { type: "string", enum: [...SPORTS, ""] },
           sure: { type: "boolean" },
-          note: { type: ["string", "null"] },
+          note: { type: "string" },
         },
-        required: ["value", "sure"],
+        required: ["value", "sure", "note"],
+        additionalProperties: false,
       },
       team: textField("Team on the card as 'City Nickname', e.g. 'Washington Commanders', 'Indiana Fever'. For college cards, the school."),
     },
@@ -112,7 +113,7 @@ const TOOL = {
       "is_sports_card", "player_name", "year", "brand", "set_name", "card_number", "parallel", "serial_number",
       "rookie", "autograph", "graded", "grading_company", "grade", "cert_number", "sport", "team",
     ],
-  },
+    additionalProperties: false,
 };
 
 const SYSTEM = `You read sports trading cards from photos for a card dealer's inventory app.
@@ -120,8 +121,8 @@ Read only what is visible on the card, its back, or a grading slab label. Do not
 when the card does not show it, except brand/set, which you may infer from the card design when you clearly
 recognise it (then set sure=true only if you are confident).
 Mark sure=false whenever text is blurry, cut off, glared, or you are choosing between possibilities, and say why
-in a short note. A wrong value marked sure=true is the worst outcome; an unsure value or null is fine.
-Never estimate condition or a grade for a raw card. Always call record_card exactly once.`;
+in a short note. A wrong value marked sure=true is the worst outcome; an unsure or empty value is fine.
+Never estimate condition or a grade for a raw card. Use an empty string for anything not on the card.`;
 
 export type ImageIn = { data: string; media_type: string };
 
@@ -154,17 +155,17 @@ async function askClaude(front: ImageIn, back: ImageIn | null) {
         model: MODEL,
         max_tokens: 1500,
         system: SYSTEM,
-        tools: [TOOL],
-        tool_choice: { type: "tool", name: "record_card" },
+        output_config: { format: { type: "json_schema", schema: SCHEMA } },
         messages: [{ role: "user", content }],
       }),
     });
     const body = await res.json();
     if (!res.ok) throw new Error(`Anthropic ${res.status}: ${body?.error?.message ?? "error"}`);
-    const tool = (body.content ?? []).find((c: { type: string }) => c.type === "tool_use");
-    if (!tool) throw new Error("No tool_use in the response");
+    if (body.stop_reason !== "end_turn") throw new Error(`Unexpected stop_reason: ${body.stop_reason}`);
+    const text = (body.content ?? []).find((c: { type: string }) => c.type === "text")?.text;
+    if (!text) throw new Error("No text in the response");
     return {
-      raw: tool.input as Record<string, unknown>,
+      raw: JSON.parse(text) as Record<string, unknown>,
       input_tokens: body.usage?.input_tokens ?? null,
       output_tokens: body.usage?.output_tokens ?? null,
     };
