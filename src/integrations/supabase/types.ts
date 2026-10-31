@@ -482,16 +482,213 @@ export type Database = {
         }
         Relationships: []
       }
+      // shop_offers.pay_token is deliberately left out: the app role is not granted it, so never select "*" there.
+      shop_offers: {
+        Row: {
+          agreed_amount: number | null
+          amount: number
+          asking_price: number
+          auto_accepted: boolean
+          buyer_email: string
+          buyer_name: string | null
+          counter_amount: number | null
+          created_at: string
+          id: string
+          order_id: string | null
+          pay_by: string | null
+          respond_by: string
+          responded_at: string | null
+          show_card_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          agreed_amount?: number | null
+          amount: number
+          asking_price: number
+          auto_accepted?: boolean
+          buyer_email: string
+          buyer_name?: string | null
+          counter_amount?: number | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          pay_by?: string | null
+          respond_by?: string
+          responded_at?: string | null
+          show_card_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          agreed_amount?: number | null
+          amount?: number
+          asking_price?: number
+          auto_accepted?: boolean
+          buyer_email?: string
+          buyer_name?: string | null
+          counter_amount?: number | null
+          created_at?: string
+          id?: string
+          order_id?: string | null
+          pay_by?: string | null
+          respond_by?: string
+          responded_at?: string | null
+          show_card_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_offers_order_fk"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "shop_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_offers_show_card_id_fkey"
+            columns: ["show_card_id"]
+            isOneToOne: false
+            referencedRelation: "show_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_order_items: {
+        Row: {
+          order_id: string
+          price: number
+          show_card_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          order_id: string
+          price: number
+          show_card_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          order_id?: string
+          price?: number
+          show_card_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "shop_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_order_items_show_card_id_fkey"
+            columns: ["show_card_id"]
+            isOneToOne: false
+            referencedRelation: "show_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_order_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_orders: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string | null
+          carrier: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          offer_id: string | null
+          order_number: string
+          paid_at: string | null
+          problem: string | null
+          ship_to: Json | null
+          shipped_at: string | null
+          shipping: number
+          status: string
+          stripe_fee: number | null
+          subtotal: number
+          tax: number
+          total: number | null
+          tracking_number: string | null
+          user_id: string
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          carrier?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          offer_id?: string | null
+          order_number?: string
+          paid_at?: string | null
+          problem?: string | null
+          ship_to?: Json | null
+          shipped_at?: string | null
+          shipping: number
+          status?: string
+          stripe_fee?: number | null
+          subtotal: number
+          tax?: number
+          total?: number | null
+          tracking_number?: string | null
+          user_id: string
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          carrier?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          offer_id?: string | null
+          order_number?: string
+          paid_at?: string | null
+          problem?: string | null
+          ship_to?: Json | null
+          shipped_at?: string | null
+          shipping?: number
+          status?: string
+          stripe_fee?: number | null
+          subtotal?: number
+          tax?: number
+          total?: number | null
+          tracking_number?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_orders_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "shop_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       show_cards: {
         Row: {
+          accept_offers: boolean
           asking_price: number | null
           card_details: Json | null
           cost_basis: number | null
           created_at: string
           destination_lot_id: string | null
           disposition_type: string | null
+          hold_ref: string | null
+          hold_until: string | null
           id: string
           lot_id: string
+          offer_floor: number | null
           photo_back_url: string | null
           photo_front_url: string | null
           player_name: string
@@ -505,14 +702,18 @@ export type Database = {
           year: string | null
         }
         Insert: {
+          accept_offers?: boolean
           asking_price?: number | null
           card_details?: Json | null
           cost_basis?: number | null
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
+          hold_ref?: string | null
+          hold_until?: string | null
           id?: string
           lot_id: string
+          offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name: string
@@ -526,14 +727,18 @@ export type Database = {
           year?: string | null
         }
         Update: {
+          accept_offers?: boolean
           asking_price?: number | null
           card_details?: Json | null
           cost_basis?: number | null
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
+          hold_ref?: string | null
+          hold_until?: string | null
           id?: string
           lot_id?: string
+          offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name?: string

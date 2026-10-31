@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark, Tag, Truck } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -8,6 +8,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
+import { useWebsiteBadges } from "@/hooks/useWebsiteBadges";
 
 const DesktopSidebar = () => {
   const location = useLocation();
@@ -15,11 +16,14 @@ const DesktopSidebar = () => {
   const [transactionsOpen, setTransactionsOpen] = useState(true);
   const [goalsOpen, setGoalsOpen] = useState(true);
   const { isViewingAsMentor, logActivity } = useMentorAccess();
+  const badges = useWebsiteBadges();
 
-  const navItems = [
+  const navItems: { icon: typeof Home; label: string; route: string; badge?: number }[] = [
     { icon: Home, label: "Dashboard", route: "/dashboard" },
     { icon: Package, label: "Lots", route: "/lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards" },
+    { icon: Tag, label: "Website Offers", route: "/offers", badge: badges.offers },
+    { icon: Truck, label: "Website Orders", route: "/website-orders", badge: badges.orders },
     { icon: Calendar, label: "Shows", route: "/shows" },
     { icon: Wallet, label: "Accounts", route: "/accounts" },
     { icon: Landmark, label: "Tax", route: "/tax" },
@@ -77,6 +81,11 @@ const DesktopSidebar = () => {
                   className={isActive ? "text-[hsl(var(--nav-active-text))]" : "text-[hsl(var(--nav-icon))]"}
                 />
                 <span className="text-sm font-medium">{item.label}</span>
+                {!!item.badge && (
+                  <span className="ml-auto rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-accent-foreground">
+                    {item.badge}
+                  </span>
+                )}
               </button>
             );
           })}

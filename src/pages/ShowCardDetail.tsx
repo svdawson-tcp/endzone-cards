@@ -16,6 +16,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { HoldWarning } from "@/components/showCards/HoldWarning";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -226,6 +227,8 @@ const ShowCardDetail = () => {
             <Edit className="h-5 w-5" />
           </Button>
         </div>
+
+        {card.status === "available" && <HoldWarning holdUntil={card.hold_until} />}
 
         {/* Photo Display Section */}
         <Card className="bg-[hsl(var(--navy-light))]/80 border-[hsl(var(--silver-base))]/20 backdrop-blur-sm">

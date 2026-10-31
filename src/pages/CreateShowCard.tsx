@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
 import { parseAmount } from "@/lib/numericUtils";
+import { HoldWarning } from "@/components/showCards/HoldWarning";
 
 // Raw-card conditions Colton picks by hand. A graded card's condition is its grade, e.g. "PSA 10".
 const RAW_CONDITIONS = ["Mint", "Near Mint", "Excellent", "Good", "Fair", "Poor"];
@@ -59,6 +60,9 @@ export default function CreateShowCard() {
   const [showOnWebsite, setShowOnWebsite] = useState(false);
   const [sport, setSport] = useState("");
   const [team, setTeam] = useState("");
+  // Website offers: "Make an Offer" button, and a private auto-accept floor (blank = review every offer)
+  const [acceptOffers, setAcceptOffers] = useState(false);
+  const [offerFloor, setOfferFloor] = useState("");
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
   const [backPhoto, setBackPhoto] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -128,6 +132,8 @@ export default function CreateShowCard() {
       setShowOnWebsite(!!existingCard.show_on_website);
       setSport(existingCard.sport || "");
       setTeam(existingCard.team || "");
+      setAcceptOffers(!!existingCard.accept_offers);
+      setOfferFloor(existingCard.offer_floor != null ? Number(existingCard.offer_floor).toFixed(2) : "");
       
       // Set existing photo URLs (not File objects)
       if (existingCard.photo_front_url) {
@@ -190,6 +196,18 @@ export default function CreateShowCard() {
     return null;
   })();
   const websiteOn = showOnWebsite && !websiteBlocker;
+
+  // Auto-accept floor: blank, or a positive dollar amount. Above the asking price is allowed but warned.
+  const floorTrim = offerFloor.trim();
+  const floorNum = parseFloat(floorTrim);
+  const floorError =
+    floorTrim === "" ? "" : !/^\d+(\.\d{1,2})?$/.test(floorTrim) || !(floorNum > 0) ? "Enter an amount above $0, or leave it blank." : "";
+  const askingNum = parseFloat(askingPrice);
+  const floorWarning =
+    !floorError && floorTrim !== "" && askingNum > 0 && floorNum > askingNum
+      ? "This is above the asking price, so no offer will ever be auto-accepted."
+      : "";
+  const floorPicks = askingNum > 0 ? [0.9, 0.85, 0.8].map((r) => ({ pct: Math.round(r * 100), value: (Math.round(askingNum * r * 100) / 100).toFixed(2) })) : [];
 
   // ---------------------------------------------------------------------------
   // Card reader: reads the details off the photos and fills the empty fields.
@@ -441,7 +459,8 @@ export default function CreateShowCard() {
       parseInt(year) <= currentYear + 1 &&
       askingPrice !== "" &&
       parseFloat(askingPrice) > 0 &&
-      (!websiteOn || (sport !== "" && team.trim() !== ""))
+      (!websiteOn || (sport !== "" && team.trim() !== "")) &&
+      !floorError
     );
   };
 
@@ -565,6 +584,8 @@ export default function CreateShowCard() {
         team: team.trim() || null,
         // Never send "on" for a card that isn't ready; the database rejects it anyway.
         show_on_website: websiteOn && !!frontPhotoUrl && sport !== "" && team.trim() !== "",
+        accept_offers: acceptOffers,
+        offer_floor: floorTrim === "" ? null : Math.round(floorNum * 100) / 100,
       };
 
       if (isEditMode) {
@@ -678,6 +699,7 @@ export default function CreateShowCard() {
         onSubmit={handleSubmit}
         className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4"
       >
+          {isEditMode && existingCard?.status === "available" && <HoldWarning holdUntil={existingCard.hold_until} />}
           {/* Front Photo */}
           <div>
             <label className="form-label">Front Photo (Optional)</label>
@@ -1131,6 +1153,62 @@ export default function CreateShowCard() {
                 {websiteBlocker}
                 {showOnWebsite && " It will be taken off the website when you save."}
               </p>
+            )}
+            {websiteOn && (
+              <div className="space-y-3 border-t border-border pt-4" data-testid="offer-settings">
+                <div className="flex min-h-[44px] items-center justify-between gap-4">
+                  <label htmlFor="accept-offers" className="flex-1">
+                    <span className="block font-semibold">Take offers</span>
+                    <span className="text-xs text-muted-foreground">Shows a Make an Offer button on the website</span>
+                  </label>
+                  <Switch
+                    id="accept-offers"
+                    checked={acceptOffers}
+                    onCheckedChange={setAcceptOffers}
+                    className="scale-125"
+                  />
+                </div>
+                {acceptOffers && (
+                  <div>
+                    <label htmlFor="offer-floor" className="form-label">Auto-accept offers at or above</label>
+                    <CurrencyInput
+                      id="offer-floor"
+                      value={offerFloor}
+                      onChange={(e) => setOfferFloor(e.target.value)}
+                      placeholder="Blank: review every offer"
+                      aria-invalid={!!floorError}
+                      className="mt-2"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Buyers never see this. Leave blank to review every offer yourself.
+                    </p>
+                    {floorPicks.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {floorPicks.map((p) => (
+                          <button
+                            key={p.pct}
+                            type="button"
+                            onClick={() => setOfferFloor(p.value)}
+                            className={`min-h-[36px] rounded-full border px-3 text-sm font-semibold transition-colors ${
+                              floorTrim !== "" && floorNum === Number(p.value)
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border text-card-foreground hover:border-primary"
+                            }`}
+                          >
+                            {p.pct}% · ${Number(p.value) % 1 === 0 ? Number(p.value) : p.value}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {floorError && <p className="mt-1 text-sm text-destructive">{floorError}</p>}
+                    {floorWarning && (
+                      <p className="mt-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                        {floorWarning}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             <div>
               <label htmlFor="website-sport" className="form-label">

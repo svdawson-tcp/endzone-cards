@@ -32,6 +32,9 @@ import { parseRequiredAmount, parseAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
 import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
+import { Checkbox } from "@/components/ui/checkbox";
+import { HoldWarning } from "@/components/showCards/HoldWarning";
+import { isHeld } from "@/lib/shopApi";
 
 interface ShowCard {
   id: string;
@@ -87,6 +90,20 @@ export default function ShowCardSale() {
   });
 
   const showCard = passedCard || fetchedCard;
+
+  // Website hold: always read fresh (a card passed in route state may be stale).
+  const { data: hold } = useQuery({
+    queryKey: ["show_card_hold", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("show_cards").select("id, hold_until").eq("id", id!).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id,
+    staleTime: 0,
+  });
+  const held = isHeld(hold?.hold_until);
+  const [sellAnyway, setSellAnyway] = useState(false);
 
   // Auto-fill sale price with asking price
   useEffect(() => {
@@ -191,6 +208,9 @@ export default function ShowCardSale() {
     const salePriceNum = parseFloat(salePrice);
     const validationErrors: { salePrice?: string; show?: string; salesChannel?: string; grossAmount?: string } = {};
     
+    // A card held for an online buyer needs an explicit "sell anyway".
+    if (held && !sellAnyway) return;
+
     // VALIDATE FIRST - before any dialogs
     if (!salePriceNum || salePriceNum <= 0) {
       validationErrors.salePrice = "Sale price must be greater than 0";
@@ -223,6 +243,7 @@ export default function ShowCardSale() {
 
   const handleConfirmSubmit = () => {
     setShowConfirmDialog(false);
+    if (held && !sellAnyway) return;
     submitMutation.mutate();
   };
 
@@ -288,6 +309,22 @@ export default function ShowCardSale() {
             </div>
           </div>
         </div>
+
+        {held && (
+          <div className="mb-6">
+            <HoldWarning holdUntil={hold?.hold_until}>
+              <label className="mt-3 flex min-h-[44px] items-center gap-3 border-t border-amber-300 pt-3 text-sm font-semibold">
+                <Checkbox
+                  id="sell-anyway"
+                  checked={sellAnyway}
+                  onCheckedChange={(v) => setSellAnyway(v === true)}
+                  className="h-5 w-5 border-amber-700 data-[state=checked]:bg-amber-700"
+                />
+                Sell anyway — I'll refund the online buyer
+              </label>
+            </HoldWarning>
+          </div>
+        )}
 
         {/* Sale Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -428,7 +465,7 @@ export default function ShowCardSale() {
             </Button>
             <Button
               type="submit"
-              disabled={submitMutation.isPending}
+              disabled={submitMutation.isPending || (held && !sellAnyway)}
               className="flex-1 min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white"
             >
               {submitMutation.isPending ? (
