@@ -2,7 +2,7 @@
 // The buttons open cssportscards.com/offer-reply?t=<action_token>&a=<action>, a page that shows the offer
 // (POST {t, peek:true}) and only acts when Colton presses the confirm button there (POST {t, action}).
 // Acting only on POST matters: mail scanners (e.g. Outlook Safe Links) "click" every link in an email.
-import { adminClient, cardLine, fail, getCard, isToken, json, readJson, cors } from "../_shop/shared.ts";
+import { adminClient, cardLine, fail, getCard, isToken, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { respondToOffer } from "../_shop/offers.ts";
 
 Deno.serve(async (req) => {
@@ -31,6 +31,6 @@ Deno.serve(async (req) => {
   if (action === "counter" && !(Number.isFinite(counter) && counter! > 0)) {
     return fail(req, 400, "counter_out_of_range", "Enter your counteroffer amount.");
   }
-  const [status, body] = await respondToOffer(admin, offer.id, action, counter);
+  const [status, body] = await respondToOffer(admin, offer.id, action, counter, siteFor(req));
   return json(req, status, body);
 });

@@ -1,6 +1,6 @@
 // shop-offer-pay — the buyer's pay link for an accepted or countered offer (cssportscards.com/offer?t=...).
 // {token, peek:true} → what the page shows; {token} → Stripe Checkout URL at the agreed price.
-import { adminClient, cardLine, fail, getCard, isToken, json, readJson, cors, SITE } from "../_shop/shared.ts";
+import { adminClient, cardLine, fail, getCard, isToken, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 
 Deno.serve(async (req) => {
@@ -46,8 +46,8 @@ Deno.serve(async (req) => {
   try {
     const url = await createCheckoutSession(stripe, admin, order, {
       email: offer.buyer_email,
-      successUrl: `${SITE}/cart?paid=${encodeURIComponent(order.order_number)}&src=offer`,
-      cancelUrl: `${SITE}/offer?t=${encodeURIComponent(String(b.token))}`,
+      successUrl: `${siteFor(req)}/cart?paid=${encodeURIComponent(order.order_number)}&src=offer`,
+      cancelUrl: `${siteFor(req)}/offer?t=${encodeURIComponent(String(b.token))}`,
     });
     return json(req, 200, { url });
   } catch (e) {

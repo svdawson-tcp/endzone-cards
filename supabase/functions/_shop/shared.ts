@@ -22,6 +22,12 @@ const ALLOWED_ORIGINS = [
   /^http:\/\/localhost:\d+$/,
 ];
 
+/** The website the buyer is on: the live site, or a Netlify preview of it (used only for return links). */
+export function siteFor(req: Request): string {
+  const origin = req.headers.get("origin") ?? "";
+  return /^https:\/\/[a-z0-9-]+--cs-sportscards\.netlify\.app$/.test(origin) ? origin : SITE;
+}
+
 export function cors(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") ?? "";
   const ok = ALLOWED_ORIGINS.some((re) => re.test(origin));

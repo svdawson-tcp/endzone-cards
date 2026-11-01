@@ -1,6 +1,6 @@
 // stripe-webhook — Stripe tells us a website checkout was paid or expired.
 // Needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET. Subscribe the endpoint to:
-//   checkout.session.completed, checkout.session.expired
+//   checkout.session.completed, checkout.session.expired, charge.updated (Stripe fee arrives later)
 // Lessons carried over from The Chef Pantry: verify the signature with constructEventAsync (Deno),
 // ignore events that aren't ours, never fail the webhook over email, send order emails exactly once.
 import type Stripe from "npm:stripe@18.5.0";
@@ -27,6 +27,31 @@ Deno.serve(async (req) => {
     return new Response("Invalid signature", { status: 400 });
   }
 
+  // ---- charge.updated: Stripe has settled its fee; record it on the sale(s)
+  if (event.type === "charge.updated") {
+    const ch = event.data.object as Stripe.Charge;
+    const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : ch.payment_intent?.id;
+    if (!piId || !ch.balance_transaction) return ok({ received: true, ignored: "no fee yet" });
+    const admin = adminClient();
+    const { data: known } = await admin.from("web_orders").select("id").eq("stripe_payment_intent_id", piId).maybeSingle();
+    if (!known) {
+      // Not ours, or the order isn't recorded yet. If the charge is ours, ask Stripe to retry later.
+      const ours = ch.metadata?.cs_order_id;
+      return ours ? new Response("Order not recorded yet", { status: 409 }) : ok({ received: true, ignored: "not ours" });
+    }
+    try {
+      const bt = typeof ch.balance_transaction === "string"
+        ? await stripe.balanceTransactions.retrieve(ch.balance_transaction)
+        : ch.balance_transaction;
+      const { error } = await admin.rpc("web_set_stripe_fee", { p_payment_intent: piId, p_fee: bt.fee / 100 });
+      if (error) throw error;
+    } catch (e) {
+      console.error("Could not record Stripe fee", piId, e);
+      return new Response("Could not record fee", { status: 500 });
+    }
+    return ok();
+  }
+
   if (event.type !== "checkout.session.completed" && event.type !== "checkout.session.expired") {
     return ok({ received: true, ignored: event.type });
   }
@@ -50,8 +75,17 @@ Deno.serve(async (req) => {
   }
 
   // ---- completed
-  if (session.payment_status !== "paid") return ok({ received: true, ignored: "not paid yet" });
-  const piId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id;
+  // The destination sends events in its own API version (endive); re-read the session in the version this
+  // code is written for, so field names always match.
+  let s: Stripe.Checkout.Session;
+  try {
+    s = await stripe.checkout.sessions.retrieve(session.id);
+  } catch (e) {
+    console.error("Could not re-read session", session.id, e);
+    return new Response("Could not read session", { status: 500 }); // Stripe retries
+  }
+  if (s.payment_status !== "paid") return ok({ received: true, ignored: "not paid yet" });
+  const piId = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
 
   // Stripe fee for this payment (from the charge's balance transaction).
   let fee: number | null = null;
@@ -63,10 +97,10 @@ Deno.serve(async (req) => {
     console.error("Could not read Stripe fee (sale recorded without it)", e);
   }
 
-  const ship = session.collected_information?.shipping_details ?? (session as unknown as { shipping_details?: Stripe.Checkout.Session.CollectedInformation.ShippingDetails }).shipping_details;
+  const ship = s.collected_information?.shipping_details ?? (s as unknown as { shipping_details?: Stripe.Checkout.Session.CollectedInformation.ShippingDetails }).shipping_details;
   const address = ship ? { name: ship.name, ...ship.address } : null;
-  const buyerEmail = session.customer_details?.email ?? null;
-  const buyerName = ship?.name ?? session.customer_details?.name ?? null;
+  const buyerEmail = s.customer_details?.email ?? null;
+  const buyerName = ship?.name ?? s.customer_details?.name ?? null;
 
   const { data: recorded, error } = await admin.rpc("web_complete_order", {
     p_order_id: order.id, p_payment_intent: piId, p_stripe_fee: fee,
@@ -90,6 +124,18 @@ Deno.serve(async (req) => {
       console.error("DUPLICATE PAYMENT — refund failed, refund manually in Stripe:", piId, e);
     }
     return ok({ received: true, duplicate: true });
+  }
+
+  // Fee often isn't settled yet; try once more shortly (charge.updated also fills it in later).
+  if (fee === null && recorded) {
+    await new Promise((r) => setTimeout(r, 4000));
+    try {
+      const pi = await stripe.paymentIntents.retrieve(piId!, { expand: ["latest_charge.balance_transaction"] });
+      const bt = (pi.latest_charge as Stripe.Charge | null)?.balance_transaction as Stripe.BalanceTransaction | null;
+      if (bt && typeof bt === "object") await admin.rpc("web_set_stripe_fee", { p_payment_intent: piId, p_fee: bt.fee / 100 });
+    } catch (e) {
+      console.error("Fee retry failed (charge.updated will fill it in)", e);
+    }
   }
 
   await sendOrderEmailsOnce(admin, order.id);

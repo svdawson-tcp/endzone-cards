@@ -1,7 +1,7 @@
 // shop-offer — a buyer makes an offer on a card from cssportscards.com/shop.
 // At/above the hidden floor: accepted automatically, card held, buyer emailed a pay link.
 // Below it: Colton gets Accept / Counter / Decline buttons; buyer gets an "offer received" email.
-import { adminClient, dbError, fail, getCard, isEmail, isUuid, json, newToken, readJson, cors } from "../_shop/shared.ts";
+import { adminClient, dbError, fail, getCard, isEmail, isUuid, json, newToken, readJson, cors, siteFor } from "../_shop/shared.ts";
 import {
   emailBuyerPayLink, emailBuyerReceived, emailColtonAutoAccepted, emailColtonNewOffer, pause, payUrl, type Offer,
 } from "../_shop/offers.ts";
@@ -45,20 +45,21 @@ Deno.serve(async (req) => {
   }
 
   const o = data as Offer;
+  const site = siteFor(req);
   const card = await getCard(admin, o.show_card_id);
   if (card) {
     if (o.status === "accepted") {
-      await emailBuyerPayLink(o, card);
+      await emailBuyerPayLink(o, card, site);
       await pause();
       await emailColtonAutoAccepted(o, card);
     } else {
-      await emailColtonNewOffer(o, card);
+      await emailColtonNewOffer(o, card, site);
       await pause();
       await emailBuyerReceived(o, card);
     }
   }
 
   return o.status === "accepted"
-    ? json(req, 200, { status: "accepted", final_amount: o.final_amount, pay_url: payUrl(o), pay_expires_at: o.pay_expires_at })
+    ? json(req, 200, { status: "accepted", final_amount: o.final_amount, pay_url: payUrl(o, site), pay_expires_at: o.pay_expires_at })
     : json(req, 200, { status: "pending" });
 });

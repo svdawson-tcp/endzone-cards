@@ -1,6 +1,6 @@
 // shop-checkout — cart checkout from cssportscards.com/cart.
 // Holds the cards (all or nothing), prices them from EndZone, and returns a Stripe Checkout URL.
-import { adminClient, dbError, fail, isUuid, json, readJson, cors, SITE } from "../_shop/shared.ts";
+import { adminClient, dbError, fail, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 
 const CART_HOLD_MINUTES = 35; // Stripe session lasts 31–33 min; the hold outlasts it
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = await createCheckoutSession(stripe, admin, order, { cancelUrl: `${SITE}/cart?canceled=1&o={ORDER_ID}` });
+    const url = await createCheckoutSession(stripe, admin, order, { site: siteFor(req), cancelUrl: `${siteFor(req)}/cart?canceled=1&o={ORDER_ID}` });
     return json(req, 200, { url });
   } catch (e) {
     console.error("Stripe session failed", e);

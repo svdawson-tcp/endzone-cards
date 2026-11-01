@@ -18,11 +18,11 @@ const when = (iso: string | null) =>
     timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
   }) + " ET" : "";
 
-export const payUrl = (o: Offer) => `${SITE}/offer?t=${encodeURIComponent(o.pay_token ?? "")}`;
-const replyUrl = (o: Offer, a: string) => `${SITE}/offer-reply?t=${encodeURIComponent(o.action_token)}&a=${a}`;
+export const payUrl = (o: Offer, site = SITE) => `${site}/offer?t=${encodeURIComponent(o.pay_token ?? "")}`;
+const replyUrl = (o: Offer, a: string, site = SITE) => `${site}/offer-reply?t=${encodeURIComponent(o.action_token)}&a=${a}`;
 
 /** Buyer: your offer (or Colton's counter) is accepted, here is the pay link. */
-export async function emailBuyerPayLink(o: Offer, c: CardInfo) {
+export async function emailBuyerPayLink(o: Offer, c: CardInfo, site = SITE) {
   const countered = o.status === "countered";
   const price = Number(o.final_amount);
   await sendEmail({
@@ -35,14 +35,14 @@ export async function emailBuyerPayLink(o: Offer, c: CardInfo) {
         ? `Your offer ${money(o.amount)} &rarr; <strong>Colton's price ${money(price)}</strong>`
         : `Your price: <strong>${money(price)}</strong>`)}
 <p>Total with shipping: <strong>${money(price + 6)}</strong> ($6 flat shipping per order).</p>
-<p>${button(payUrl(o), countered ? "ACCEPT & PAY" : "PAY NOW")}</p>
+<p>${button(payUrl(o, site), countered ? "ACCEPT & PAY" : "PAY NOW")}</p>
 <p style="color:#555">The card is held for you until <strong>${esc(when(o.pay_expires_at))}</strong>. After that it goes back in the case.</p>
 <p>Questions? Just reply to this email.</p>`),
   });
 }
 
 /** Colton: a new offer below the floor — Accept / Counter / Decline buttons. */
-export async function emailColtonNewOffer(o: Offer, c: CardInfo) {
+export async function emailColtonNewOffer(o: Offer, c: CardInfo, site = SITE) {
   await sendEmail({
     to: COLTON,
     from: "site",
@@ -52,7 +52,7 @@ export async function emailColtonNewOffer(o: Offer, c: CardInfo) {
       `Offer <strong>${money(o.amount)}</strong> &middot; asking ${money(o.asking_at_offer)} &middot; auto-accept floor ${money(o.floor_at_offer)}`)}
 <p><strong>${esc(o.buyer_name)}</strong> &lt;${esc(o.buyer_email)}&gt;</p>
 ${o.buyer_note ? `<p style="background:#f6f6f6;padding:10px;border-radius:6px">${esc(o.buyer_note).replace(/\n/g, "<br>")}</p>` : ""}
-<p>${button(replyUrl(o, "accept"), `ACCEPT ${money(o.amount)}`, "#1FA39A")}${button(replyUrl(o, "counter"), "COUNTER", "#1E1E1E")}${button(replyUrl(o, "decline"), "DECLINE", "#888888")}</p>
+<p>${button(replyUrl(o, "accept", site), `ACCEPT ${money(o.amount)}`, "#1FA39A")}${button(replyUrl(o, "counter", site), "COUNTER", "#1E1E1E")}${button(replyUrl(o, "decline", site), "DECLINE", "#888888")}</p>
 <p style="color:#555;font-size:13px">The card stays for sale until you accept. You can also answer on the <a href="${ENDZONE}/offers">Offers screen in EndZone</a>.</p>`),
   });
 }
@@ -84,14 +84,14 @@ export async function emailBuyerReceived(o: Offer, c: CardInfo) {
   });
 }
 
-export async function emailBuyerDeclined(o: Offer, c: CardInfo) {
+export async function emailBuyerDeclined(o: Offer, c: CardInfo, site = SITE) {
   await sendEmail({
     to: o.buyer_email,
     replyTo: COLTON,
     subject: `About your offer on ${c.player_name}`,
     html: layout(`Thanks for the offer, ${esc(first(o.buyer_name))}`, `${cardBlock(c, `Your offer: ${money(o.amount)}`)}
 <p>Colton can't take ${money(o.amount)} on this one. It's still available at ${money(o.asking_at_offer)} if you want it.</p>
-<p>${button(`${SITE}/shop#card-${o.show_card_id}`, "SEE THE CARD")}</p>`),
+<p>${button(`${site}/shop#card-${o.show_card_id}`, "SEE THE CARD")}</p>`),
   });
 }
 
@@ -103,7 +103,7 @@ const RESPOND_MESSAGES: Record<string, string> = {
 
 /** Colton accepts, counters or declines a pending offer. Returns [status, body]. */
 export async function respondToOffer(
-  admin: SupabaseClient, offerId: string, action: string, counter?: number,
+  admin: SupabaseClient, offerId: string, action: string, counter?: number, site = SITE,
 ): Promise<[number, Record<string, unknown>]> {
   if (!["accept", "decline", "counter"].includes(action)) return [400, { error: "bad_request", message: "Unknown action." }];
   const { data, error } = await admin.rpc("web_respond_offer", {
@@ -124,8 +124,8 @@ export async function respondToOffer(
   const o = data as Offer;
   const c = await getCard(admin, o.show_card_id);
   if (c) {
-    if (o.status === "declined") await emailBuyerDeclined(o, c);
-    else await emailBuyerPayLink(o, c);
+    if (o.status === "declined") await emailBuyerDeclined(o, c, site);
+    else await emailBuyerPayLink(o, c, site);
   }
   const { pay_token: _p, action_token: _a, ...safe } = o;
   return [200, { offer: safe }];
