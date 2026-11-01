@@ -17,7 +17,7 @@ type Order = {
 /** Create the Stripe Checkout session for a pending order and remember its id on the order. */
 export async function createCheckoutSession(
   stripe: Stripe, admin: SupabaseClient, order: Order,
-  opts: { email?: string; cancelUrl: string },
+  opts: { email?: string; cancelUrl: string; successUrl?: string },
 ): Promise<string> {
   const { data: items, error } = await admin.from("web_order_items")
     .select("price, description, show_cards(photo_front_url)").eq("order_id", order.id);
@@ -57,8 +57,8 @@ export async function createCheckoutSession(
       description: `CS Sports Cards order ${order.order_number}`,
       metadata: { cs_order_id: order.id, cs_order_number: order.order_number },
     },
-    success_url: `${SITE}/cart?paid=${encodeURIComponent(order.order_number)}`,
-    cancel_url: opts.cancelUrl,
+    success_url: opts.successUrl ?? `${SITE}/cart?paid=${encodeURIComponent(order.order_number)}`,
+    cancel_url: opts.cancelUrl.replace("{ORDER_ID}", order.id),
   }, { idempotencyKey: `cs-${order.id}-${expiresAt}` });
 
   // Point the order at the new session FIRST, so the webhook ignores the "expired" event of the old one.

@@ -13,6 +13,21 @@ Deno.serve(async (req) => {
   if (!stripe) return fail(req, 503, "checkout_off", "Online checkout isn't open yet. Use Request to Buy instead.");
 
   const b = await readJson(req);
+
+  // Buyer came back from Stripe with "cancel": give their cards back right away instead of in 30 min.
+  if (isUuid(b?.release_order_id)) {
+    const admin = adminClient();
+    const { data: o } = await admin.from("web_orders").select("id, status, source, stripe_session_id")
+      .eq("id", b!.release_order_id).maybeSingle();
+    if (o && o.status === "pending" && o.source === "cart") {
+      if (o.stripe_session_id) {
+        try { await stripe.checkout.sessions.expire(o.stripe_session_id); } catch { /* already closed */ }
+      }
+      await admin.rpc("web_release_order", { p_order_id: o.id, p_status: "canceled" });
+    }
+    return json(req, 200, { released: true });
+  }
+
   const ids = Array.isArray(b?.card_ids) ? [...new Set(b!.card_ids as unknown[])] : [];
   if (!ids.length || ids.length > 50 || !ids.every(isUuid)) {
     return fail(req, 400, "bad_request", "Your cart looks empty. Please refresh and try again.");
@@ -39,7 +54,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const url = await createCheckoutSession(stripe, admin, order, { cancelUrl: `${SITE}/cart?canceled=1` });
+    const url = await createCheckoutSession(stripe, admin, order, { cancelUrl: `${SITE}/cart?canceled=1&o={ORDER_ID}` });
     return json(req, 200, { url });
   } catch (e) {
     console.error("Stripe session failed", e);

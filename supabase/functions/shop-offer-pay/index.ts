@@ -45,7 +45,9 @@ Deno.serve(async (req) => {
 
   try {
     const url = await createCheckoutSession(stripe, admin, order, {
-      email: offer.buyer_email, cancelUrl: `${SITE}/offer?t=${encodeURIComponent(String(b.token))}`,
+      email: offer.buyer_email,
+      successUrl: `${SITE}/cart?paid=${encodeURIComponent(order.order_number)}&src=offer`,
+      cancelUrl: `${SITE}/offer?t=${encodeURIComponent(String(b.token))}`,
     });
     return json(req, 200, { url });
   } catch (e) {
