@@ -26,10 +26,12 @@ export async function createCheckoutSession(
   // Stripe sessions must live 30 min–24 h. The hold always outlasts the session by a few minutes.
   const now = Math.floor(Date.now() / 1000);
   const holdEnds = Math.floor(new Date(order.hold_expires_at).getTime() / 1000);
-  const expiresAt = Math.max(now + 31 * 60, Math.min(holdEnds - 120, now + 23 * 3600));
+  const expiresAt = Math.min(holdEnds - 120, now + 23 * 3600);
+  if (expiresAt < now + 30 * 60) throw new Error("Hold too short for a Stripe session"); // caller extends holds first
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
+    payment_method_types: ["card"], // no delayed methods (ACH etc.): payment must be final when the hold ends
     line_items: (items as unknown as Item[]).map((it) => ({
       quantity: 1,
       price_data: {

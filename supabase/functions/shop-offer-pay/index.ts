@@ -40,8 +40,11 @@ Deno.serve(async (req) => {
   if (!stripe) return fail(req, 503, "checkout_off", "Online payment isn't open yet. Reply to the email and Colton will send a payment link.");
 
   // The card has been held for this offer since it was accepted; reuse that order.
-  const { data: order } = await admin.rpc("web_hold_for_offer", { p_offer_id: offer.id });
-  if (!order) return fail(req, 410, "offer_closed", "This card is no longer available.");
+  const { data: held } = await admin.rpc("web_hold_for_offer", { p_offer_id: offer.id });
+  if (!held) return fail(req, 410, "offer_closed", "This card is no longer available.");
+  // Make sure the hold outlasts the Stripe session (review H2): at least 35 minutes from now.
+  const { data: order, error: extErr } = await admin.rpc("web_extend_hold", { p_order_id: held.id, p_minutes: 35 });
+  if (extErr || !order) return fail(req, 410, "offer_closed", "This card is no longer available.");
 
   try {
     const url = await createCheckoutSession(stripe, admin, order, {

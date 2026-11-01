@@ -20,10 +20,18 @@ Deno.serve(async (req) => {
     const { data: o } = await admin.from("web_orders").select("id, status, source, stripe_session_id")
       .eq("id", b!.release_order_id).maybeSingle();
     if (o && o.status === "pending" && o.source === "cart") {
+      let closed = !o.stripe_session_id;
       if (o.stripe_session_id) {
-        try { await stripe.checkout.sessions.expire(o.stripe_session_id); } catch { /* already closed */ }
+        try {
+          const sess = await stripe.checkout.sessions.retrieve(o.stripe_session_id);
+          if (sess.status === "expired") closed = true;
+          else if (sess.status === "open") closed = (await stripe.checkout.sessions.expire(sess.id)).status === "expired";
+          // "complete" = already paid in another tab: leave it for the webhook
+        } catch (e) {
+          console.error("Could not close session; leaving hold in place", e);
+        }
       }
-      await admin.rpc("web_release_order", { p_order_id: o.id, p_status: "canceled" });
+      if (closed) await admin.rpc("web_release_order", { p_order_id: o.id, p_status: "canceled" });
     }
     return json(req, 200, { released: true });
   }

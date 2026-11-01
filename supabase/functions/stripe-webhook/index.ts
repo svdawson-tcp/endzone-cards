@@ -113,7 +113,12 @@ Deno.serve(async (req) => {
   }
 
   // Paid twice (e.g. two tabs on an offer link)? Refund the extra payment and tell Colton.
-  if (recorded === false && order.stripe_payment_intent_id && order.stripe_payment_intent_id !== piId) {
+  let storedPi = order.stripe_payment_intent_id as string | null;
+  if (recorded === false) {
+    const { data: now } = await admin.from("web_orders").select("stripe_payment_intent_id").eq("id", order.id).maybeSingle();
+    storedPi = now?.stripe_payment_intent_id ?? storedPi;
+  }
+  if (recorded === false && storedPi && storedPi !== piId) {
     try {
       await stripe.refunds.create({ payment_intent: piId!, reason: "duplicate" }, { idempotencyKey: `dup-${piId}` });
       await sendEmail({
@@ -138,17 +143,18 @@ Deno.serve(async (req) => {
     }
   }
 
-  await sendOrderEmailsOnce(admin, order.id);
+  const emailed = await sendOrderEmailsOnce(admin, order.id);
+  if (!emailed) return new Response("Order recorded; emails failed, retry", { status: 500 }); // Stripe retries emails only
   return ok();
 });
 
 // ------------------------------------------------------------------ order emails (send once)
 // deno-lint-ignore no-explicit-any
-async function sendOrderEmailsOnce(admin: any, orderId: string) {
+async function sendOrderEmailsOnce(admin: any, orderId: string): Promise<boolean> {
   const { data: claimed } = await admin.from("web_orders")
     .update({ emails_sent_at: new Date().toISOString() })
     .eq("id", orderId).is("emails_sent_at", null).select("*");
-  if (!claimed?.length) return; // already sent
+  if (!claimed?.length) return true; // already sent
   const o = claimed[0];
   try {
     const { data: items } = await admin.from("web_order_items")
@@ -164,7 +170,7 @@ async function sendOrderEmailsOnce(admin: any, orderId: string) {
     const table = `<table role="presentation" style="width:100%;border-collapse:collapse">${rows}${totals}</table>`;
     const first = String(o.buyer_name ?? "").trim().split(/\s+/)[0] || "there";
 
-    await sendEmail({
+    const toColton = await sendEmail({
       to: COLTON, from: "site", replyTo: o.buyer_email ?? undefined,
       subject: `New order ${o.order_number}: ${money(o.total)} — ship to ${a.name ?? o.buyer_name ?? "buyer"}`,
       html: layout(`New order ${esc(o.order_number)}`, `${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
@@ -173,9 +179,10 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
 <p>${button(`${ENDZONE}/web-orders`, "OPEN ORDERS IN ENDZONE", "#1FA39A")}</p>
 <p style="color:#555;font-size:13px">The sale is already recorded in EndZone (channel: Website).</p>`),
     });
+    let toBuyer = !o.buyer_email;
     if (o.buyer_email) {
       await pause();
-      await sendEmail({
+      toBuyer = await sendEmail({
         to: o.buyer_email, replyTo: COLTON,
         subject: `Order ${o.order_number} confirmed — thanks!`,
         html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${table}
@@ -183,8 +190,11 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
 <p>Colton packs every card carefully and ships within a few days. Questions? Just reply to this email.</p>`),
       });
     }
+    if (!toColton && !toBuyer) throw new Error("Both order emails failed");
+    return true;
   } catch (e) {
     console.error("Order emails failed; releasing claim so a retry can send them", e);
     await admin.from("web_orders").update({ emails_sent_at: null }).eq("id", orderId);
+    return false;
   }
 }

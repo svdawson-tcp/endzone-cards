@@ -3,16 +3,22 @@
 // Below it: Colton gets Accept / Counter / Decline buttons; buyer gets an "offer received" email.
 import { adminClient, dbError, fail, getCard, isEmail, isUuid, json, newToken, readJson, cors, siteFor } from "../_shop/shared.ts";
 import {
-  emailBuyerPayLink, emailBuyerReceived, emailColtonAutoAccepted, emailColtonNewOffer, pause, payUrl, type Offer,
+  emailBuyerPayLink, emailBuyerReceived, emailColtonAutoAccepted, emailColtonNewOffer, pause, type Offer,
 } from "../_shop/offers.ts";
 
 const MESSAGES: Record<string, [number, string, string]> = {
   CARD_UNAVAILABLE: [409, "card_unavailable", "Sorry, that card was just sold or is on hold."],
   OFFER_TOO_LOW: [400, "offer_too_low", "Please enter an offer of at least $1."],
   OFFER_AT_ASKING: [400, "offer_at_asking", "That's at or above the asking price, so just add it to your cart."],
-  TOO_MANY_OFFERS: [429, "too_many_offers", "You've made several offers on this card today. Please try again tomorrow."],
+  TOO_MANY_OFFERS: [429, "too_many_offers", "That's a lot of offers in a short time. Please try again later."],
+  TOO_MANY_OPEN_OFFERS: [429, "too_many_open_offers", "You already have two accepted offers waiting to be paid. Pay or let one expire first."],
   OFFERS_OFF: [403, "offers_off", "Offers are paused right now."],
 };
+
+async function sha256(text: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors(req) });
@@ -32,9 +38,11 @@ Deno.serve(async (req) => {
   }
 
   const admin = adminClient();
+  const ip = (req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
+  const ipHash = ip ? await sha256(`cs-offer:${ip}`) : null;
   const { data, error } = await admin.rpc("web_make_offer", {
     p_card_id: b.card_id, p_amount: Math.round(amount * 100) / 100, p_buyer_name: name, p_buyer_email: email,
-    p_note: note || null, p_action_token: newToken(), p_pay_token: newToken(),
+    p_note: note || null, p_action_token: newToken(), p_pay_token: newToken(), p_ip_hash: ipHash,
   });
   if (error) {
     const [code] = dbError(error);
@@ -60,6 +68,7 @@ Deno.serve(async (req) => {
   }
 
   return o.status === "accepted"
-    ? json(req, 200, { status: "accepted", final_amount: o.final_amount, pay_url: payUrl(o, site), pay_expires_at: o.pay_expires_at })
+    // The pay link goes ONLY to the buyer's email, so nobody can hold cards with made-up addresses.
+    ? json(req, 200, { status: "accepted", final_amount: o.final_amount, pay_expires_at: o.pay_expires_at })
     : json(req, 200, { status: "pending" });
 });
