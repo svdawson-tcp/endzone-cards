@@ -23,7 +23,10 @@ import {
 import { format } from "date-fns";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { PageContainer } from "@/components/layout/AppLayout";
-import { parseAmount } from "@/lib/numericUtils";
+import { formatMoney, normalizeMoneyInput, parseAmount } from "@/lib/numericUtils";
+import { Badge } from "@/components/ui/badge";
+import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
+import { effectiveOfferFloor, isFuture, pctToPercentText, validateOfferFloor } from "@/lib/webShop";
 
 // Raw-card conditions Colton picks by hand. A graded card's condition is its grade, e.g. "PSA 10".
 const RAW_CONDITIONS = ["Mint", "Near Mint", "Excellent", "Good", "Fair", "Poor"];
@@ -57,6 +60,7 @@ export default function CreateShowCard() {
   const [askingPrice, setAskingPrice] = useState("");
   // Website (cssportscards.com "Shop the Case")
   const [showOnWebsite, setShowOnWebsite] = useState(false);
+  const [offerFloor, setOfferFloor] = useState(""); // blank = website default %
   const [sport, setSport] = useState("");
   const [team, setTeam] = useState("");
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
@@ -126,6 +130,7 @@ export default function CreateShowCard() {
       setCostBasis(existingCard.cost_basis ? existingCard.cost_basis.toString() : "");
       setAskingPrice(existingCard.asking_price ? existingCard.asking_price.toString() : "");
       setShowOnWebsite(!!existingCard.show_on_website);
+      setOfferFloor(existingCard.offer_floor != null ? Number(existingCard.offer_floor).toFixed(2) : "");
       setSport(existingCard.sport || "");
       setTeam(existingCard.team || "");
       
@@ -190,6 +195,13 @@ export default function CreateShowCard() {
     return null;
   })();
   const websiteOn = showOnWebsite && !websiteBlocker;
+
+  // Make an Offer: the hidden floor at/above which website offers are accepted automatically.
+  const { data: websiteSettings } = useWebsiteSettings();
+  const offerFloorError = validateOfferFloor(offerFloor, askingPrice);
+  const floorPct = websiteSettings?.offer_floor_pct ?? 0.85;
+  const defaultFloor = effectiveOfferFloor(normalizeMoneyInput(askingPrice), null, floorPct);
+  const heldOnline = isFuture(existingCard?.held_until);
 
   // ---------------------------------------------------------------------------
   // Card reader: reads the details off the photos and fills the empty fields.
@@ -428,6 +440,8 @@ export default function CreateShowCard() {
       isValid = false;
     }
 
+    if (offerFloorError) isValid = false;
+
     setErrors(newErrors);
     return isValid;
   };
@@ -441,6 +455,7 @@ export default function CreateShowCard() {
       parseInt(year) <= currentYear + 1 &&
       askingPrice !== "" &&
       parseFloat(askingPrice) > 0 &&
+      !offerFloorError &&
       (!websiteOn || (sport !== "" && team.trim() !== ""))
     );
   };
@@ -565,6 +580,7 @@ export default function CreateShowCard() {
         team: team.trim() || null,
         // Never send "on" for a card that isn't ready; the database rejects it anyway.
         show_on_website: websiteOn && !!frontPhotoUrl && sport !== "" && team.trim() !== "",
+        offer_floor: offerFloor.trim() ? Number(normalizeMoneyInput(offerFloor)) : null,
       };
 
       if (isEditMode) {
@@ -1112,7 +1128,10 @@ export default function CreateShowCard() {
 
           {/* Website (cssportscards.com) */}
           <div className="rounded-lg border-2 border-primary p-4 space-y-4">
-            <h2 className="text-lg font-bold">Website</h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-lg font-bold">Website</h2>
+              {heldOnline && <Badge variant="outline">On hold online</Badge>}
+            </div>
             <div className="flex items-center justify-between gap-4 min-h-[44px]">
               <label htmlFor="show-on-website" className="flex-1">
                 <span className="font-semibold block">Show on cssportscards.com</span>
@@ -1125,6 +1144,28 @@ export default function CreateShowCard() {
                 onCheckedChange={setShowOnWebsite}
                 className="scale-125"
               />
+            </div>
+            <div>
+              <label htmlFor="offer-floor" className="form-label">
+                Lowest offer to auto-accept ($)
+              </label>
+              <CurrencyInput
+                id="offer-floor"
+                value={offerFloor}
+                onChange={(e) => setOfferFloor(e.target.value)}
+                placeholder="Use default %"
+                className="mt-2"
+              />
+              {offerFloorError ? (
+                <p className="text-destructive text-sm mt-1">{offerFloorError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1" data-testid="offer-floor-help">
+                  {offerFloor.trim()
+                    ? `Offers of ${formatMoney(normalizeMoneyInput(offerFloor))} or more are accepted automatically. Lower offers come to you.`
+                    : `Blank = ${pctToPercentText(floorPct)}% of asking${defaultFloor ? ` (${formatMoney(defaultFloor)})` : ""}`}
+                  {websiteSettings && !websiteSettings.offers_enabled && " Offers are switched off on the website right now."}
+                </p>
+              )}
             </div>
             {websiteBlocker && (
               <p className="text-sm rounded-md border border-amber-400 bg-amber-50 text-amber-900 px-3 py-2">

@@ -18,8 +18,9 @@ export const SALES_CHANNELS = [
   { value: "whatnot", label: "Whatnot" },
   { value: "card_show", label: "Card Show" },
   { value: "in_person", label: "In Person" },
+  { value: "website", label: "Website" }, // cssportscards.com; checkout sales are written by the database
   { value: "other", label: "Other" },
-] as const;
+] as const; // must match transactions_sales_channel_check exactly
 
 export const CASH_TYPE_LABELS: Record<string, string> = {
   deposit: "Deposit",

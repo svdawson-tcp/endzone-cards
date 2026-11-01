@@ -490,8 +490,11 @@ export type Database = {
           created_at: string
           destination_lot_id: string | null
           disposition_type: string | null
+          held_for: string | null
+          held_until: string | null
           id: string
           lot_id: string
+          offer_floor: number | null
           photo_back_url: string | null
           photo_front_url: string | null
           player_name: string
@@ -511,8 +514,11 @@ export type Database = {
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
+          held_for?: string | null
+          held_until?: string | null
           id?: string
           lot_id: string
+          offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name: string
@@ -532,8 +538,11 @@ export type Database = {
           created_at?: string
           destination_lot_id?: string | null
           disposition_type?: string | null
+          held_for?: string | null
+          held_until?: string | null
           id?: string
           lot_id?: string
+          offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null
           player_name?: string
@@ -552,6 +561,13 @@ export type Database = {
             columns: ["destination_lot_id"]
             isOneToOne: false
             referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "show_cards_held_for_fk"
+            columns: ["held_for"]
+            isOneToOne: false
+            referencedRelation: "web_orders"
             referencedColumns: ["id"]
           },
           {
@@ -747,6 +763,255 @@ export type Database = {
         }
         Relationships: []
       }
+      web_offers: {
+        Row: {
+          action_token: string
+          amount: number
+          asking_at_offer: number
+          auto_accepted: boolean
+          buyer_email: string
+          buyer_name: string
+          buyer_note: string | null
+          counter_amount: number | null
+          created_at: string
+          final_amount: number | null
+          floor_at_offer: number
+          id: string
+          order_id: string | null
+          pay_expires_at: string | null
+          pay_token: string | null
+          responded_at: string | null
+          show_card_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_token: string
+          amount: number
+          asking_at_offer: number
+          auto_accepted?: boolean
+          buyer_email: string
+          buyer_name: string
+          buyer_note?: string | null
+          counter_amount?: number | null
+          created_at?: string
+          final_amount?: number | null
+          floor_at_offer: number
+          id?: string
+          order_id?: string | null
+          pay_expires_at?: string | null
+          pay_token?: string | null
+          responded_at?: string | null
+          show_card_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_token?: string
+          amount?: number
+          asking_at_offer?: number
+          auto_accepted?: boolean
+          buyer_email?: string
+          buyer_name?: string
+          buyer_note?: string | null
+          counter_amount?: number | null
+          created_at?: string
+          final_amount?: number | null
+          floor_at_offer?: number
+          id?: string
+          order_id?: string | null
+          pay_expires_at?: string | null
+          pay_token?: string | null
+          responded_at?: string | null
+          show_card_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_offers_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "web_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "web_offers_show_card_id_fkey"
+            columns: ["show_card_id"]
+            isOneToOne: false
+            referencedRelation: "show_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_order_items: {
+        Row: {
+          description: string
+          id: string
+          order_id: string
+          price: number
+          show_card_id: string
+          transaction_id: string | null
+        }
+        Insert: {
+          description: string
+          id?: string
+          order_id: string
+          price: number
+          show_card_id: string
+          transaction_id?: string | null
+        }
+        Update: {
+          description?: string
+          id?: string
+          order_id?: string
+          price?: number
+          show_card_id?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "web_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "web_order_items_show_card_id_fkey"
+            columns: ["show_card_id"]
+            isOneToOne: false
+            referencedRelation: "show_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "web_order_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_orders: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string | null
+          created_at: string
+          emails_sent_at: string | null
+          hold_expires_at: string
+          id: string
+          offer_id: string | null
+          order_number: string
+          paid_at: string | null
+          problem_note: string | null
+          shipped_at: string | null
+          shipping: number
+          shipping_address: Json | null
+          source: string
+          status: string
+          stripe_fee: number | null
+          stripe_payment_intent_id: string | null
+          stripe_session_id: string | null
+          subtotal: number
+          total: number
+          tracking_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          created_at?: string
+          emails_sent_at?: string | null
+          hold_expires_at: string
+          id?: string
+          offer_id?: string | null
+          order_number?: string
+          paid_at?: string | null
+          problem_note?: string | null
+          shipped_at?: string | null
+          shipping: number
+          shipping_address?: Json | null
+          source?: string
+          status?: string
+          stripe_fee?: number | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal: number
+          total: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string | null
+          created_at?: string
+          emails_sent_at?: string | null
+          hold_expires_at?: string
+          id?: string
+          offer_id?: string | null
+          order_number?: string
+          paid_at?: string | null
+          problem_note?: string | null
+          shipped_at?: string | null
+          shipping?: number
+          shipping_address?: Json | null
+          source?: string
+          status?: string
+          stripe_fee?: number | null
+          stripe_payment_intent_id?: string | null
+          stripe_session_id?: string | null
+          subtotal?: number
+          total?: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_orders_offer_fk"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "web_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_settings: {
+        Row: {
+          hold_minutes: number
+          id: boolean
+          offer_floor_pct: number
+          offer_hold_hours: number
+          offers_enabled: boolean
+          owner_user_id: string
+          shipping_flat: number
+        }
+        Insert: {
+          hold_minutes?: number
+          id?: boolean
+          offer_floor_pct?: number
+          offer_hold_hours?: number
+          offers_enabled?: boolean
+          owner_user_id: string
+          shipping_flat?: number
+        }
+        Update: {
+          hold_minutes?: number
+          id?: boolean
+          offer_floor_pct?: number
+          offer_hold_hours?: number
+          offers_enabled?: boolean
+          owner_user_id?: string
+          shipping_flat?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -796,6 +1061,25 @@ export type Database = {
       get_reminders: {
         Args: { p_today?: string; p_user_id: string }
         Returns: Json
+      }
+      get_shop_cards: {
+        Args: never
+        Returns: {
+          brand: string
+          card_number: string
+          condition: string
+          id: string
+          listed_at: string
+          offers_open: boolean
+          photo_back_url: string
+          photo_front_url: string
+          player_name: string
+          price: number
+          set_name: string
+          sport: string
+          team: string
+          year: string
+        }[]
       }
       get_tax_tracker: {
         Args: { p_today?: string; p_user_id: string }

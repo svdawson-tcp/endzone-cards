@@ -1,7 +1,7 @@
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 
 /** Channels where a platform keeps a cut, so "what the buyer paid" is worth asking. */
-export const GROSS_CHANNELS = ["ebay", "whatnot", "facebook", "other"];
+export const GROSS_CHANNELS = ["ebay", "whatnot", "facebook", "website", "other"];
 
 export const channelShowsGross = (channel: string) => GROSS_CHANNELS.includes(channel);
 

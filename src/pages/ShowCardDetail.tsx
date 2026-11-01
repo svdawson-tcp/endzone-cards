@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { isFuture } from "@/lib/webShop";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
@@ -215,6 +216,9 @@ const ShowCardDetail = () => {
               <Badge variant={getStatusBadgeVariant(card.status)} className="mt-2">
                 {card.status}
               </Badge>
+              {isFuture(card.held_until) && (
+                <Badge variant="outline" className="mt-2 ml-2">On hold online</Badge>
+              )}
             </div>
           </div>
           <Button
