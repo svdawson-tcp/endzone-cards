@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { DeleteShowCardDialog } from "@/components/showCards/DeleteShowCardDialog";
+import { ReleaseHoldButton } from "@/components/showCards/ReleaseHoldButton";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { isFuture } from "@/lib/webShop";
 
@@ -233,6 +234,8 @@ const ShowCards = () => {
                         Asking: ${Number(card.asking_price).toFixed(2)}
                       </p>
                     )}
+
+                    <ReleaseHoldButton cardId={card.id} playerName={card.player_name} heldUntil={card.held_until} />
 
                     {card.status === "sold" && (card as any).transactions?.[0]?.revenue && (
                       <p className="text-sm font-semibold text-[hsl(var(--metric-positive))]">

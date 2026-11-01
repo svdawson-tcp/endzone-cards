@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { ReleaseHoldButton } from "@/components/showCards/ReleaseHoldButton";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,6 +220,7 @@ const ShowCardDetail = () => {
               {isFuture(card.held_until) && (
                 <Badge variant="outline" className="mt-2 ml-2">On hold online</Badge>
               )}
+              <ReleaseHoldButton cardId={card.id} playerName={card.player_name} heldUntil={card.held_until} variant="full" />
             </div>
           </div>
           <Button
