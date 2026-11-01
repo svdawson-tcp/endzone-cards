@@ -17,6 +17,7 @@ import {
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { DeleteShowCardDialog } from "@/components/showCards/DeleteShowCardDialog";
 import { formatBusinessDate } from "@/lib/dateUtils";
+import { isFuture } from "@/lib/webShop";
 
 const ShowCards = () => {
   const navigate = useNavigate();
@@ -212,6 +213,9 @@ const ShowCards = () => {
                         <Badge variant={getStatusBadgeVariant(card.status)}>
                           {card.status}
                         </Badge>
+                        {isFuture(card.held_until) && (
+                          <Badge variant="outline" className="whitespace-nowrap">On hold online</Badge>
+                        )}
                         <DeleteShowCardDialog showCard={card} />
                       </div>
                     </div>

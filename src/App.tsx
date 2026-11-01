@@ -37,6 +37,9 @@ import PersonalGoals from "./pages/goals/PersonalGoals";
 import BusinessGoals from "./pages/goals/BusinessGoals";
 import ActionPlanning from "./pages/goals/ActionPlanning";
 import Glossary from "./pages/Glossary";
+import Offers from "./pages/Offers";
+import WebOrders from "./pages/WebOrders";
+import WebsiteLists from "./pages/WebsiteLists";
 import { MentorAccessProvider } from "./contexts/MentorAccessContext";
 
 const queryClient = new QueryClient();
@@ -93,6 +96,9 @@ const App = () => (
           <Route path="/goals/business" element={<ProtectedRoute><AuthenticatedLayout><BusinessGoals /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/goals/actions" element={<ProtectedRoute><AuthenticatedLayout><ActionPlanning /></AuthenticatedLayout></ProtectedRoute>} />
           <Route path="/glossary" element={<ProtectedRoute><AuthenticatedLayout><Glossary /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/offers" element={<ProtectedRoute><AuthenticatedLayout><Offers /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/web-orders" element={<ProtectedRoute><AuthenticatedLayout><WebOrders /></AuthenticatedLayout></ProtectedRoute>} />
+          <Route path="/website" element={<ProtectedRoute><AuthenticatedLayout><WebsiteLists /></AuthenticatedLayout></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
           </Routes>

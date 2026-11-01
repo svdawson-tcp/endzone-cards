@@ -1,7 +1,8 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { AccountSwitcher } from "@/components/AccountSwitcher";
+import { useWebShopCounts } from "@/hooks/useWebsiteSettings";
 
 const BottomTabBar = () => {
   const location = useLocation();
@@ -19,6 +21,8 @@ const BottomTabBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [goalsMenuOpen, setGoalsMenuOpen] = useState(false);
   const { isViewingAsMentor, logActivity } = useMentorAccess();
+  const { data: shopCounts } = useWebShopCounts();
+  const menuBadgeTotal = (shopCounts?.pendingOffers || 0) + (shopCounts?.ordersToShip || 0);
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
@@ -39,6 +43,9 @@ const BottomTabBar = () => {
     { icon: Package, label: "Lots", route: "/lots", description: "Manage inventory lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
+    { icon: HandCoins, label: "Offers", route: "/offers", description: "Website offers to accept, counter or decline", badge: shopCounts?.pendingOffers || 0 },
+    { icon: ShoppingBag, label: "Web Orders", route: "/web-orders", description: "Website orders to ship", badge: shopCounts?.ordersToShip || 0 },
+    { icon: Globe, label: "Website", route: "/website", description: "Most Wanted list and show schedule" },
     { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
     { icon: Landmark, label: "Tax", route: "/tax", description: "Weekly set-aside and estimated payments" },
     { icon: Receipt, label: "Expenses", route: "/expenses", description: "What you spent, by category" },
@@ -137,7 +144,17 @@ const BottomTabBar = () => {
                     className="flex flex-col items-center justify-center py-2 px-3 cursor-pointer rounded-lg transition-all duration-200 min-h-[44px] hover:bg-muted/50"
                     aria-label={tab.label}
                   >
-                    <Icon className="text-muted-foreground" size={24} />
+                    <span className="relative">
+                      <Icon className="text-muted-foreground" size={24} />
+                      {menuBadgeTotal > 0 && (
+                        <span
+                          className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[11px] font-bold leading-[18px] text-center"
+                          aria-label={`${menuBadgeTotal} need attention`}
+                        >
+                          {menuBadgeTotal}
+                        </span>
+                      )}
+                    </span>
                     <span className="text-xs mt-1 text-muted-foreground">
                       {tab.label}
                     </span>
@@ -189,6 +206,9 @@ const BottomTabBar = () => {
                               <p className="font-semibold text-card-foreground">{item.label}</p>
                               <p className="text-sm text-card-foreground/70">{item.description}</p>
                             </div>
+                            {!!item.badge && (
+                              <Badge variant="destructive" className="self-center">{item.badge}</Badge>
+                            )}
                           </button>
                         );
                       })}
