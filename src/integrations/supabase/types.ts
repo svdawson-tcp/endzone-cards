@@ -763,6 +763,75 @@ export type Database = {
         }
         Relationships: []
       }
+      website_shows: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          kind: string
+          location: string | null
+          name: string
+          start_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          name: string
+          start_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: string
+          location?: string | null
+          name?: string
+          start_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      website_wanted: {
+        Row: {
+          created_at: string
+          id: string
+          player_name: string
+          position: string
+          sort_order: number
+          sport: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_name: string
+          position: string
+          sort_order?: number
+          sport: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_name?: string
+          position?: string
+          sort_order?: number
+          sport?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       web_offers: {
         Row: {
           action_token: string

@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -45,6 +45,7 @@ const BottomTabBar = () => {
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
     { icon: HandCoins, label: "Offers", route: "/offers", description: "Website offers to accept, counter or decline", badge: shopCounts?.pendingOffers || 0 },
     { icon: ShoppingBag, label: "Web Orders", route: "/web-orders", description: "Website orders to ship", badge: shopCounts?.ordersToShip || 0 },
+    { icon: Globe, label: "Website", route: "/website", description: "Most Wanted list and show schedule" },
     { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
     { icon: Landmark, label: "Tax", route: "/tax", description: "Weekly set-aside and estimated payments" },
     { icon: Receipt, label: "Expenses", route: "/expenses", description: "What you spent, by category" },

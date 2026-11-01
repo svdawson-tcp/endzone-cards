@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -26,6 +26,7 @@ const DesktopSidebar = () => {
     { icon: Calendar, label: "Shows", route: "/shows" },
     { icon: HandCoins, label: "Offers", route: "/offers", badge: shopCounts?.pendingOffers || 0 },
     { icon: ShoppingBag, label: "Web Orders", route: "/web-orders", badge: shopCounts?.ordersToShip || 0 },
+    { icon: Globe, label: "Website", route: "/website" },
     { icon: Wallet, label: "Accounts", route: "/accounts" },
     { icon: Landmark, label: "Tax", route: "/tax" },
     { icon: Receipt, label: "Expenses", route: "/expenses" },
