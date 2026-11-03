@@ -20,8 +20,10 @@ import { ReleaseHoldButton } from "@/components/showCards/ReleaseHoldButton";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { isFuture } from "@/lib/webShop";
 
-const ShowCards = () => {
+/** The Show Cards list. With `bin`, the same list for Bargain Bin cards ($5–$20 value cards kept apart from the case). */
+const ShowCards = ({ bin = false }: { bin?: boolean }) => {
   const navigate = useNavigate();
+  const addRoute = bin ? "/show-cards/new?bin=1" : "/show-cards/new";
   const [statusFilter, setStatusFilter] = useState("available");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -49,7 +51,7 @@ const ShowCards = () => {
   });
 
   const filteredCards = useMemo(() => {
-    let filtered = showCards;
+    let filtered = showCards.filter(card => !!card.in_bargain_bin === bin);
 
     if (statusFilter !== "all") {
       filtered = filtered.filter(card => card.status === statusFilter);
@@ -73,7 +75,17 @@ const ShowCards = () => {
     });
 
     return filtered;
-  }, [showCards, statusFilter, searchQuery]);
+  }, [showCards, statusFilter, searchQuery, bin]);
+
+  const binStats = useMemo(() => {
+    const avail = showCards.filter(c => c.in_bargain_bin && c.status === "available");
+    return {
+      count: avail.length,
+      value: avail.reduce((t, c) => t + (Number(c.asking_price) || 0), 0),
+      online: avail.filter(c => c.show_on_website).length,
+    };
+  }, [showCards]);
+  const hasAny = showCards.some(card => !!card.in_bargain_bin === bin);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -104,12 +116,19 @@ const ShowCards = () => {
         {/* Header */}
         <div className="flex flex-col gap-6 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <h1 className="page-title">SHOW CARDS</h1>
+            <div>
+              <h1 className="page-title">{bin ? "BARGAIN BIN" : "SHOW CARDS"}</h1>
+              {bin && (
+                <p className="text-sm text-muted-foreground mt-1" data-testid="bin-stats">
+                  {binStats.count} {binStats.count === 1 ? "card" : "cards"} · ${binStats.value.toFixed(2)} asking · {binStats.online} on the website
+                </p>
+              )}
+            </div>
             <Button
-              onClick={() => navigate("/show-cards/new")}
+              onClick={() => navigate(addRoute)}
               className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
             >
-              ADD SHOW CARD
+              {bin ? "ADD BIN CARD" : "ADD SHOW CARD"}
             </Button>
           </div>
           
@@ -162,14 +181,18 @@ const ShowCards = () => {
         </Card>
 
         {/* Cards Grid */}
-        {showCards.length === 0 ? (
+        {!hasAny ? (
           <div className="text-center py-12">
             <Card className="max-w-md mx-auto">
               <CardContent className="pt-6">
                 <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-h3 mb-2">No Show Cards Yet</h3>
-                <p className="text-[hsl(var(--text-body))] mb-4">Add your first premium card to start tracking inventory</p>
-                <Button onClick={() => navigate("/show-cards/new")}>ADD SHOW CARD</Button>
+                <h3 className="text-h3 mb-2">{bin ? "The Bargain Bin is empty" : "No Show Cards Yet"}</h3>
+                <p className="text-[hsl(var(--text-body))] mb-4">
+                  {bin
+                    ? "Add $5–$20 value cards here. They sell on the website in The Bargain Bin, not in Shop the Case."
+                    : "Add your first premium card to start tracking inventory"}
+                </p>
+                <Button onClick={() => navigate(addRoute)}>{bin ? "ADD BIN CARD" : "ADD SHOW CARD"}</Button>
               </CardContent>
             </Card>
           </div>
@@ -182,23 +205,25 @@ const ShowCards = () => {
             </Card>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className={bin
+            ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
+            : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"}>
             {filteredCards.map((card) => (
               <Card
                 key={card.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
                 onClick={() => navigate(`/show-cards/${card.id}`)}
               >
-                <CardContent className="p-4">
+                <CardContent className={bin ? "p-3" : "p-4"}>
                   {/* Photo */}
                   {card.photo_front_url ? (
                     <img
                       src={card.photo_front_url}
-                      className="w-full h-64 object-cover rounded-lg mb-3"
+                      className={`w-full ${bin ? "h-40" : "h-64"} object-cover rounded-lg mb-3`}
                       alt={`${card.player_name} card front`}
                     />
                   ) : (
-                    <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center mb-3">
+                    <div className={`w-full ${bin ? "h-40" : "h-64"} bg-muted rounded-lg flex items-center justify-center mb-3`}>
                       <ImageIcon className="h-16 w-16 text-muted-foreground" />
                     </div>
                   )}
@@ -207,10 +232,10 @@ const ShowCards = () => {
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg">{card.player_name}</h3>
+                        <h3 className={`font-bold ${bin ? "text-base" : "text-lg"}`}>{card.player_name}</h3>
                         <p className="text-sm text-[hsl(var(--text-body))]">{card.year}</p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className={`flex items-center gap-1 ${bin ? "flex-wrap justify-end" : ""}`}>
                         <Badge variant={getStatusBadgeVariant(card.status)}>
                           {card.status}
                         </Badge>

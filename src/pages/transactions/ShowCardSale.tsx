@@ -171,7 +171,7 @@ export default function ShowCardSale() {
       queryClient.invalidateQueries({ queryKey: ["expensesList"] });
       queryClient.invalidateQueries({ queryKey: ["expenseSummary"] });
       
-      navigate("/show-cards");
+      navigate((showCard as any)?.in_bargain_bin ? "/bargain-bin" : "/show-cards");
     },
     onError: (error: any) => {
       toast({
@@ -420,7 +420,7 @@ export default function ShowCardSale() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/show-cards")}
+              onClick={() => navigate((showCard as any)?.in_bargain_bin ? "/bargain-bin" : "/show-cards")}
               disabled={submitMutation.isPending}
               className="flex-1 min-h-[44px]"
             >

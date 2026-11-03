@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
+import { HeadlinerEditor } from "@/components/website/HeadlinerEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -84,11 +85,15 @@ export default function WebsiteLists() {
           This account doesn't run the website.
         </div>
       ) : (
-        <Tabs defaultValue="wanted" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="headliner" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="headliner" className="min-h-[44px]">Headliner</TabsTrigger>
             <TabsTrigger value="wanted" className="min-h-[44px]">Most Wanted</TabsTrigger>
             <TabsTrigger value="shows" className="min-h-[44px]">Shows</TabsTrigger>
           </TabsList>
+          <TabsContent value="headliner">
+            <HeadlinerEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
+          </TabsContent>
           <TabsContent value="wanted">
             <WantedEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
           </TabsContent>

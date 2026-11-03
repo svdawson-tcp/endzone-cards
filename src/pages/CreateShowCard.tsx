@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -51,6 +51,8 @@ export default function CreateShowCard() {
   const { toast } = useToast();
   const { id } = useParams();
   const isEditMode = !!id;
+  const [searchParams] = useSearchParams();
+  const startInBin = !isEditMode && searchParams.get("bin") === "1";
 
   const [selectedLotId, setSelectedLotId] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -76,7 +78,11 @@ export default function CreateShowCard() {
   const [costBasis, setCostBasis] = useState("");
   const [askingPrice, setAskingPrice] = useState("");
   // Website (cssportscards.com "Shop the Case")
-  const [showOnWebsite, setShowOnWebsite] = useState(false);
+  const [showOnWebsite, setShowOnWebsite] = useState(startInBin);
+  // Bargain Bin: a value card ($5–$20) kept apart from the case. On the website it shows only in
+  // The Bargain Bin, never in Shop the Case, and never takes offers.
+  const [inBin, setInBin] = useState(startInBin);
+  const homeRoute = inBin ? "/bargain-bin" : "/show-cards";
   const [offerFloor, setOfferFloor] = useState(""); // blank = website default %
   const [sport, setSport] = useState("");
   const [team, setTeam] = useState("");
@@ -147,6 +153,7 @@ export default function CreateShowCard() {
       setCostBasis(existingCard.cost_basis ? existingCard.cost_basis.toString() : "");
       setAskingPrice(existingCard.asking_price ? existingCard.asking_price.toString() : "");
       setShowOnWebsite(!!existingCard.show_on_website);
+      setInBin(!!existingCard.in_bargain_bin);
       setOfferFloor(existingCard.offer_floor != null ? Number(existingCard.offer_floor).toFixed(2) : "");
       setSport(existingCard.sport || "");
       setTeam(existingCard.team || "");
@@ -171,7 +178,7 @@ export default function CreateShowCard() {
         description: "Show card not found",
         variant: "destructive",
       });
-      navigate("/show-cards");
+      navigate(homeRoute);
     }
   }, [isEditMode, loadingCard, existingCard, toast, navigate]);
 
@@ -207,7 +214,8 @@ export default function CreateShowCard() {
   // show_cards_website_ready rule in the database.
   const websiteBlocker = (() => {
     const price = parseFloat(askingPrice);
-    if (!(price >= 10)) return "Asking price must be $10 or more to list on the website.";
+    if (inBin && !(price >= 5)) return "Bargain Bin cards must be $5 or more to list on the website.";
+    if (!inBin && !(price >= 10)) return "Asking price must be $10 or more to list on the website.";
     if (!frontPreview) return "Add a front photo to list on the website.";
     return null;
   })();
@@ -215,7 +223,9 @@ export default function CreateShowCard() {
 
   // Make an Offer: the hidden floor at/above which website offers are accepted automatically.
   const { data: websiteSettings } = useWebsiteSettings();
-  const offerFloorError = validateOfferFloor(offerFloor, askingPrice);
+  const offerFloorError = inBin ? null : validateOfferFloor(offerFloor, askingPrice); // bin cards take no offers
+  const binPriceNote = inBin && parseFloat(askingPrice) > 20
+    ? "The Bargain Bin is for $5–$20 cards. At this price it may belong in the case." : null;
   const floorPct = websiteSettings?.offer_floor_pct ?? 0.85;
   const defaultFloor = effectiveOfferFloor(normalizeMoneyInput(askingPrice), null, floorPct);
   const heldOnline = isFuture(existingCard?.held_until);
@@ -598,7 +608,8 @@ export default function CreateShowCard() {
         team: team.trim() || null,
         // Never send "on" for a card that isn't ready; the database rejects it anyway.
         show_on_website: websiteOn && !!frontPhotoUrl && sport !== "" && team.trim() !== "",
-        offer_floor: offerFloor.trim() ? Number(normalizeMoneyInput(offerFloor)) : null,
+        offer_floor: !inBin && offerFloor.trim() ? Number(normalizeMoneyInput(offerFloor)) : null,
+        in_bargain_bin: inBin,
       };
 
       if (isEditMode) {
@@ -631,7 +642,7 @@ export default function CreateShowCard() {
         });
       }
 
-      navigate("/show-cards");
+      navigate(homeRoute);
     } catch (error: any) {
       console.error(`${isEditMode ? "Update" : "Create"} show card error:`, error);
       toast({
@@ -646,7 +657,7 @@ export default function CreateShowCard() {
   };
 
   const handleCancel = () => {
-    navigate("/show-cards");
+    navigate(homeRoute);
   };
 
   if (loadingLots || (isEditMode && loadingCard)) {
@@ -691,14 +702,16 @@ export default function CreateShowCard() {
     <PageContainer maxWidth="2xl">
       <div className="mb-6">
         {/* Page Title - Uses page-title class for white text on dark background */}
-        <h1 className="page-title mb-2">{isEditMode ? "EDIT SHOW CARD" : "ADD SHOW CARD"}</h1>
+        <h1 className="page-title mb-2">
+          {isEditMode ? (inBin ? "EDIT BIN CARD" : "EDIT SHOW CARD") : (inBin ? "ADD BIN CARD" : "ADD SHOW CARD")}
+        </h1>
         <p className="text-muted-foreground">
-          {isEditMode ? "Update card details" : "Add a premium card to your inventory"}
+          {isEditMode ? "Update card details" : inBin ? "Add a $5–$20 card to the Bargain Bin" : "Add a premium card to your inventory"}
         </p>
       </div>
 
       {/* Info Callout - only show in create mode */}
-      {!isEditMode && (
+      {!isEditMode && !inBin && (
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
           <Info className="h-5 w-5 text-blue-500" />
           <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">
@@ -1190,6 +1203,9 @@ export default function CreateShowCard() {
             {errors.askingPrice && (
               <p className="text-destructive text-sm mt-1">{errors.askingPrice}</p>
             )}
+            {binPriceNote && (
+              <p className="text-sm text-amber-300 mt-1" data-testid="bin-price-note">{binPriceNote}</p>
+            )}
           </div>
 
           {/* Website (cssportscards.com) */}
@@ -1199,9 +1215,25 @@ export default function CreateShowCard() {
               {heldOnline && <Badge variant="outline">On hold online</Badge>}
             </div>
             <div className="flex items-center justify-between gap-4 min-h-[44px]">
+              <label htmlFor="in-bargain-bin" className="flex-1">
+                <span className="font-semibold block">Bargain Bin card</span>
+                <span className="text-xs text-gray-600">
+                  $5–$20 value card. Kept out of Show Cards and Shop the Case; no offers.
+                </span>
+              </label>
+              <Switch
+                id="in-bargain-bin"
+                checked={inBin}
+                onCheckedChange={setInBin}
+                className="scale-125"
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4 min-h-[44px]">
               <label htmlFor="show-on-website" className="flex-1">
                 <span className="font-semibold block">Show on cssportscards.com</span>
-                <span className="text-xs text-gray-600">Appears in Shop the Case within a minute of saving</span>
+                <span className="text-xs text-gray-600">
+                  Appears in {inBin ? "The Bargain Bin" : "Shop the Case"} within a minute of saving
+                </span>
               </label>
               <Switch
                 id="show-on-website"
@@ -1211,7 +1243,7 @@ export default function CreateShowCard() {
                 className="scale-125"
               />
             </div>
-            <div>
+            {!inBin && <div>
               <label htmlFor="offer-floor" className="form-label">
                 Lowest offer to auto-accept ($)
               </label>
@@ -1232,7 +1264,7 @@ export default function CreateShowCard() {
                   {websiteSettings && !websiteSettings.offers_enabled && " Offers are switched off on the website right now."}
                 </p>
               )}
-            </div>
+            </div>}
             {websiteBlocker && (
               <p className="text-sm rounded-md border border-amber-400 bg-amber-50 text-amber-900 px-3 py-2">
                 {websiteBlocker}
@@ -1308,7 +1340,7 @@ export default function CreateShowCard() {
                   {uploadProgress || (isEditMode ? "Updating..." : "Creating...")}
                 </>
               ) : (
-                isEditMode ? "UPDATE SHOW CARD" : "ADD SHOW CARD"
+                isEditMode ? (inBin ? "UPDATE BIN CARD" : "UPDATE SHOW CARD") : (inBin ? "ADD BIN CARD" : "ADD SHOW CARD")
               )}
             </Button>
         </div>

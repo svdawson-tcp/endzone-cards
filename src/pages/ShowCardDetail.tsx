@@ -205,7 +205,7 @@ const ShowCardDetail = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/show-cards")}
+              onClick={() => navigate(card.in_bargain_bin ? "/bargain-bin" : "/show-cards")}
               className="min-h-[44px] min-w-[44px] text-white hover:text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-6 w-6" />
@@ -217,6 +217,9 @@ const ShowCardDetail = () => {
               <Badge variant={getStatusBadgeVariant(card.status)} className="mt-2">
                 {card.status}
               </Badge>
+              {card.in_bargain_bin && (
+                <Badge variant="outline" className="mt-2 ml-2">Bargain Bin</Badge>
+              )}
               {isFuture(card.held_until) && (
                 <Badge variant="outline" className="mt-2 ml-2">On hold online</Badge>
               )}

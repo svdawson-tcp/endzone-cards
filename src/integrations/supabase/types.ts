@@ -499,6 +499,7 @@ export type Database = {
           photo_front_url: string | null
           player_name: string
           show_on_website: boolean
+          in_bargain_bin: boolean
           sport: string | null
           status: string
           team: string | null
@@ -523,6 +524,7 @@ export type Database = {
           photo_front_url?: string | null
           player_name: string
           show_on_website?: boolean
+          in_bargain_bin?: boolean
           sport?: string | null
           status?: string
           team?: string | null
@@ -547,6 +549,7 @@ export type Database = {
           photo_front_url?: string | null
           player_name?: string
           show_on_website?: boolean
+          in_bargain_bin?: boolean
           sport?: string | null
           status?: string
           team?: string | null
@@ -1053,6 +1056,8 @@ export type Database = {
       }
       website_settings: {
         Row: {
+          headliner_card_id: string | null
+          headliner_note: string | null
           hold_minutes: number
           id: boolean
           offer_floor_pct: number
@@ -1062,6 +1067,8 @@ export type Database = {
           shipping_flat: number
         }
         Insert: {
+          headliner_card_id?: string | null
+          headliner_note?: string | null
           hold_minutes?: number
           id?: boolean
           offer_floor_pct?: number
@@ -1071,6 +1078,8 @@ export type Database = {
           shipping_flat?: number
         }
         Update: {
+          headliner_card_id?: string | null
+          headliner_note?: string | null
           hold_minutes?: number
           id?: boolean
           offer_floor_pct?: number

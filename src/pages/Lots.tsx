@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { formatBusinessDate } from "@/lib/dateUtils";
+import { formatBusinessDate, todayLocal } from "@/lib/dateUtils";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
-import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit } from "lucide-react";
+import { Package, Calendar, DollarSign, TrendingUp, TrendingDown, Plus, Trash2, CheckCircle2, Edit, Loader2, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -67,6 +68,10 @@ export default function Lots() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [lotToDelete, setLotToDelete] = useState<any>(null);
   const { getEffectiveUserId, isViewingAsMentor } = useMentorAccess();
+  // Bulk close: pick several active lots and close them in one go.
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
   const { data: lots = [], isLoading: lotsLoading } = useQuery({
     queryKey: ["lots"],
@@ -96,6 +101,63 @@ export default function Lots() {
       );
 
       return lotsWithRevenue;
+    },
+  });
+
+  // How many cards each lot still has for sale. A lot can't close while it has any (same rule as the lot page).
+  const { data: availableByLot = {} } = useQuery({
+    queryKey: ["lots-available-cards"],
+    queryFn: async () => {
+      const userId = await getEffectiveUserId();
+      const { data, error } = await supabase
+        .from("show_cards")
+        .select("lot_id")
+        .eq("user_id", userId)
+        .eq("status", "available");
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      for (const r of data || []) if (r.lot_id) counts[r.lot_id] = (counts[r.lot_id] || 0) + 1;
+      return counts;
+    },
+  });
+
+  const bulkCloseMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      // Re-check right before closing, in case a card was added to one of these lots meanwhile.
+      const { data: still, error: checkError } = await supabase
+        .from("show_cards")
+        .select("lot_id")
+        .in("lot_id", ids)
+        .eq("status", "available");
+      if (checkError) throw checkError;
+      const blocked = new Set((still || []).map((r) => r.lot_id));
+      const closable = ids.filter((id) => !blocked.has(id));
+      if (closable.length > 0) {
+        const { error } = await supabase
+          .from("lots")
+          .update({ status: "closed", closure_date: todayLocal() })
+          .in("id", closable)
+          .eq("status", "active");
+        if (error) throw error;
+      }
+      return { closed: closable.length, skipped: ids.length - closable.length };
+    },
+    onSuccess: ({ closed, skipped }) => {
+      queryClient.invalidateQueries({ queryKey: ["lots"] });
+      queryClient.invalidateQueries({ queryKey: ["lots-available-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["active-lots-for-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["active-lots"] });
+      toast({
+        title: `${closed} ${closed === 1 ? "lot" : "lots"} closed`,
+        description: skipped > 0 ? `${skipped} skipped because they still have cards for sale.` : undefined,
+      });
+      setBulkDialogOpen(false);
+      setSelecting(false);
+      setSelected(new Set());
+    },
+    onError: (error: any) => {
+      console.error("Bulk close error:", error);
+      toast({ title: "Lots not closed", description: "Please try again.", variant: "destructive" });
     },
   });
 
@@ -139,6 +201,19 @@ export default function Lots() {
     return lot.status === filterTab;
   });
 
+  const activeLots = useMemo(() => lots.filter((l) => l.status === "active"), [lots]);
+  const closableIds = useMemo(
+    () => activeLots.filter((l) => !availableByLot[l.id]).map((l) => l.id),
+    [activeLots, availableByLot]
+  );
+  const toggleSelected = (lotId: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(lotId)) next.delete(lotId); else next.add(lotId);
+      return next;
+    });
+  const stopSelecting = () => { setSelecting(false); setSelected(new Set()); };
+
   const counts = {
     all: lots.length,
     active: lots.filter((l) => l.status === "active").length,
@@ -178,14 +253,26 @@ export default function Lots() {
             <h1 className="page-title text-[hsl(var(--text-primary))] mb-2">LOTS</h1>
             <p className="text-muted-foreground">Track your inventory purchases</p>
           </div>
-          <Button
-            onClick={() => navigate("/lots/new")}
-            className="bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase self-start md:self-auto"
-            disabled={isViewingAsMentor}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            CREATE LOT
-          </Button>
+          <div className="flex gap-2 self-start md:self-auto">
+            {!isViewingAsMentor && counts.active > 0 && !selecting && (
+              <Button
+                variant="outline"
+                onClick={() => { setFilterTab("active"); setSelecting(true); }}
+                className="min-h-[44px] font-semibold uppercase"
+              >
+                <CheckCircle2 className="mr-2 h-4 w-4" />
+                CLOSE LOTS
+              </Button>
+            )}
+            <Button
+              onClick={() => navigate("/lots/new")}
+              className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
+              disabled={isViewingAsMentor}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              CREATE LOT
+            </Button>
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2">
@@ -193,7 +280,7 @@ export default function Lots() {
             <Button
               key={tab}
               variant={filterTab === tab ? "default" : "outline"}
-              onClick={() => setFilterTab(tab as FilterTab)}
+              onClick={() => { setFilterTab(tab as FilterTab); if (tab !== "active") stopSelecting(); }}
               className="flex-shrink-0 capitalize"
             >
               {tab === "all" ? "All" : tab}
@@ -204,6 +291,38 @@ export default function Lots() {
           ))}
         </div>
       </div>
+
+      {selecting && (
+        <div
+          className="sticky top-0 z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-border bg-card px-4 py-3 shadow-md"
+          data-testid="bulk-close-bar"
+        >
+          <span className="mr-auto font-semibold text-foreground">
+            {selected.size} selected
+            <span className="block text-xs font-normal text-muted-foreground">
+              {closableIds.length} of {activeLots.length} active lots can close
+            </span>
+          </span>
+          <Button
+            variant="outline"
+            className="min-h-[44px]"
+            onClick={() => setSelected(selected.size === closableIds.length ? new Set() : new Set(closableIds))}
+            disabled={closableIds.length === 0}
+          >
+            {selected.size === closableIds.length && closableIds.length > 0 ? "Clear" : `Select all closable (${closableIds.length})`}
+          </Button>
+          <Button
+            className="min-h-[44px] bg-[#041E42] hover:bg-[#0A2E63] text-white font-semibold uppercase"
+            disabled={selected.size === 0}
+            onClick={() => setBulkDialogOpen(true)}
+          >
+            CLOSE {selected.size || ""} {selected.size === 1 ? "LOT" : "LOTS"}
+          </Button>
+          <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]" onClick={stopSelecting} aria-label="Stop selecting">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
 
       {lotsLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -223,12 +342,36 @@ export default function Lots() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredLots.map((lot) => (
+          {filteredLots.map((lot) => {
+            const forSale = availableByLot[lot.id] || 0;
+            const pickable = selecting && lot.status === "active" && forSale === 0;
+            const isPicked = selected.has(lot.id);
+            return (
             <div
               key={lot.id}
-              className="bg-card rounded-lg shadow-card-shadow p-6 cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => navigate(`/lots/${lot.id}`)}
+              className={`bg-card rounded-lg shadow-card-shadow p-6 cursor-pointer hover:shadow-lg transition-shadow ${
+                isPicked ? "ring-4 ring-[hsl(var(--accent))]" : ""
+              } ${selecting && !pickable ? "opacity-60" : ""}`}
+              onClick={() => (selecting ? pickable && toggleSelected(lot.id) : navigate(`/lots/${lot.id}`))}
+              data-testid={`lot-card-${lot.id}`}
             >
+              {selecting && (
+                <div className="mb-3 flex items-center gap-3 min-h-[44px]">
+                  <Checkbox
+                    checked={isPicked}
+                    disabled={!pickable}
+                    onClick={(e) => e.stopPropagation()}
+                    onCheckedChange={() => pickable && toggleSelected(lot.id)}
+                    className="h-6 w-6"
+                    aria-label={`Select ${lot.source}`}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {pickable
+                      ? isPicked ? "Will be closed" : "Tap to select"
+                      : `Can't close: ${forSale} ${forSale === 1 ? "card" : "cards"} still for sale`}
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -272,7 +415,7 @@ export default function Lots() {
                 </div>
               </div>
 
-              {!isViewingAsMentor && (
+              {!isViewingAsMentor && !selecting && (
                 <div className="flex gap-2 mt-4 pt-4 border-t border-border" onClick={(e) => e.stopPropagation()}>
                   <Button variant="outline" size="sm" onClick={() => navigate(`/lots/${lot.id}/edit`)} className="flex-1">
                     <Edit className="h-4 w-4 mr-1" />
@@ -285,9 +428,35 @@ export default function Lots() {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      <AlertDialog open={bulkDialogOpen} onOpenChange={(o) => !bulkCloseMutation.isPending && setBulkDialogOpen(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">
+              Close {selected.size} {selected.size === 1 ? "lot" : "lots"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              They move to the Closed tab with today's date. Nothing is deleted, and you can reopen any lot
+              from its page.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-[44px]" disabled={bulkCloseMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="min-h-[44px]"
+              disabled={bulkCloseMutation.isPending}
+              onClick={(e) => { e.preventDefault(); bulkCloseMutation.mutate(Array.from(selected)); }}
+            >
+              {bulkCloseMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Close {selected.size === 1 ? "lot" : "lots"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
