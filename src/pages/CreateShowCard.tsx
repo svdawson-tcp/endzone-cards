@@ -30,6 +30,14 @@ import { effectiveOfferFloor, isFuture, pctToPercentText, validateOfferFloor } f
 
 // Raw-card conditions Colton picks by hand. A graded card's condition is its grade, e.g. "PSA 10".
 const RAW_CONDITIONS = ["Mint", "Near Mint", "Excellent", "Good", "Fair", "Poor"];
+const GRADERS = ["PSA", "BGS", "SGC", "CGC", "TAG"];
+const GRADED_CHOICE = "__graded";
+/** "PSA 10" -> ["PSA", "10"]; anything not starting with a grading company -> null. */
+function splitGrade(condition: string): [string, string] | null {
+  const m = condition.trim().match(/^([A-Za-z]{2,4})\s+(.+)$/);
+  if (!m || RAW_CONDITIONS.includes(condition)) return null;
+  return [m[1].toUpperCase(), m[2]];
+}
 
 // Fields the card reader can fill. Lot, cost basis and asking price are never filled for you.
 type ReadKey =
@@ -51,6 +59,15 @@ export default function CreateShowCard() {
   const [set, setSet] = useState("");
   const [cardNumber, setCardNumber] = useState("");
   const [condition, setCondition] = useState("");
+  const [gradedMode, setGradedMode] = useState(false);
+  const [gradeCompany, setGradeCompany] = useState("PSA");
+  const [gradeValue, setGradeValue] = useState("");
+  // Keep the graded fields in step when a condition arrives from the database or the card reader.
+  useEffect(() => {
+    const g = splitGrade(condition);
+    if (g) { setGradedMode(true); setGradeCompany(g[0]); setGradeValue(g[1]); }
+    else if (RAW_CONDITIONS.includes(condition)) setGradedMode(false);
+  }, [condition]);
   const [parallel, setParallel] = useState("");
   const [serialNumber, setSerialNumber] = useState("");
   const [certNumber, setCertNumber] = useState("");
@@ -456,6 +473,7 @@ export default function CreateShowCard() {
       askingPrice !== "" &&
       parseFloat(askingPrice) > 0 &&
       !offerFloorError &&
+      (!gradedMode || gradeValue !== "") &&
       (!websiteOn || (sport !== "" && team.trim() !== ""))
     );
   };
@@ -557,10 +575,10 @@ export default function CreateShowCard() {
 
       // Build card_details JSONB
       const cardDetails = {
-        brand: brand || null,
-        set: set || null,
-        card_number: cardNumber || null,
-        condition: condition || null,
+        brand: brand.trim() || null,
+        set: set.trim() || null,
+        card_number: cardNumber.trim() || null,
+        condition: condition.trim() || null,
         parallel: parallel.trim() || null,
         serial_number: serialNumber.trim() || null,
         cert_number: certNumber.trim() || null,
@@ -1046,27 +1064,75 @@ export default function CreateShowCard() {
                 <label htmlFor="condition" className="form-label text-sm">
                   Condition<MarkBadge k="condition" />
                 </label>
-                {/* Keyed so the menu rebuilds when a graded value like "PSA 10" arrives with its own item. */}
+                {/* Raw cards pick a word; a graded card (slab) picks "Graded" and enters company + grade,
+                    saved as one value like "PSA 10" — that's what the website shows as the grade badge. */}
                 <Select
-                  key={condition && !RAW_CONDITIONS.includes(condition) ? `graded:${condition}` : "raw"}
-                  value={condition}
-                  onValueChange={(v) => { setCondition(v); markEdited("condition"); }}
+                  value={gradedMode ? GRADED_CHOICE : condition}
+                  onValueChange={(v) => {
+                    if (v === GRADED_CHOICE) {
+                      setGradedMode(true);
+                      setCondition(`${gradeCompany} ${gradeValue}`.trim());
+                    } else {
+                      setGradedMode(false);
+                      setCondition(v);
+                    }
+                    markEdited("condition");
+                  }}
                 >
                   <SelectTrigger id="condition" className={`mt-1 min-h-[44px] ${markInputClass("condition")}`}>
                     <SelectValue placeholder="Select condition" />
                   </SelectTrigger>
                   <SelectContent>
-                    {condition && !RAW_CONDITIONS.includes(condition) && (
-                      <SelectItem value={condition}>{condition} (graded)</SelectItem>
-                    )}
+                    <SelectItem value={GRADED_CHOICE}>Graded (PSA, BGS, SGC…)</SelectItem>
                     {RAW_CONDITIONS.map((c) => (
                       <SelectItem key={c} value={c}>{c}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {gradedMode && (
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <div>
+                      <label htmlFor="grade-company" className="text-xs text-muted-foreground">Grading company</label>
+                      <Select
+                        value={gradeCompany}
+                        onValueChange={(v) => { setGradeCompany(v); setCondition(`${v} ${gradeValue}`.trim()); markEdited("condition"); }}
+                      >
+                        <SelectTrigger id="grade-company" className="mt-1 min-h-[44px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(GRADERS.includes(gradeCompany) ? GRADERS : [gradeCompany, ...GRADERS]).map((g) => (
+                            <SelectItem key={g} value={g}>{g}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label htmlFor="grade-value" className="text-xs text-muted-foreground">Grade</label>
+                      <Input
+                        id="grade-value"
+                        inputMode="decimal"
+                        placeholder="10"
+                        value={gradeValue}
+                        maxLength={8}
+                        onChange={(e) => {
+                          const g = e.target.value.replace(/[^0-9.]/g, "");
+                          setGradeValue(g);
+                          setCondition(`${gradeCompany} ${g}`.trim());
+                          markEdited("condition");
+                        }}
+                        className="mt-1 min-h-[44px]"
+                        aria-invalid={gradeValue === ""}
+                      />
+                    </div>
+                    {gradeValue === "" && (
+                      <p className="col-span-2 text-xs text-destructive">Enter the grade on the slab, like 10 or 9.5.</p>
+                    )}
+                  </div>
+                )}
                 <MarkNote k="condition" />
               </div>
-              {(certNumber || (condition && !RAW_CONDITIONS.includes(condition))) && (
+              {(certNumber || gradedMode) && (
                 <div>
                   <label htmlFor="cert-number" className="form-label text-sm">
                     Cert #<MarkBadge k="certNumber" />
