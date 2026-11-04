@@ -42,7 +42,7 @@ const BottomTabBar = () => {
   const menuItems = [
     { icon: Package, label: "Lots", route: "/lots", description: "Manage inventory lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
-    { icon: Tag, label: "Bargain Bin", route: "/bargain-bin", description: "$5–$20 value cards" },
+    { icon: Tag, label: "Bargain Bin", route: "/bargain-bin", description: "$2–$20 value cards" },
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
     { icon: HandCoins, label: "Offers", route: "/offers", description: "Website offers to accept, counter or decline", badge: shopCounts?.pendingOffers || 0 },
     { icon: ShoppingBag, label: "Web Orders", route: "/web-orders", description: "Website orders to ship", badge: shopCounts?.ordersToShip || 0 },

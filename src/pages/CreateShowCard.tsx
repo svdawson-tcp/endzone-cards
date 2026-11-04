@@ -79,7 +79,7 @@ export default function CreateShowCard() {
   const [askingPrice, setAskingPrice] = useState("");
   // Website (cssportscards.com "Shop the Case")
   const [showOnWebsite, setShowOnWebsite] = useState(startInBin);
-  // Bargain Bin: a value card ($5–$20) kept apart from the case. On the website it shows only in
+  // Bargain Bin: a value card ($2–$20) kept apart from the case. On the website it shows only in
   // The Bargain Bin, never in Shop the Case, and never takes offers.
   const [inBin, setInBin] = useState(startInBin);
   const homeRoute = inBin ? "/bargain-bin" : "/show-cards";
@@ -214,7 +214,7 @@ export default function CreateShowCard() {
   // show_cards_website_ready rule in the database.
   const websiteBlocker = (() => {
     const price = parseFloat(askingPrice);
-    if (inBin && !(price >= 5)) return "Bargain Bin cards must be $5 or more to list on the website.";
+    if (inBin && !(price >= 2)) return "Bargain Bin cards must be $2 or more to list on the website.";
     if (!inBin && !(price >= 10)) return "Asking price must be $10 or more to list on the website.";
     if (!frontPreview) return "Add a front photo to list on the website.";
     return null;
@@ -225,7 +225,7 @@ export default function CreateShowCard() {
   const { data: websiteSettings } = useWebsiteSettings();
   const offerFloorError = inBin ? null : validateOfferFloor(offerFloor, askingPrice); // bin cards take no offers
   const binPriceNote = inBin && parseFloat(askingPrice) > 20
-    ? "The Bargain Bin is for $5–$20 cards. At this price it may belong in the case." : null;
+    ? "The Bargain Bin is for $2–$20 cards. At this price it may belong in the case." : null;
   const floorPct = websiteSettings?.offer_floor_pct ?? 0.85;
   const defaultFloor = effectiveOfferFloor(normalizeMoneyInput(askingPrice), null, floorPct);
   const heldOnline = isFuture(existingCard?.held_until);
@@ -706,7 +706,7 @@ export default function CreateShowCard() {
           {isEditMode ? (inBin ? "EDIT BIN CARD" : "EDIT SHOW CARD") : (inBin ? "ADD BIN CARD" : "ADD SHOW CARD")}
         </h1>
         <p className="text-muted-foreground">
-          {isEditMode ? "Update card details" : inBin ? "Add a $5–$20 card to the Bargain Bin" : "Add a premium card to your inventory"}
+          {isEditMode ? "Update card details" : inBin ? "Add a $2–$20 card to the Bargain Bin" : "Add a premium card to your inventory"}
         </p>
       </div>
 
@@ -1218,7 +1218,7 @@ export default function CreateShowCard() {
               <label htmlFor="in-bargain-bin" className="flex-1">
                 <span className="font-semibold block">Bargain Bin card</span>
                 <span className="text-xs text-gray-600">
-                  $5–$20 value card. Kept out of Show Cards and Shop the Case; no offers.
+                  $2–$20 value card. Kept out of Show Cards and Shop the Case; no offers.
                 </span>
               </label>
               <Switch

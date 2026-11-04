@@ -20,7 +20,7 @@ import { ReleaseHoldButton } from "@/components/showCards/ReleaseHoldButton";
 import { formatBusinessDate } from "@/lib/dateUtils";
 import { isFuture } from "@/lib/webShop";
 
-/** The Show Cards list. With `bin`, the same list for Bargain Bin cards ($5–$20 value cards kept apart from the case). */
+/** The Show Cards list. With `bin`, the same list for Bargain Bin cards ($2–$20 value cards kept apart from the case). */
 const ShowCards = ({ bin = false }: { bin?: boolean }) => {
   const navigate = useNavigate();
   const addRoute = bin ? "/show-cards/new?bin=1" : "/show-cards/new";
@@ -189,7 +189,7 @@ const ShowCards = ({ bin = false }: { bin?: boolean }) => {
                 <h3 className="text-h3 mb-2">{bin ? "The Bargain Bin is empty" : "No Show Cards Yet"}</h3>
                 <p className="text-[hsl(var(--text-body))] mb-4">
                   {bin
-                    ? "Add $5–$20 value cards here. They sell on the website in The Bargain Bin, not in Shop the Case."
+                    ? "Add $2–$20 value cards here. They sell on the website in The Bargain Bin, not in Shop the Case."
                     : "Add your first premium card to start tracking inventory"}
                 </p>
                 <Button onClick={() => navigate(addRoute)}>{bin ? "ADD BIN CARD" : "ADD SHOW CARD"}</Button>
