@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Loader2, PackageCheck, Truck } from "lucide-react";
+import { AlertTriangle, Layers, Loader2, PackageCheck, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { centsToMoney, formatMoney, moneyToCents } from "@/lib/numericUtils";
 import { formatMoment, formatShippingAddress } from "@/lib/webShop";
 import type { Json } from "@/integrations/supabase/types";
 import { cn } from "@/lib/utils";
+import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
+import { StackLinks } from "@/components/website/StackLinks";
 
 const PAGE_SIZE = 50;
 
@@ -34,6 +36,18 @@ type OrderRow = {
   problem_note: string | null;
   hold_expires_at: string;
   created_at: string;
+  /** This order shipped free because it came through a combine link: which order or stack it goes with. */
+  ship_link: {
+    kind: string;
+    customer_name: string | null;
+    parent: { order_number: string; shipping_address: Json | null } | null;
+  } | null;
+  /** This order's own "add to my order" link: the window, and orders that came through it. */
+  my_link: {
+    expires_at: string | null;
+    closed_at: string | null;
+    combined: { order_number: string; status: string }[];
+  } | null;
   web_order_items: {
     id: string;
     price: number;
@@ -49,6 +63,15 @@ const FILTERS = [
   { value: "unpaid", label: "Unpaid / expired" },
 ] as const;
 type Filter = (typeof FILTERS)[number]["value"];
+
+/** Same street + ZIP? Used to warn when a combined order goes to a different address. */
+function sameAddress(a: Json | null | undefined, b: Json | null | undefined): boolean {
+  const key = (x: Json | null | undefined) => {
+    const o = (x && typeof x === "object" && !Array.isArray(x) ? x : {}) as Record<string, unknown>;
+    return `${o.line1 ?? ""}|${o.postal_code ?? ""}`.toLowerCase().replace(/[^a-z0-9|]/g, "");
+  };
+  return key(a) === key(b);
+}
 
 /** What Colton keeps: total charged minus the Stripe fee. Display only — the database writes the sales. */
 function netAmount(order: OrderRow): string | null {
@@ -81,29 +104,38 @@ export default function WebOrders() {
     queryKey: ["webOrders", viewingUserId, filter, orderParam, pages],
     queryFn: async () => {
       const userId = await getEffectiveUserId();
-      let query = supabase
-        .from("web_orders")
-        .select(
-          `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
+      const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
-           web_order_items (id, price, description, show_cards (photo_front_url))`,
-        )
-        .eq("user_id", userId);
+           web_order_items (id, price, description, show_cards (photo_front_url))`;
+      const LINKS = `,
+           ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
+             parent:web_orders!web_ship_links_order_id_fkey (order_number, shipping_address)),
+           my_link:web_ship_links!web_ship_links_order_id_fkey (expires_at, closed_at,
+             combined:web_orders!web_orders_ship_link_id_fkey (order_number, status))`;
 
-      if (orderParam) {
-        query = query.eq("order_number", orderParam);
-      } else if (filter === "unpaid") {
-        query = query.neq("status", "paid");
-      } else {
-        query = query.eq("status", "paid");
-        if (filter === "to_ship") query = query.is("shipped_at", null);
-        if (filter === "shipped") query = query.not("shipped_at", "is", null);
+      const run = (select: string) => {
+        let query = supabase.from("web_orders").select(select).eq("user_id", userId);
+        if (orderParam) {
+          query = query.eq("order_number", orderParam);
+        } else if (filter === "unpaid") {
+          query = query.neq("status", "paid");
+        } else {
+          query = query.eq("status", "paid");
+          if (filter === "to_ship") query = query.is("shipped_at", null);
+          if (filter === "shipped") query = query.not("shipped_at", "is", null);
+        }
+        return query
+          .order("paid_at", { ascending: false, nullsFirst: false })
+          .order("created_at", { ascending: false })
+          .range(0, pages * PAGE_SIZE - 1);
+      };
+
+      let { data, error } = await run(BASE + LINKS);
+      if (error) {
+        // Combined-shipping details are extra: never let them hide the orders themselves.
+        console.error("Web orders with ship links failed; loading without them", error);
+        ({ data, error } = await run(BASE));
       }
-
-      const { data, error } = await query
-        .order("paid_at", { ascending: false, nullsFirst: false })
-        .order("created_at", { ascending: false })
-        .range(0, pages * PAGE_SIZE - 1);
       if (error) throw error;
       return (data || []) as unknown as OrderRow[];
     },
@@ -154,6 +186,7 @@ export default function WebOrders() {
   };
 
   const hasMore = (orders?.length || 0) >= pages * PAGE_SIZE;
+  const { data: settings } = useWebsiteSettings();
 
   return (
     <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6 pb-32 md:pb-8">
@@ -163,6 +196,8 @@ export default function WebOrders() {
           Paid orders from cssportscards.com. Sales are recorded automatically when payment clears.
         </p>
       </div>
+
+      {settings && <StackLinks ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />}
 
       <div className="grid grid-cols-2 gap-2 md:flex" role="tablist" aria-label="Order filter">
         {FILTERS.map((f) => (
@@ -208,6 +243,14 @@ export default function WebOrders() {
             const net = netAmount(order);
             const editing = shippingFor === order.id;
             const saving = savingId === order.id;
+            const link = order.ship_link;
+            const shipsWith = link
+              ? link.kind === "stack" ? `${link.customer_name}'s stack` : link.parent ? `order ${link.parent.order_number}` : null
+              : null;
+            const otherAddress = !!link?.parent && !sameAddress(link.parent.shipping_address, order.shipping_address);
+            const windowOpen = paid && !order.shipped_at && !!order.my_link?.expires_at && !order.my_link.closed_at
+              && new Date(order.my_link.expires_at) > new Date();
+            const together = (order.my_link?.combined || []).filter((o) => o.status === "paid").map((o) => o.order_number);
 
             return (
               <div key={order.id} className="night-game-card space-y-4 p-4 md:p-6" data-testid="web-order">
@@ -231,6 +274,29 @@ export default function WebOrders() {
                     </Badge>
                   )}
                 </div>
+
+                {(shipsWith || windowOpen || together.length > 0) && (
+                  <div className="space-y-1 rounded-md border-2 border-[hsl(var(--accent))] px-3 py-2 text-sm text-foreground" data-testid="ships-with">
+                    {shipsWith && (
+                      <p className="flex items-center gap-2 font-semibold">
+                        <Layers className="h-4 w-4 shrink-0" />
+                        {link?.kind === "stack" ? `Add to ${shipsWith}. No shipping charged.` : `Ship with ${shipsWith}. No shipping charged.`}
+                      </p>
+                    )}
+                    {otherAddress && (
+                      <p className="font-semibold text-destructive">
+                        The address is different from {shipsWith}. Check with the buyer before packing them together.
+                      </p>
+                    )}
+                    {together.length > 0 && <p>Also in this package: {together.join(", ")}</p>}
+                    {windowOpen && (
+                      <p className="text-muted-foreground">
+                        The buyer can add more with free shipping until {formatMoment(order.my_link!.expires_at, "EEE MMM d, h:mm a")}
+                        {" "}or until you mark this shipped.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {order.problem_note && (
                   <div
@@ -324,6 +390,11 @@ export default function WebOrders() {
                     )}
                     {!isViewingAsMentor && editing && (
                       <div className="space-y-2">
+                        {windowOpen && !order.shipped_at && (
+                          <p className="text-sm text-muted-foreground">
+                            Marking this shipped ends the buyer's free-shipping window for adding more cards.
+                          </p>
+                        )}
                         <label htmlFor={`tracking-${order.id}`} className="form-label">
                           Tracking number (optional)
                         </label>

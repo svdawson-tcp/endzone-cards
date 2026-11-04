@@ -982,6 +982,7 @@ export type Database = {
           problem_note: string | null
           shipped_at: string | null
           shipping: number
+          ship_link_id: string | null
           shipping_address: Json | null
           source: string
           status: string
@@ -1007,6 +1008,7 @@ export type Database = {
           problem_note?: string | null
           shipped_at?: string | null
           shipping: number
+          ship_link_id?: string | null
           shipping_address?: Json | null
           source?: string
           status?: string
@@ -1032,6 +1034,7 @@ export type Database = {
           problem_note?: string | null
           shipped_at?: string | null
           shipping?: number
+          ship_link_id?: string | null
           shipping_address?: Json | null
           source?: string
           status?: string
@@ -1050,6 +1053,56 @@ export type Database = {
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "web_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      web_ship_links: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          expires_at: string | null
+          id: string
+          kind: string
+          note: string | null
+          order_id: string | null
+          token: string
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          kind: string
+          note?: string | null
+          order_id?: string | null
+          token: string
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          expires_at?: string | null
+          id?: string
+          kind?: string
+          note?: string | null
+          order_id?: string | null
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_ship_links_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "web_orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1095,6 +1148,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      web_close_stack_link: {
+        Args: { p_link_id: string; p_reopen?: boolean }
+        Returns: undefined
+      }
+      web_create_stack_link: {
+        Args: { p_email?: string; p_name: string; p_note?: string }
+        Returns: {
+            closed_at: string | null
+            created_at: string
+            customer_email: string | null
+            customer_name: string | null
+            expires_at: string | null
+            id: string
+            kind: string
+            note: string | null
+            order_id: string | null
+            token: string
+            user_id: string
+        }
+      }
       complete_money_setup: {
         Args: { p: Json }
         Returns: Json

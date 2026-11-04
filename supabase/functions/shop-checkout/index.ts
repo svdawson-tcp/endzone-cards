@@ -1,6 +1,6 @@
 // shop-checkout — cart checkout from cssportscards.com/cart.
 // Holds the cards (all or nothing), prices them from EndZone, and returns a Stripe Checkout URL.
-import { adminClient, dbError, fail, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
+import { adminClient, dbError, fail, isToken, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 
 const CART_HOLD_MINUTES = 35; // Stripe session lasts 31–33 min; the hold outlasts it
@@ -61,8 +61,26 @@ Deno.serve(async (req) => {
     return fail(req, 500, "server_error", "Checkout hit a snag. Please try again.");
   }
 
+  // Combined shipping: a buyer who came through their "add to your order" link (or a stack link from Colton)
+  // ships free. The link is checked here on the server; the cart only shows what to expect.
+  let current = order;
+  let shipLabel: string | undefined;
+  if (isToken(b?.ship_token)) {
+    const { data: applied, error: linkErr } = await admin.rpc("web_apply_ship_link", { p_order_id: order.id, p_token: b!.ship_token });
+    if (linkErr) console.error("web_apply_ship_link failed (charging normal shipping)", linkErr);
+    else if (applied?.applied) {
+      const { data: fresh } = await admin.from("web_orders").select("*").eq("id", order.id).single();
+      if (fresh) current = fresh;
+      shipLabel = applied.kind === "stack"
+        ? "Free shipping: added to your open stack"
+        : `Free shipping: ships with order ${applied.order_number}`;
+    }
+  }
+
   try {
-    const url = await createCheckoutSession(stripe, admin, order, { site: siteFor(req), cancelUrl: `${siteFor(req)}/cart?canceled=1&o={ORDER_ID}` });
+    const url = await createCheckoutSession(stripe, admin, current, {
+      site: siteFor(req), cancelUrl: `${siteFor(req)}/cart?canceled=1&o={ORDER_ID}`, shipLabel,
+    });
     return json(req, 200, { url });
   } catch (e) {
     console.error("Stripe session failed", e);

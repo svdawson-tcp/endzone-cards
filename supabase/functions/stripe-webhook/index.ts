@@ -5,7 +5,7 @@
 // ignore events that aren't ours, never fail the webhook over email, send order emails exactly once.
 import type Stripe from "npm:stripe@18.5.0";
 import {
-  adminClient, button, COLTON, ENDZONE, esc, layout, money, pause, sendEmail,
+  adminClient, button, COLTON, ENDZONE, esc, layout, money, pause, sendEmail, SITE,
 } from "../_shop/shared.ts";
 import { stripeClient } from "../_shop/stripe.ts";
 
@@ -165,7 +165,41 @@ async function sendOrderEmailsOnce(admin: any, orderId: string): Promise<boolean
     const rows = (items ?? []).map((it: { price: number; description: string; show_cards: { photo_front_url: string | null } | null }) =>
       `<tr><td style="padding:6px 10px 6px 0">${it.show_cards?.photo_front_url ? `<img src="${esc(it.show_cards.photo_front_url)}" width="48" style="border-radius:4px">` : ""}</td>
 <td style="padding:6px 12px 6px 0">${esc(it.description)}</td><td style="padding:6px 0;text-align:right">${money(it.price)}</td></tr>`).join("");
-    const totals = `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping</td><td style="text-align:right;color:#555">${money(o.shipping)}</td></tr>
+    // Combined shipping: which order/stack this one ships with, and the link to offer the buyer.
+    let shipsWith: string | null = null;
+    let otherAddress = false;
+    if (o.ship_link_id) {
+      const { data: sl } = await admin.from("web_ship_links").select("kind, customer_name, order_id").eq("id", o.ship_link_id).maybeSingle();
+      if (sl?.kind === "stack") shipsWith = `${sl.customer_name}'s open stack`;
+      else if (sl?.order_id) {
+        const { data: first } = await admin.from("web_orders").select("order_number, shipping_address").eq("id", sl.order_id).maybeSingle();
+        shipsWith = first?.order_number ? `order ${first.order_number}` : null;
+        const key = (x: Record<string, string> | null) => x ? `${x.line1 ?? ""}|${x.postal_code ?? ""}`.toLowerCase().replace(/[^a-z0-9|]/g, "") : "";
+        otherAddress = !!first?.shipping_address && key(first.shipping_address) !== key(o.shipping_address);
+      }
+    }
+    let link: { token: string; kind: string; expires_at: string | null } | null = null;
+    try {
+      const { data } = await admin.rpc("web_order_ship_link", { p_order_id: o.id });
+      if (data?.token) link = data;
+    } catch (e) {
+      console.error("Could not make the add-to-your-order link (email goes without it)", e);
+    }
+    const until = link?.expires_at
+      ? new Date(link.expires_at).toLocaleString("en-US", {
+          timeZone: "America/New_York", weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit",
+        }) + " ET"
+      : null;
+    const addMore = !link ? "" : link.kind === "stack"
+      ? `<div style="margin:18px 0;padding:14px;border:2px solid #1FA39A;border-radius:8px">
+<p style="margin:0 0 8px"><strong>This order was added to your open stack.</strong> Keep adding cards with free shipping. Use this link any time until your stack ships.</p>
+${button(`${SITE}/shop?ship=${link.token}`, "SHOP MORE, SHIP FREE", "#1FA39A")}</div>`
+      : `<div style="margin:18px 0;padding:14px;border:2px solid #1FA39A;border-radius:8px">
+<p style="margin:0 0 8px"><strong>Want to add more cards?</strong> Shop again before <strong>${esc(until)}</strong> and shipping is free. Everything ships together in one package.</p>
+${button(`${SITE}/shop?ship=${link.token}`, "ADD TO MY ORDER, SHIP FREE", "#1FA39A")}
+<p style="margin:8px 0 0;font-size:13px;color:#555">Use this button to shop so we know it's you.</p></div>`;
+
+    const totals = `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping${shipsWith ? ` (ships with ${esc(shipsWith)})` : ""}</td><td style="text-align:right;color:#555">${money(o.shipping)}</td></tr>
 <tr><td></td><td style="padding:6px 12px 0 0"><strong>Total paid</strong></td><td style="text-align:right"><strong>${money(o.total)}</strong></td></tr>`;
     const table = `<table role="presentation" style="width:100%;border-collapse:collapse">${rows}${totals}</table>`;
     const first = String(o.buyer_name ?? "").trim().split(/\s+/)[0] || "there";
@@ -173,7 +207,7 @@ async function sendOrderEmailsOnce(admin: any, orderId: string): Promise<boolean
     const toColton = await sendEmail({
       to: COLTON, from: "site", replyTo: o.buyer_email ?? undefined,
       subject: `New order ${o.order_number}: ${money(o.total)} — ship to ${a.name ?? o.buyer_name ?? "buyer"}`,
-      html: layout(`New order ${esc(o.order_number)}`, `${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
+      html: layout(`New order ${esc(o.order_number)}`, `${shipsWith ? `<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Free shipping: ship this with ${esc(shipsWith)}.</strong>${otherAddress ? " <br>⚠ The shipping address is different from that order's. Check with the buyer before packing them together." : ""}</p>` : ""}${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
 ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no address)"}</p>
 <p>Buyer: ${esc(o.buyer_name ?? "")} &lt;${esc(o.buyer_email ?? "")}&gt;</p>
 <p>${button(`${ENDZONE}/web-orders`, "OPEN ORDERS IN ENDZONE", "#1FA39A")}</p>
@@ -187,7 +221,8 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
         subject: `Order ${o.order_number} confirmed — thanks!`,
         html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${table}
 <p style="margin-top:16px"><strong>Shipping to</strong><br>${addr}</p>
-<p>Colton packs every card carefully and ships within a few days. Questions? Just reply to this email.</p>`),
+<p>${shipsWith ? `This ships together with your ${esc(shipsWith.replace(/^.*'s open stack$/, "open stack"))}.` : "Colton packs every card carefully and ships within a few days."} Questions? Just reply to this email.</p>
+${addMore}`),
       });
     }
     if (!toColton && !toBuyer) throw new Error("Both order emails failed");

@@ -17,7 +17,7 @@ type Order = {
 /** Create the Stripe Checkout session for a pending order and remember its id on the order. */
 export async function createCheckoutSession(
   stripe: Stripe, admin: SupabaseClient, order: Order,
-  opts: { email?: string; cancelUrl: string; successUrl?: string; site?: string },
+  opts: { email?: string; cancelUrl: string; successUrl?: string; site?: string; shipLabel?: string },
 ): Promise<string> {
   const { data: items, error } = await admin.from("web_order_items")
     .select("price, description, show_cards(photo_front_url)").eq("order_id", order.id);
@@ -47,7 +47,7 @@ export async function createCheckoutSession(
     shipping_options: [{
       shipping_rate_data: {
         type: "fixed_amount",
-        display_name: "Flat-rate shipping (one per order)",
+        display_name: opts.shipLabel ?? "Flat-rate shipping (one per order)",
         fixed_amount: { amount: Math.round(Number(order.shipping) * 100), currency: "usd" },
       },
     }],
