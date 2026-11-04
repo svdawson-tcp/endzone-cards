@@ -5,15 +5,39 @@ const MAX_INPUT_SIZE_MB = 10;
 const MAX_INPUT_SIZE_BYTES = MAX_INPUT_SIZE_MB * 1024 * 1024;
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-// Compression settings
-const COMPRESSION_OPTIONS = {
-  maxSizeMB: 0.5,
-  maxWidthOrHeight: 1920,
-  useWebWorker: true,
-  fileType: 'image/webp',
-  initialQuality: 0.85,
-  preserveExif: false,
-};
+// Compression settings. iPhone Safari can't encode WebP: asking for it silently gives a lossless PNG
+// (~1 MB per photo, 10x too big, slow to upload and to load on the site). So use WebP only where the
+// browser really makes it, and JPEG everywhere else. Either way a card photo lands around 150-350 KB.
+let webpSupport: boolean | null = null;
+function canEncodeWebp(): boolean {
+  if (webpSupport === null) {
+    try {
+      const c = document.createElement('canvas');
+      c.width = c.height = 2;
+      webpSupport = c.toDataURL('image/webp').startsWith('data:image/webp');
+    } catch {
+      webpSupport = false;
+    }
+  }
+  return webpSupport;
+}
+function compressionOptions() {
+  return {
+    maxSizeMB: 0.35,
+    maxWidthOrHeight: 1600,
+    useWebWorker: true,
+    fileType: canEncodeWebp() ? 'image/webp' : 'image/jpeg',
+    initialQuality: 0.82,
+    preserveExif: false,
+  };
+}
+
+/** File extension and content type for a compressed photo (what the browser actually produced). */
+export function photoFormat(blob: Blob): { ext: string; contentType: string } {
+  if (blob.type === 'image/webp') return { ext: 'webp', contentType: 'image/webp' };
+  if (blob.type === 'image/png') return { ext: 'png', contentType: 'image/png' };
+  return { ext: 'jpg', contentType: 'image/jpeg' };
+}
 
 export interface PhotoValidationResult {
   isValid: boolean;
@@ -70,7 +94,7 @@ export async function compressPhoto(file: File): Promise<Blob> {
   console.log('Original size:', (file.size / 1024).toFixed(2), 'KB');
 
   try {
-    const compressedFile = await imageCompression(file, COMPRESSION_OPTIONS);
+    const compressedFile = await imageCompression(file, compressionOptions());
 
     console.log('Compression complete for:', file.name);
     console.log('Compressed size:', (compressedFile.size / 1024).toFixed(2), 'KB');

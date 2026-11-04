@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
+import { uploadCardPhoto } from "@/lib/photoUpload";
 import { Loader2, Info, Upload, X, Camera, ScanLine, Check, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -610,22 +611,8 @@ export default function CreateShowCard() {
         // New photo selected - upload it
         setUploadProgress("Processing front photo...");
         const compressedFront = await compressPhoto(frontPhoto);
-        const frontFileName = `${user.id}/${Date.now()}_front.webp`;
-
-        const { error: frontError } = await supabase.storage
-          .from("show_cards")
-          .upload(frontFileName, compressedFront, {
-            contentType: "image/webp",
-            upsert: false,
-          });
-
-        if (frontError) throw frontError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("show_cards").getPublicUrl(frontFileName);
-
-        frontPhotoUrl = publicUrl;
+        setUploadProgress("Uploading front photo...");
+        frontPhotoUrl = await uploadCardPhoto(user.id, "front", compressedFront);
 
         // Delete old photo if it exists
         if (isEditMode && existingFrontUrl) {
@@ -642,22 +629,8 @@ export default function CreateShowCard() {
         // New photo selected - upload it
         setUploadProgress("Processing back photo...");
         const compressedBack = await compressPhoto(backPhoto);
-        const backFileName = `${user.id}/${Date.now()}_back.webp`;
-
-        const { error: backError } = await supabase.storage
-          .from("show_cards")
-          .upload(backFileName, compressedBack, {
-            contentType: "image/webp",
-            upsert: false,
-          });
-
-        if (backError) throw backError;
-
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("show_cards").getPublicUrl(backFileName);
-
-        backPhotoUrl = publicUrl;
+        setUploadProgress("Uploading back photo...");
+        backPhotoUrl = await uploadCardPhoto(user.id, "back", compressedBack);
 
         // Delete old photo if it exists
         if (isEditMode && existingBackUrl) {

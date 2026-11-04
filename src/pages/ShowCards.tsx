@@ -220,6 +220,8 @@ const ShowCards = ({ bin = false }: { bin?: boolean }) => {
                     <img
                       src={card.photo_front_url}
                       className={`w-full ${bin ? "h-40" : "h-64"} object-cover rounded-lg mb-3`}
+                      loading="lazy"
+                      decoding="async"
                       alt={`${card.player_name} card front`}
                     />
                   ) : (

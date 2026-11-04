@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
+import { uploadCardPhoto } from "@/lib/photoUpload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { isFuture } from "@/lib/webShop";
@@ -129,22 +130,7 @@ const ShowCardDetail = () => {
       
       // Compress photo
       const compressed = await compressPhoto(file);
-      const fileName = `${user.id}/${Date.now()}_${side}.webp`;
-      
-      // Upload to storage
-      const { error: uploadError } = await supabase.storage
-        .from("show_cards")
-        .upload(fileName, compressed, {
-          contentType: "image/webp",
-          upsert: false,
-        });
-      
-      if (uploadError) throw uploadError;
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("show_cards")
-        .getPublicUrl(fileName);
+      const publicUrl = await uploadCardPhoto(user.id, side, compressed);
       
       // Update show_card record
       const updatePayload = side === 'front'
