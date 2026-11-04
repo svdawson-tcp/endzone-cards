@@ -1,16 +1,27 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { compressPhoto, validatePhotoFile } from "@/lib/photoCompression";
-import { Loader2, Info, Upload, X, Camera, ScanLine, Check, AlertTriangle } from "lucide-react";
+import { Loader2, Info, Upload, X, Camera, ScanLine, Check, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { prepareForReading, readCard, type CardReadFields } from "@/lib/cardReader";
+import { checkCard, type CardFix, type CardIssue } from "@/lib/cardCheck";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
 import {
@@ -105,6 +116,12 @@ export default function CreateShowCard() {
   const userEdited = useRef<Set<ReadKey>>(new Set()); // typed by hand: the reader never overwrites these
   const readFilled = useRef<Set<ReadKey>>(new Set()); // filled by the reader: a new read may replace these
   const readSeq = useRef(0);
+  // Card check: what the reader last saw on these photos (null = not read since the photos were set)
+  const [readFields, setReadFields] = useState<CardReadFields | null>(null);
+  const [checkingSave, setCheckingSave] = useState(false);
+  const [saveIssues, setSaveIssues] = useState<CardIssue[] | null>(null);
+  const skipCheck = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const [errors, setErrors] = useState({
     lot: "",
@@ -317,6 +334,7 @@ export default function CreateShowCard() {
       if (result.status === "limit") return setReadState("limit");
       if (result.status === "error") return setReadState("error");
       if (!result.isSportsCard) return setReadState("not_card");
+      setReadFields(result.fields);
       const graded = applyRead(result.fields);
       setReadState(graded ? "graded" : "done");
     } catch (e) {
@@ -327,6 +345,7 @@ export default function CreateShowCard() {
 
   const clearRead = () => {
     readSeq.current++;
+    setReadFields(null);
     for (const k of readFilled.current) {
       if (k === "rookie") setRookie(false);
       else if (k === "autograph") setAutograph(false);
@@ -374,6 +393,7 @@ export default function CreateShowCard() {
     try {
       validatePhotoFile(file);
       setFrontPhoto(file);
+      setReadFields(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFrontPreview(reader.result as string);
@@ -395,6 +415,7 @@ export default function CreateShowCard() {
     try {
       validatePhotoFile(file);
       setBackPhoto(file);
+      setReadFields(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setBackPreview(reader.result as string);
@@ -410,6 +431,7 @@ export default function CreateShowCard() {
   };
 
   const removeFrontPhoto = () => {
+    setReadFields(null);
     readSeq.current++;
     if (readState === "reading") setReadState("idle");
     setFrontPhoto(null);
@@ -488,10 +510,76 @@ export default function CreateShowCard() {
     );
   };
 
+  // ---------------------------------------------------------------------------
+  // Card check: live list of things that look wrong, and a last look on save.
+  // ---------------------------------------------------------------------------
+  const checkInput = {
+    playerName, year, set, cardNumber, parallel, serialNumber, condition, certNumber,
+    rookie, autograph, costBasis, askingPrice, inBin,
+  };
+  const issues = useMemo(() => checkCard(checkInput, readFields),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [playerName, year, set, cardNumber, parallel, serialNumber, condition, certNumber, rookie, autograph, costBasis, askingPrice, inBin, readFields]);
+
+  const applyFix = (fix: CardFix) => {
+    switch (fix.field) {
+      case "rookie": setRookie(fix.value); markEdited("rookie"); break;
+      case "autograph": setAutograph(fix.value); markEdited("autograph"); break;
+      case "condition": {
+        const g = splitGrade(fix.value);
+        if (g) { setGradedMode(true); setGradeCompany(g[0]); setGradeValue(g[1]); }
+        setCondition(fix.value); markEdited("condition");
+        break;
+      }
+      default: textSetters[fix.field](fix.value); markEdited(fix.field);
+    }
+    setSaveIssues((list) => list && list.filter((i) => !(i.fix && i.fix.field === fix.field)));
+  };
+
+  /** Read the photos for the save check without changing the form. Gives up after 20 seconds. */
+  const readForCheck = async (): Promise<CardReadFields | null> => {
+    const frontSource = frontPhoto ?? frontPreview;
+    if (!frontSource) return null;
+    try {
+      const backSource = backPhoto ?? backPreview;
+      const work = (async () => {
+        const [front, back] = await Promise.all([
+          prepareForReading(frontSource),
+          backSource ? prepareForReading(backSource) : Promise.resolve(null),
+        ]);
+        return readCard(front, back);
+      })();
+      const result = await Promise.race([work, new Promise<null>((r) => setTimeout(() => r(null), 20000))]);
+      if (result && result.status === "ok" && result.isSportsCard) {
+        setReadFields(result.fields);
+        return result.fields;
+      }
+    } catch (e) {
+      console.error("Card check read failed:", e);
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
+
+    // Last look before saving: read the photos if they haven't been read, then stop on anything likely wrong.
+    if (!skipCheck.current) {
+      let fields = readFields;
+      if (!fields && readState !== "limit" && readState !== "not_card" && (frontPhoto || frontPreview)) {
+        setCheckingSave(true);
+        fields = await readForCheck();
+        setCheckingSave(false);
+      }
+      const mustLook = checkCard(checkInput, fields).filter((i) => i.level === "fix");
+      if (mustLook.length) {
+        setSaveIssues(mustLook);
+        return;
+      }
+    }
+    skipCheck.current = false;
 
     setIsSubmitting(true);
 
@@ -722,6 +810,7 @@ export default function CreateShowCard() {
       )}
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="bg-card shadow-card-shadow rounded-lg p-6 space-y-4"
       >
@@ -1082,6 +1171,9 @@ export default function CreateShowCard() {
                 <Select
                   value={gradedMode ? GRADED_CHOICE : condition}
                   onValueChange={(v) => {
+                    // Radix reports "" when the value briefly isn't one of the choices (e.g. "PSA 9" arriving from
+                    // the card reader or a Card check fix before graded mode switches on). Never a real pick.
+                    if (!v) return;
                     if (v === GRADED_CHOICE) {
                       setGradedMode(true);
                       setCondition(`${gradeCompany} ${gradeValue}`.trim());
@@ -1144,6 +1236,12 @@ export default function CreateShowCard() {
                   </div>
                 )}
                 <MarkNote k="condition" />
+                {certNumber.trim() && !gradedMode && (
+                  <p className="mt-2 rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-950" data-testid="graded-hint">
+                    This card has a cert number, so it's graded. Choose <strong>Graded</strong> and enter the grade from the
+                    label. A label that says "MINT 9" is PSA 9; "GEM MT 10" is PSA 10.
+                  </p>
+                )}
               </div>
               {(certNumber || gradedMode) && (
                 <div>
@@ -1318,6 +1416,39 @@ export default function CreateShowCard() {
             </p>
           </div>
 
+          {/* Card check */}
+          <div className="rounded-lg border-2 border-border p-4 space-y-3" data-testid="card-check" aria-live="polite">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-[hsl(var(--accent))]" />
+              <h2 className="text-lg font-bold">Card check</h2>
+              {readFields && <span className="text-xs text-muted-foreground">compared with the photos</span>}
+            </div>
+            {issues.length === 0 ? (
+              <p className="text-sm text-green-300">
+                {readFields ? "Everything matches the photos. Looks good." : "Nothing looks off. The photos get checked when you save."}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {issues.map((i) => (
+                  <li key={i.id}
+                      className={`rounded-md border px-3 py-2 text-sm ${i.level === "fix"
+                        ? "border-amber-400 bg-amber-50 text-amber-950" : "border-border text-muted-foreground"}`}>
+                    <span className="flex items-start gap-2">
+                      {i.level === "fix" ? <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /> : <Info className="mt-0.5 h-4 w-4 shrink-0" />}
+                      <span className="flex-1">{i.message}</span>
+                    </span>
+                    {i.fix && (
+                      <Button type="button" size="sm" variant="outline" className="mt-2 min-h-[40px]"
+                              onClick={() => applyFix(i.fix!)}>
+                        {i.fix.label}
+                      </Button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
           {/* Buttons */}
           <div className="flex gap-3 mt-6">
             <Button
@@ -1331,10 +1462,15 @@ export default function CreateShowCard() {
             </Button>
             <Button
               type="submit"
-              disabled={!isFormValid() || isSubmitting}
+              disabled={!isFormValid() || isSubmitting || checkingSave}
               className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase min-h-[44px]"
             >
-              {isSubmitting ? (
+              {checkingSave ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking card…
+                </>
+              ) : isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   {uploadProgress || (isEditMode ? "Updating..." : "Creating...")}
@@ -1345,6 +1481,47 @@ export default function CreateShowCard() {
             </Button>
         </div>
       </form>
+
+      {/* Save check: things that are probably wrong */}
+      <AlertDialog open={!!saveIssues} onOpenChange={(o) => !o && setSaveIssues(null)}>
+        <AlertDialogContent className="max-h-[85vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Check {saveIssues?.length === 1 ? "this" : "these"} before saving</AlertDialogTitle>
+            <AlertDialogDescription>
+              The card check found {saveIssues?.length === 1 ? "something that looks" : "things that look"} wrong.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <ul className="space-y-2" data-testid="save-issues">
+            {(saveIssues || []).map((i) => (
+              <li key={i.id} className="rounded-md border border-amber-400 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                {i.message}
+                {i.fix && (
+                  <Button type="button" size="sm" variant="outline" className="mt-2 block min-h-[40px]"
+                          onClick={() => applyFix(i.fix!)}>
+                    {i.fix.label}
+                  </Button>
+                )}
+              </li>
+            ))}
+            {saveIssues && saveIssues.length === 0 && (
+              <li className="text-sm text-green-300">All fixed. Tap Save.</li>
+            )}
+          </ul>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-[44px]">Go back and edit</AlertDialogCancel>
+            <AlertDialogAction
+              className="min-h-[44px]"
+              onClick={() => {
+                if (saveIssues && saveIssues.length > 0) skipCheck.current = true;
+                setSaveIssues(null);
+                setTimeout(() => formRef.current?.requestSubmit(), 0);
+              }}
+            >
+              {saveIssues && saveIssues.length === 0 ? "Save" : "Save anyway"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Camera Modals */}
       {showFrontCamera && (
