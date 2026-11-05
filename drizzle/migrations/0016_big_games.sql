@@ -104,3 +104,8 @@ LANGUAGE sql SECURITY DEFINER SET search_path TO 'public' AS $$
     body := '{}'::jsonb, headers := '{"Content-Type":"application/json"}'::jsonb, timeout_milliseconds := 120000);
 $$;
 REVOKE ALL ON FUNCTION public.web_big_games_tick() FROM PUBLIC, anon, authenticated;
+
+-- ---------- applied separately on 4 Nov 2026 once the function was live:
+-- Data: Highlightly (sports.highlightly.net, free plan, 100 requests/day; key in the HIGHLIGHTLY_API_KEY
+-- function secret). ESPN's public feed refuses requests from Supabase function servers, so it isn't used.
+-- SELECT cron.schedule('big-games', '15 7,15,23 * * *', 'select public.web_big_games_tick()');  -- 2:15am, 10:15am, 6:15pm ET
