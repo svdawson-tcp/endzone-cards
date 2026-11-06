@@ -236,12 +236,26 @@ ${button(`${SITE}/shop?ship=${link.token}`, "ADD TO MY ORDER, SHIP FREE", "#1FA3
 
     // Combined automatically after checkout: shipping was charged, then refunded.
     const refunded = o.shipping_refunded ? Number(o.shipping_refunded) : 0;
-    const totals = (refunded
+    const discountRow = Number(o.discount) > 0
+      ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Code ${esc(o.discount_code)}</td><td style="text-align:right;color:#0f5f59">−${money(o.discount)}</td></tr>`
+      : "";
+    const totals = discountRow + (refunded
       ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping</td><td style="text-align:right;color:#555">${money(refunded)}</td></tr>
 <tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Shipping refunded (ships with ${esc(shipsWith ?? "your earlier order")})</td><td style="text-align:right;color:#0f5f59">−${money(refunded)}</td></tr>`
       : `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping${shipsWith ? ` (ships with ${esc(shipsWith)})` : ""}</td><td style="text-align:right;color:#555">${money(o.shipping)}</td></tr>`)
       + `<tr><td></td><td style="padding:6px 12px 0 0"><strong>${refunded ? "Total" : "Total paid"}</strong></td><td style="text-align:right"><strong>${money(o.total)}</strong></td></tr>`;
     const table = `<table role="presentation" style="width:100%;border-collapse:collapse">${rows}${totals}</table>`;
+    // The package-card code, repeated here in case the card gets lost (only while the code is switched on).
+    let nextCode = "";
+    try {
+      const { data: rc } = await admin.rpc("web_repeat_code", { p_user_id: o.user_id });
+      if (rc?.code) {
+        nextCode = `<div style="margin:18px 0;padding:14px;border:2px dashed #F2665A;border-radius:8px">
+<p style="margin:0"><strong>${esc(Number(rc.percent))}% off your next order</strong> with code <strong>${esc(rc.code)}</strong> within ${esc(rc.window_days)} days. Enter it in your cart with this email address. It's on the card in your package too.</p></div>`;
+      }
+    } catch (e) {
+      console.error("Could not read the repeat code (email goes without it)", e);
+    }
     const first = String(o.buyer_name ?? "").trim().split(/\s+/)[0] || "there";
 
     const toColton = await sendEmail({
@@ -262,7 +276,7 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
         html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${table}
 <p style="margin-top:16px"><strong>Shipping to</strong><br>${addr}</p>
 <p>${shipsWith ? `This ships together with your ${esc(shipsWith.replace(/^.*'s open stack$/, "open stack"))}.` : "Colton packs every card carefully and ships within a few days."}${refunded ? ` We refunded the ${money(refunded)} shipping on this one. It can take 5 to 10 days to show on your card.` : ""} Questions? Just reply to this email.</p>
-${addMore}`),
+${addMore}${nextCode}`),
       });
     }
     if (!toColton && !toBuyer) throw new Error("Both order emails failed");

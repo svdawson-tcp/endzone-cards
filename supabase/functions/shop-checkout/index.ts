@@ -1,6 +1,6 @@
 // shop-checkout — cart checkout from cssportscards.com/cart.
 // Holds the cards (all or nothing), prices them from EndZone, and returns a Stripe Checkout URL.
-import { adminClient, dbError, fail, isToken, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
+import { adminClient, dbError, fail, isEmail, isToken, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 
 const CART_HOLD_MINUTES = 35; // Stripe session lasts 31–33 min; the hold outlasts it
@@ -34,6 +34,24 @@ Deno.serve(async (req) => {
       if (closed) await admin.rpc("web_release_order", { p_order_id: o.id, p_status: "canceled" });
     }
     return json(req, 200, { released: true });
+  }
+
+  // Cart "Apply" button: may this email use this code? (Checked again, for real, at checkout.)
+  if (b?.check_code && typeof b.check_code === "object") {
+    const cc = b.check_code as Record<string, unknown>;
+    const { data, error } = await adminClient().rpc("web_check_discount", {
+      p_code: String(cc.code ?? "").slice(0, 40), p_email: String(cc.email ?? "").slice(0, 200),
+    });
+    if (error) {
+      console.error("web_check_discount failed", error);
+      return fail(req, 500, "server_error", "We couldn't check that code just now. Please try again.");
+    }
+    return json(req, 200, { valid: !!data?.valid, code: data?.code ?? null, percent: data?.percent ?? null,
+      message: data?.message ?? null });
+  }
+  const code = typeof b?.code === "string" && b.code.trim() ? b.code.trim().slice(0, 40) : null;
+  if (code && !isEmail(b?.email)) {
+    return fail(req, 400, "code_email", "Enter the email you ordered with to use your code.");
   }
 
   const ids = Array.isArray(b?.card_ids) ? [...new Set(b!.card_ids as unknown[])] : [];
@@ -77,9 +95,27 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Discount code (after free shipping, so the order total ends up right). If the code doesn't apply,
+  // stop and say why rather than quietly charging full price. The email is locked in Stripe.
+  let email: string | undefined;
+  if (code) {
+    const { data: disc, error: discErr } = await admin.rpc("web_apply_discount", {
+      p_order_id: order.id, p_code: code, p_email: String(b!.email).trim(),
+    });
+    if (discErr || !disc?.applied) {
+      if (discErr) console.error("web_apply_discount failed", discErr);
+      await admin.rpc("web_release_order", { p_order_id: order.id, p_status: "canceled" });
+      return fail(req, 400, "code_invalid",
+        disc?.message ?? "We couldn't apply that code just now. Please try again.");
+    }
+    const { data: fresh } = await admin.from("web_orders").select("*").eq("id", order.id).single();
+    if (fresh) current = fresh;
+    email = String(b!.email).trim().toLowerCase();
+  }
+
   try {
     const url = await createCheckoutSession(stripe, admin, current, {
-      site: siteFor(req), cancelUrl: `${siteFor(req)}/cart?canceled=1&o={ORDER_ID}`, shipLabel,
+      site: siteFor(req), cancelUrl: `${siteFor(req)}/cart?canceled=1&o={ORDER_ID}`, shipLabel, email,
     });
     return json(req, 200, { url });
   } catch (e) {

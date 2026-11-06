@@ -30,6 +30,9 @@ type OrderRow = {
   shipping: number;
   /** Shipping charged at checkout, then refunded because it was combined with an earlier order. */
   shipping_refunded?: number | null;
+  /** Discount code used at checkout (cards only), and how much it took off. */
+  discount_code?: string | null;
+  discount?: number | null;
   total: number;
   stripe_fee: number | null;
   paid_at: string | null;
@@ -109,7 +112,7 @@ export default function WebOrders() {
       const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
            web_order_items (id, price, description, show_cards (photo_front_url))`;
-      const LINKS = `, shipping_refunded,
+      const LINKS = `, shipping_refunded, discount_code, discount,
            ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
              parent:web_orders!web_ship_links_order_id_fkey (order_number, shipping_address)),
            my_link:web_ship_links!web_ship_links_order_id_fkey (expires_at, closed_at,
@@ -361,6 +364,12 @@ export default function WebOrders() {
                     <dt className="text-muted-foreground">Subtotal</dt>
                     <dd className="text-foreground">{formatMoney(order.subtotal)}</dd>
                   </div>
+                  {!!order.discount && Number(order.discount) > 0 && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Code {order.discount_code}</dt>
+                      <dd className="text-foreground">−{formatMoney(order.discount)}</dd>
+                    </div>
+                  )}
                   <div className="flex justify-between">
                     <dt className="text-muted-foreground">
                       Shipping{order.shipping_refunded ? ` (${formatMoney(order.shipping_refunded)} refunded)` : ""}

@@ -922,6 +922,7 @@ export type Database = {
       web_order_items: {
         Row: {
           description: string
+          discount: number
           id: string
           order_id: string
           price: number
@@ -930,6 +931,7 @@ export type Database = {
         }
         Insert: {
           description: string
+          discount?: number
           id?: string
           order_id: string
           price: number
@@ -973,6 +975,8 @@ export type Database = {
           buyer_email: string | null
           buyer_name: string | null
           created_at: string
+          discount: number
+          discount_code: string | null
           emails_sent_at: string | null
           hold_expires_at: string
           id: string
@@ -1001,6 +1005,8 @@ export type Database = {
           buyer_email?: string | null
           buyer_name?: string | null
           created_at?: string
+          discount?: number
+          discount_code?: string | null
           emails_sent_at?: string | null
           hold_expires_at: string
           id?: string
@@ -1029,6 +1035,8 @@ export type Database = {
           buyer_email?: string | null
           buyer_name?: string | null
           created_at?: string
+          discount?: number
+          discount_code?: string | null
           emails_sent_at?: string | null
           hold_expires_at?: string
           id?: string
