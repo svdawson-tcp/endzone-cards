@@ -982,6 +982,8 @@ export type Database = {
           problem_note: string | null
           shipped_at: string | null
           shipping: number
+          shipping_refund_id: string | null
+          shipping_refunded: number | null
           ship_link_id: string | null
           shipping_address: Json | null
           source: string
@@ -1008,6 +1010,8 @@ export type Database = {
           problem_note?: string | null
           shipped_at?: string | null
           shipping: number
+          shipping_refund_id?: string | null
+          shipping_refunded?: number | null
           ship_link_id?: string | null
           shipping_address?: Json | null
           source?: string
@@ -1034,6 +1038,8 @@ export type Database = {
           problem_note?: string | null
           shipped_at?: string | null
           shipping?: number
+          shipping_refund_id?: string | null
+          shipping_refunded?: number | null
           ship_link_id?: string | null
           shipping_address?: Json | null
           source?: string

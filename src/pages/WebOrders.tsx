@@ -28,6 +28,8 @@ type OrderRow = {
   shipping_address: Json | null;
   subtotal: number;
   shipping: number;
+  /** Shipping charged at checkout, then refunded because it was combined with an earlier order. */
+  shipping_refunded?: number | null;
   total: number;
   stripe_fee: number | null;
   paid_at: string | null;
@@ -107,7 +109,7 @@ export default function WebOrders() {
       const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
            web_order_items (id, price, description, show_cards (photo_front_url))`;
-      const LINKS = `,
+      const LINKS = `, shipping_refunded,
            ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
              parent:web_orders!web_ship_links_order_id_fkey (order_number, shipping_address)),
            my_link:web_ship_links!web_ship_links_order_id_fkey (expires_at, closed_at,
@@ -280,7 +282,11 @@ export default function WebOrders() {
                     {shipsWith && (
                       <p className="flex items-center gap-2 font-semibold">
                         <Layers className="h-4 w-4 shrink-0" />
-                        {link?.kind === "stack" ? `Add to ${shipsWith}. No shipping charged.` : `Ship with ${shipsWith}. No shipping charged.`}
+                        {link?.kind === "stack"
+                          ? `Add to ${shipsWith}. No shipping charged.`
+                          : order.shipping_refunded
+                            ? `Ship with ${shipsWith}. Shipping refunded automatically.`
+                            : `Ship with ${shipsWith}. No shipping charged.`}
                       </p>
                     )}
                     {otherAddress && (
@@ -356,7 +362,9 @@ export default function WebOrders() {
                     <dd className="text-foreground">{formatMoney(order.subtotal)}</dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-muted-foreground">Shipping</dt>
+                    <dt className="text-muted-foreground">
+                      Shipping{order.shipping_refunded ? ` (${formatMoney(order.shipping_refunded)} refunded)` : ""}
+                    </dt>
                     <dd className="text-foreground">{formatMoney(order.shipping)}</dd>
                   </div>
                   <div className="flex justify-between font-semibold">

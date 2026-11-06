@@ -143,10 +143,45 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Same buyer already has an unshipped order in its free-shipping window, going to the same address,
+  // but didn't use the "add to my order" link? Combine them and refund this order's shipping (0017).
+  // Done before the emails so they say so. A failed refund retries with the webhook.
+  const combined = await autoCombineShipping(stripe, admin, order.id, piId!);
+  if (!combined) return new Response("Order recorded; shipping refund failed, retry", { status: 500 });
+
   const emailed = await sendOrderEmailsOnce(admin, order.id);
   if (!emailed) return new Response("Order recorded; emails failed, retry", { status: 500 }); // Stripe retries emails only
   return ok();
 });
+
+// ------------------------------------------------------------------ automatic combined shipping
+// Returns false only when a refund is owed and couldn't be made (the webhook then asks Stripe to retry).
+// deno-lint-ignore no-explicit-any
+async function autoCombineShipping(stripe: Stripe, admin: any, orderId: string, piId: string): Promise<boolean> {
+  const { data, error } = await admin.rpc("web_auto_combine_shipping", { p_order_id: orderId });
+  if (error) {
+    console.error("Combined-shipping check failed (order keeps its shipping)", orderId, error);
+    return true; // never hold up an order over this
+  }
+  if (data?.action !== "refund" || data.refund_id) return true;
+  const cents = Math.round(Number(data.amount) * 100);
+  try {
+    // A retry after a refund that went through but wasn't saved: find it instead of refunding twice.
+    const prior = await stripe.refunds.list({ payment_intent: piId, limit: 20 });
+    let refund = prior.data.find((r) => r.metadata?.cs_reason === "combined_shipping" && r.status !== "failed" && r.status !== "canceled");
+    if (!refund) {
+      refund = await stripe.refunds.create(
+        { payment_intent: piId, amount: cents, metadata: { cs_order_id: orderId, cs_reason: "combined_shipping" } },
+        { idempotencyKey: `ship-${piId}` },
+      );
+    }
+    await admin.from("web_orders").update({ shipping_refund_id: refund.id }).eq("id", orderId);
+    return true;
+  } catch (e) {
+    console.error("Combined-shipping refund failed; Stripe will retry the webhook", piId, e);
+    return false;
+  }
+}
 
 // ------------------------------------------------------------------ order emails (send once)
 // deno-lint-ignore no-explicit-any
@@ -199,15 +234,20 @@ ${button(`${SITE}/shop?ship=${link.token}`, "SHOP MORE, SHIP FREE", "#1FA39A")}<
 ${button(`${SITE}/shop?ship=${link.token}`, "ADD TO MY ORDER, SHIP FREE", "#1FA39A")}
 <p style="margin:8px 0 0;font-size:13px;color:#555">Use this button to shop so we know it's you.</p></div>`;
 
-    const totals = `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping${shipsWith ? ` (ships with ${esc(shipsWith)})` : ""}</td><td style="text-align:right;color:#555">${money(o.shipping)}</td></tr>
-<tr><td></td><td style="padding:6px 12px 0 0"><strong>Total paid</strong></td><td style="text-align:right"><strong>${money(o.total)}</strong></td></tr>`;
+    // Combined automatically after checkout: shipping was charged, then refunded.
+    const refunded = o.shipping_refunded ? Number(o.shipping_refunded) : 0;
+    const totals = (refunded
+      ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping</td><td style="text-align:right;color:#555">${money(refunded)}</td></tr>
+<tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Shipping refunded (ships with ${esc(shipsWith ?? "your earlier order")})</td><td style="text-align:right;color:#0f5f59">−${money(refunded)}</td></tr>`
+      : `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping${shipsWith ? ` (ships with ${esc(shipsWith)})` : ""}</td><td style="text-align:right;color:#555">${money(o.shipping)}</td></tr>`)
+      + `<tr><td></td><td style="padding:6px 12px 0 0"><strong>${refunded ? "Total" : "Total paid"}</strong></td><td style="text-align:right"><strong>${money(o.total)}</strong></td></tr>`;
     const table = `<table role="presentation" style="width:100%;border-collapse:collapse">${rows}${totals}</table>`;
     const first = String(o.buyer_name ?? "").trim().split(/\s+/)[0] || "there";
 
     const toColton = await sendEmail({
       to: COLTON, from: "site", replyTo: o.buyer_email ?? undefined,
       subject: `New order ${o.order_number}: ${money(o.total)} — ship to ${a.name ?? o.buyer_name ?? "buyer"}`,
-      html: layout(`New order ${esc(o.order_number)}`, `${shipsWith ? `<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Free shipping: ship this with ${esc(shipsWith)}.</strong>${otherAddress ? " <br>⚠ The shipping address is different from that order's. Check with the buyer before packing them together." : ""}</p>` : ""}${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
+      html: layout(`New order ${esc(o.order_number)}`, `${shipsWith ? `<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Free shipping: ship this with ${esc(shipsWith)}.</strong>${refunded ? ` Same buyer and address, so the ${money(refunded)} shipping was refunded automatically. Nothing to do in Stripe.` : ""}${otherAddress ? " <br>⚠ The shipping address is different from that order's. Check with the buyer before packing them together." : ""}</p>` : ""}${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
 ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no address)"}</p>
 <p>Buyer: ${esc(o.buyer_name ?? "")} &lt;${esc(o.buyer_email ?? "")}&gt;</p>
 <p>${button(`${ENDZONE}/web-orders`, "OPEN ORDERS IN ENDZONE", "#1FA39A")}</p>
@@ -221,7 +261,7 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
         subject: `Order ${o.order_number} confirmed — thanks!`,
         html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${table}
 <p style="margin-top:16px"><strong>Shipping to</strong><br>${addr}</p>
-<p>${shipsWith ? `This ships together with your ${esc(shipsWith.replace(/^.*'s open stack$/, "open stack"))}.` : "Colton packs every card carefully and ships within a few days."} Questions? Just reply to this email.</p>
+<p>${shipsWith ? `This ships together with your ${esc(shipsWith.replace(/^.*'s open stack$/, "open stack"))}.` : "Colton packs every card carefully and ships within a few days."}${refunded ? ` We refunded the ${money(refunded)} shipping on this one. It can take 5 to 10 days to show on your card.` : ""} Questions? Just reply to this email.</p>
 ${addMore}`),
       });
     }
