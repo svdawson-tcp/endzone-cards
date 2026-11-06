@@ -1,6 +1,7 @@
 // stripe-webhook — Stripe tells us a website checkout was paid or expired.
 // Needs STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET. Subscribe the endpoint to:
-//   checkout.session.completed, checkout.session.expired, charge.updated (Stripe fee arrives later)
+//   checkout.session.completed, checkout.session.expired, charge.updated (Stripe fee arrives later),
+//   charge.refunded (refunds made in Stripe go into EndZone's books; sync-refunds also catches them hourly)
 // Lessons carried over from The Chef Pantry: verify the signature with constructEventAsync (Deno),
 // ignore events that aren't ours, never fail the webhook over email, send order emails exactly once.
 import type Stripe from "npm:stripe@18.5.0";
@@ -25,6 +26,28 @@ Deno.serve(async (req) => {
   } catch (e) {
     console.error("Bad signature", e instanceof Error ? e.message : e);
     return new Response("Invalid signature", { status: 400 });
+  }
+
+  // ---- charge.refunded: a refund made in Stripe (by Colton, or our own shipping/duplicate refunds) goes into
+  // EndZone's books. web_apply_refund applies only what's new, so our own refunds are skipped (0020).
+  if (event.type === "charge.refunded") {
+    const ch = event.data.object as Stripe.Charge;
+    const piId = typeof ch.payment_intent === "string" ? ch.payment_intent : ch.payment_intent?.id;
+    if (!piId) return ok({ received: true, ignored: "no payment intent" });
+    const admin = adminClient();
+    let when = new Date(event.created * 1000).toISOString();
+    try {
+      const list = await stripe.refunds.list({ payment_intent: piId, limit: 1 });
+      if (list.data[0]) when = new Date(list.data[0].created * 1000).toISOString();
+    } catch { /* event time is close enough */ }
+    const { data, error } = await admin.rpc("web_apply_refund", {
+      p_payment_intent: piId, p_refunded: (ch.amount_refunded ?? 0) / 100, p_refunded_at: when,
+    });
+    if (error) {
+      console.error("web_apply_refund failed", piId, error);
+      return new Response("Could not record refund", { status: 500 }); // Stripe retries; hourly sync also catches it
+    }
+    return ok({ received: true, refund: data });
   }
 
   // ---- charge.updated: Stripe has settled its fee; record it on the sale(s)

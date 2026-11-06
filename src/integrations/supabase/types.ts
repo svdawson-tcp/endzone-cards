@@ -984,6 +984,8 @@ export type Database = {
           order_number: string
           paid_at: string | null
           problem_note: string | null
+          refunded_amount: number
+          refunded_at: string | null
           shipped_at: string | null
           shipping: number
           shipping_refund_id: string | null
@@ -1014,6 +1016,8 @@ export type Database = {
           order_number?: string
           paid_at?: string | null
           problem_note?: string | null
+          refunded_amount?: number
+          refunded_at?: string | null
           shipped_at?: string | null
           shipping: number
           shipping_refund_id?: string | null
@@ -1044,6 +1048,8 @@ export type Database = {
           order_number?: string
           paid_at?: string | null
           problem_note?: string | null
+          refunded_amount?: number
+          refunded_at?: string | null
           shipped_at?: string | null
           shipping?: number
           shipping_refund_id?: string | null
@@ -1162,6 +1168,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_big_games_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      web_hide_big_game: {
+        Args: { p_id: number; p_hidden?: boolean }
+        Returns: undefined
+      }
       web_close_stack_link: {
         Args: { p_link_id: string; p_reopen?: boolean }
         Returns: undefined

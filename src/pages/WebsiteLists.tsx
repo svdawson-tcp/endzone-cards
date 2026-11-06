@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
 import { HeadlinerEditor } from "@/components/website/HeadlinerEditor";
+import { TickerEditor } from "@/components/website/TickerEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -86,10 +87,11 @@ export default function WebsiteLists() {
         </div>
       ) : (
         <Tabs defaultValue="headliner" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="headliner" className="min-h-[44px]">Headliner</TabsTrigger>
             <TabsTrigger value="wanted" className="min-h-[44px]">Most Wanted</TabsTrigger>
             <TabsTrigger value="shows" className="min-h-[44px]">Shows</TabsTrigger>
+            <TabsTrigger value="ticker" className="min-h-[44px]">Ticker</TabsTrigger>
           </TabsList>
           <TabsContent value="headliner">
             <HeadlinerEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
@@ -99,6 +101,9 @@ export default function WebsiteLists() {
           </TabsContent>
           <TabsContent value="shows">
             <ShowsEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
+          </TabsContent>
+          <TabsContent value="ticker">
+            <TickerEditor readOnly={isViewingAsMentor} />
           </TabsContent>
         </Tabs>
       )}

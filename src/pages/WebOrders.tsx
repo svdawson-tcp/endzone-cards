@@ -33,6 +33,9 @@ type OrderRow = {
   /** Discount code used at checkout (cards only), and how much it took off. */
   discount_code?: string | null;
   discount?: number | null;
+  /** Refunded in Stripe and applied to EndZone's books (not counting automatic shipping refunds). */
+  refunded_amount?: number | null;
+  refunded_at?: string | null;
   total: number;
   stripe_fee: number | null;
   paid_at: string | null;
@@ -82,8 +85,9 @@ function sameAddress(a: Json | null | undefined, b: Json | null | undefined): bo
 function netAmount(order: OrderRow): string | null {
   const total = moneyToCents(order.total);
   const fee = moneyToCents(order.stripe_fee);
+  const refunded = moneyToCents(order.refunded_amount ?? 0) ?? 0n;
   if (total === null || fee === null) return null;
-  return centsToMoney(total - fee);
+  return centsToMoney(total - refunded - fee);
 }
 
 const UNPAID_LABELS: Record<string, string> = {
@@ -112,7 +116,7 @@ export default function WebOrders() {
       const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
            web_order_items (id, price, description, show_cards (photo_front_url))`;
-      const LINKS = `, shipping_refunded, discount_code, discount,
+      const LINKS = `, shipping_refunded, discount_code, discount, refunded_amount, refunded_at,
            ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
              parent:web_orders!web_ship_links_order_id_fkey (order_number, shipping_address)),
            my_link:web_ship_links!web_ship_links_order_id_fkey (expires_at, closed_at,
@@ -380,6 +384,14 @@ export default function WebOrders() {
                     <dt className="text-foreground">Total paid</dt>
                     <dd className="text-foreground">{formatMoney(order.total)}</dd>
                   </div>
+                  {!!order.refunded_amount && Number(order.refunded_amount) > 0 && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">
+                        Refunded in Stripe{order.refunded_at ? ` ${new Date(order.refunded_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}
+                      </dt>
+                      <dd className="text-foreground">−{formatMoney(order.refunded_amount)}</dd>
+                    </div>
+                  )}
                   {paid && (
                     <>
                       <div className="flex justify-between">
