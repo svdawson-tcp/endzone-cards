@@ -478,7 +478,7 @@ export default function CreateShowCard() {
     }
 
     if (!playerName.trim()) {
-      newErrors.playerName = "Player name is required";
+      newErrors.playerName = isPopCulture ? "Character is required" : "Player name is required";
       isValid = false;
     }
 
@@ -998,7 +998,7 @@ export default function CreateShowCard() {
 
           {/* Player Name */}
           <div>
-            <label htmlFor="player-name" className="form-label">Player Name *<MarkBadge k="playerName" /></label>
+            <label htmlFor="player-name" className="form-label">{isPopCulture ? "Character" : "Player Name"} *<MarkBadge k="playerName" /></label>
             <Input
               id="player-name"
               type="text"
@@ -1008,7 +1008,7 @@ export default function CreateShowCard() {
                 markEdited("playerName");
                 if (errors.playerName) setErrors({ ...errors, playerName: "" });
               }}
-              placeholder="Dak Prescott"
+              placeholder={sport === "marvel" ? "Spider-Man" : sport === "disney" ? "Mickey Mouse" : "Dak Prescott"}
               maxLength={100}
               className={`mt-2 min-h-[44px] ${markInputClass("playerName")}`}
             />
