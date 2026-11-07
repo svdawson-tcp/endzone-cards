@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Layers, Loader2, PackageCheck, Truck } from "lucide-react";
+import { AlertTriangle, Gift, Layers, Loader2, PackageCheck, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,10 @@ type OrderRow = {
   /** Discount code used at checkout (cards only), and how much it took off. */
   discount_code?: string | null;
   discount?: number | null;
+  /** Part of discount that is Bargain Bin deal cards (free); the rest is the code. */
+  deal_discount?: number | null;
+  /** Cards came to the bonus-card amount or more: Colton adds a free card when packing. */
+  bonus_card?: boolean | null;
   /** Refunded in Stripe and applied to EndZone's books (not counting automatic shipping refunds). */
   refunded_amount?: number | null;
   refunded_at?: string | null;
@@ -60,6 +64,7 @@ type OrderRow = {
     id: string;
     price: number;
     description: string;
+    deal_free?: boolean | null;
     show_cards: { photo_front_url: string | null } | null;
   }[];
 };
@@ -115,8 +120,8 @@ export default function WebOrders() {
       const userId = await getEffectiveUserId();
       const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
-           web_order_items (id, price, description, show_cards (photo_front_url))`;
-      const LINKS = `, shipping_refunded, discount_code, discount, refunded_amount, refunded_at,
+           web_order_items (id, price, deal_free, description, show_cards (photo_front_url))`;
+      const LINKS = `, shipping_refunded, discount_code, discount, deal_discount, bonus_card, refunded_amount, refunded_at,
            ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
              parent:web_orders!web_ship_links_order_id_fkey (order_number, shipping_address)),
            my_link:web_ship_links!web_ship_links_order_id_fkey (expires_at, closed_at,
@@ -311,6 +316,13 @@ export default function WebOrders() {
                   </div>
                 )}
 
+                {order.bonus_card && (
+                  <div className="flex gap-2 rounded-md border-2 border-amber-400 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-900">
+                    <Gift className="h-5 w-5 shrink-0" />
+                    <span>Bonus card: add a free card to this package (the cards came to the free-card amount).</span>
+                  </div>
+                )}
+
                 {order.problem_note && (
                   <div
                     role="alert"
@@ -357,7 +369,12 @@ export default function WebOrders() {
                           className="h-14 w-10 shrink-0 rounded object-cover"
                         />
                       )}
-                      <span className="flex-1 text-sm text-foreground">{item.description}</span>
+                      <span className="flex-1 text-sm text-foreground">
+                        {item.description}
+                        {item.deal_free && (
+                          <span className="ml-2 rounded bg-accent/15 px-1.5 py-0.5 text-xs font-bold text-accent">FREE · BIN DEAL</span>
+                        )}
+                      </span>
                       <span className="text-sm font-semibold text-foreground">{formatMoney(item.price)}</span>
                     </div>
                   ))}
@@ -368,10 +385,18 @@ export default function WebOrders() {
                     <dt className="text-muted-foreground">Subtotal</dt>
                     <dd className="text-foreground">{formatMoney(order.subtotal)}</dd>
                   </div>
-                  {!!order.discount && Number(order.discount) > 0 && (
+                  {Number(order.deal_discount ?? 0) > 0 && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Bargain Bin deal</dt>
+                      <dd className="text-foreground">−{formatMoney(Number(order.deal_discount))}</dd>
+                    </div>
+                  )}
+                  {Number(order.discount ?? 0) - Number(order.deal_discount ?? 0) > 0.004 && (
                     <div className="flex justify-between">
                       <dt className="text-muted-foreground">Code {order.discount_code}</dt>
-                      <dd className="text-foreground">−{formatMoney(order.discount)}</dd>
+                      <dd className="text-foreground">
+                        −{formatMoney(Math.round((Number(order.discount) - Number(order.deal_discount ?? 0)) * 100) / 100)}
+                      </dd>
                     </div>
                   )}
                   <div className="flex justify-between">

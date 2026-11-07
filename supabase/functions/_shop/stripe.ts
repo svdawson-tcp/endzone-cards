@@ -8,7 +8,7 @@ export function stripeClient(): Stripe | null {
   return key ? new Stripe(key, { apiVersion: "2025-08-27.basil" }) : null;
 }
 
-type Item = { price: number; discount: number | null; description: string; show_cards: { photo_front_url: string | null } | null };
+type Item = { price: number; discount: number | null; deal_free?: boolean | null; description: string; show_cards: { photo_front_url: string | null } | null };
 
 type Order = {
   id: string; order_number: string; shipping: number; hold_expires_at: string; stripe_session_id: string | null;
@@ -21,7 +21,7 @@ export async function createCheckoutSession(
   opts: { email?: string; cancelUrl: string; successUrl?: string; site?: string; shipLabel?: string },
 ): Promise<string> {
   const { data: items, error } = await admin.from("web_order_items")
-    .select("price, discount, description, show_cards(photo_front_url)").eq("order_id", order.id);
+    .select("price, discount, deal_free, description, show_cards(photo_front_url)").eq("order_id", order.id);
   if (error || !items?.length) throw new Error("Order has no items");
 
   // Stripe sessions must live 30 min–24 h. The hold always outlasts the session by a few minutes.
@@ -33,7 +33,8 @@ export async function createCheckoutSession(
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"], // no delayed methods (ACH etc.): payment must be final when the hold ends
-    // A discount code lowers each card's price by its share (web_apply_discount); shipping is never discounted.
+    // A discount code lowers each card's price by its share (web_apply_discount) and a Bargain Bin deal card is $0
+    // (web_apply_bin_deal); shipping is never discounted.
     line_items: (items as unknown as Item[]).map((it) => ({
       quantity: 1,
       price_data: {
@@ -41,7 +42,9 @@ export async function createCheckoutSession(
         unit_amount: Math.round((Number(it.price) - Number(it.discount ?? 0)) * 100),
         product_data: {
           name: it.description.slice(0, 250),
-          ...(Number(it.discount ?? 0) > 0 && order.discount_code
+          ...(it.deal_free
+            ? { description: `FREE with the Bargain Bin deal (was $${Number(it.price).toFixed(2)})` }
+            : Number(it.discount ?? 0) > 0 && order.discount_code
             ? { description: `$${Number(it.price).toFixed(2)}, less $${Number(it.discount).toFixed(2)} with code ${order.discount_code}` }
             : {}),
           ...(it.show_cards?.photo_front_url ? { images: [it.show_cards.photo_front_url] } : {}),

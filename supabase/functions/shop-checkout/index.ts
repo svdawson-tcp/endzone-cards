@@ -95,7 +95,22 @@ Deno.serve(async (req) => {
     }
   }
 
-  // Discount code (after free shipping, so the order total ends up right). If the code doesn't apply,
+  // Bargain Bin deal: every 11th bin card is free (the cheapest ones). Before any code, so the code
+  // takes its % off what's left. If it fails, stop rather than charge more than the cart showed.
+  {
+    const { data: deal, error: dealErr } = await admin.rpc("web_apply_bin_deal", { p_order_id: order.id });
+    if (dealErr) {
+      console.error("web_apply_bin_deal failed", dealErr);
+      await admin.rpc("web_release_order", { p_order_id: order.id, p_status: "canceled" });
+      return fail(req, 500, "server_error", "Checkout hit a snag. Please try again.");
+    }
+    if (Number(deal?.free) > 0) {
+      const { data: fresh } = await admin.from("web_orders").select("*").eq("id", order.id).single();
+      if (fresh) current = fresh;
+    }
+  }
+
+  // Discount code (after free shipping and the bin deal, so the order total ends up right). If the code doesn't apply,
   // stop and say why rather than quietly charging full price. The email is locked in Stripe.
   let email: string | undefined;
   if (code) {
@@ -111,6 +126,13 @@ Deno.serve(async (req) => {
     const { data: fresh } = await admin.from("web_orders").select("*").eq("id", order.id).single();
     if (fresh) current = fresh;
     email = String(b!.email).trim().toLowerCase();
+  }
+
+  // Bonus card on bigger orders: just a flag for Colton's packing (nothing is charged), so a failure only logs.
+  {
+    const { data: bonus, error: bonusErr } = await admin.rpc("web_apply_bonus_card", { p_order_id: order.id });
+    if (bonusErr) console.error("web_apply_bonus_card failed (order goes without the bonus flag)", bonusErr);
+    else if (bonus?.bonus_card) current = { ...current, bonus_card: true };
   }
 
   try {

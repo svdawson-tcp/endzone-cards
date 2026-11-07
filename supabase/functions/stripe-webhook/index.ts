@@ -216,13 +216,13 @@ async function sendOrderEmailsOnce(admin: any, orderId: string): Promise<boolean
   const o = claimed[0];
   try {
     const { data: items } = await admin.from("web_order_items")
-      .select("price, description, show_cards(photo_front_url)").eq("order_id", o.id);
+      .select("price, deal_free, description, show_cards(photo_front_url)").eq("order_id", o.id);
     const a = o.shipping_address ?? {};
     const addr = [a.name, a.line1, a.line2, [a.city, a.state].filter(Boolean).join(", ") + " " + (a.postal_code ?? "")]
       .filter((s: string) => s && s.trim()).map(esc).join("<br>");
-    const rows = (items ?? []).map((it: { price: number; description: string; show_cards: { photo_front_url: string | null } | null }) =>
+    const rows = (items ?? []).map((it: { price: number; deal_free?: boolean; description: string; show_cards: { photo_front_url: string | null } | null }) =>
       `<tr><td style="padding:6px 10px 6px 0">${it.show_cards?.photo_front_url ? `<img src="${esc(it.show_cards.photo_front_url)}" width="48" style="border-radius:4px">` : ""}</td>
-<td style="padding:6px 12px 6px 0">${esc(it.description)}</td><td style="padding:6px 0;text-align:right">${money(it.price)}</td></tr>`).join("");
+<td style="padding:6px 12px 6px 0">${esc(it.description)}${it.deal_free ? ` <strong style="color:#0f5f59">FREE (Bargain Bin deal)</strong>` : ""}</td><td style="padding:6px 0;text-align:right">${money(it.price)}</td></tr>`).join("");
     // Combined shipping: which order/stack this one ships with, and the link to offer the buyer.
     let shipsWith: string | null = null;
     let otherAddress = false;
@@ -259,8 +259,20 @@ ${button(`${SITE}/shop?ship=${link.token}`, "ADD TO MY ORDER, SHIP FREE", "#1FA3
 
     // Combined automatically after checkout: shipping was charged, then refunded.
     const refunded = o.shipping_refunded ? Number(o.shipping_refunded) : 0;
-    const discountRow = Number(o.discount) > 0
-      ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Code ${esc(o.discount_code)}</td><td style="text-align:right;color:#0f5f59">−${money(o.discount)}</td></tr>`
+    // Bargain Bin deal (free cards) and code discount are shown separately; o.discount is their sum.
+    const dealAmt = Number(o.deal_discount ?? 0);
+    const codeAmt = Math.round((Number(o.discount) - dealAmt) * 100) / 100;
+    const freeCount = (items ?? []).filter((it: { deal_free?: boolean }) => it.deal_free).length;
+    const discountRow = (dealAmt > 0
+      ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Bargain Bin deal: ${freeCount} free card${freeCount === 1 ? "" : "s"}</td><td style="text-align:right;color:#0f5f59">−${money(dealAmt)}</td></tr>`
+      : "") + (codeAmt > 0 && o.discount_code
+      ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#0f5f59">Code ${esc(o.discount_code)}</td><td style="text-align:right;color:#0f5f59">−${money(codeAmt)}</td></tr>`
+      : "");
+    const bonusForColton = o.bonus_card
+      ? `<p style="background:#fff4e5;color:#7a4a00;padding:10px;border-radius:6px"><strong>Bonus card: add a free card to this package.</strong> The cards came to ${money(Number(o.subtotal) - Number(o.discount))}, over the free-card amount.</p>`
+      : "";
+    const bonusForBuyer = o.bonus_card
+      ? `<p style="background:#fff4e5;color:#7a4a00;padding:10px;border-radius:6px"><strong>A free bonus card is coming with your order.</strong> Thanks for the big order. Colton will pick one and pack it in with your cards.</p>`
       : "";
     const totals = discountRow + (refunded
       ? `<tr><td></td><td style="padding:6px 12px 0 0;color:#555">Shipping</td><td style="text-align:right;color:#555">${money(refunded)}</td></tr>
@@ -283,8 +295,8 @@ ${button(`${SITE}/shop?ship=${link.token}`, "ADD TO MY ORDER, SHIP FREE", "#1FA3
 
     const toColton = await sendEmail({
       to: COLTON, from: "site", replyTo: o.buyer_email ?? undefined,
-      subject: `New order ${o.order_number}: ${money(o.total)} — ship to ${a.name ?? o.buyer_name ?? "buyer"}`,
-      html: layout(`New order ${esc(o.order_number)}`, `${shipsWith ? `<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Free shipping: ship this with ${esc(shipsWith)}.</strong>${refunded ? ` Same buyer and address, so the ${money(refunded)} shipping was refunded automatically. Nothing to do in Stripe.` : ""}${otherAddress ? " <br>⚠ The shipping address is different from that order's. Check with the buyer before packing them together." : ""}</p>` : ""}${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}
+      subject: `New order ${o.order_number}: ${money(o.total)}${o.bonus_card ? " + bonus card" : ""} — ship to ${a.name ?? o.buyer_name ?? "buyer"}`,
+      html: layout(`New order ${esc(o.order_number)}`, `${shipsWith ? `<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Free shipping: ship this with ${esc(shipsWith)}.</strong>${refunded ? ` Same buyer and address, so the ${money(refunded)} shipping was refunded automatically. Nothing to do in Stripe.` : ""}${otherAddress ? " <br>⚠ The shipping address is different from that order's. Check with the buyer before packing them together." : ""}</p>` : ""}${o.problem_note ? `<p style="background:#fde8e6;color:#9b1c10;padding:10px;border-radius:6px"><strong>Check this order:</strong> ${esc(o.problem_note)}</p>` : ""}${bonusForColton}
 ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no address)"}</p>
 <p>Buyer: ${esc(o.buyer_name ?? "")} &lt;${esc(o.buyer_email ?? "")}&gt;</p>
 <p>${button(`${ENDZONE}/web-orders`, "OPEN ORDERS IN ENDZONE", "#1FA39A")}</p>
@@ -296,7 +308,7 @@ ${table}<p style="margin-top:16px"><strong>Ship to</strong><br>${addr || "(no ad
       toBuyer = await sendEmail({
         to: o.buyer_email, replyTo: COLTON,
         subject: `Order ${o.order_number} confirmed — thanks!`,
-        html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${table}
+        html: layout(`Thanks, ${esc(first)}! Your order is in.`, `<p>Order <strong>${esc(o.order_number)}</strong></p>${bonusForBuyer}${table}
 <p style="margin-top:16px"><strong>Shipping to</strong><br>${addr}</p>
 <p>${shipsWith ? `This ships together with your ${esc(shipsWith.replace(/^.*'s open stack$/, "open stack"))}.` : "Colton packs every card carefully and ships within a few days."}${refunded ? ` We refunded the ${money(refunded)} shipping on this one. It can take 5 to 10 days to show on your card.` : ""} Questions? Just reply to this email.</p>
 ${addMore}${nextCode}`),
