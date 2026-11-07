@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
+import { ExternalLink, Loader2, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
@@ -35,7 +35,17 @@ const WANTED_SPORTS = [
   "Other",
 ] as const;
 
-type Wanted = { id: string; sport: string; position: string; player_name: string; sort_order: number };
+type Wanted = {
+  id: string;
+  sport: string;
+  position: string;
+  player_name: string;
+  sort_order: number;
+  top_rank: number | null;
+  stamp: string | null;
+};
+const MAX_TOP = 6;
+const STAMP_IDEAS = ["ROOKIES · AUTOS", "GRADED · AUTOS", "ANY NUMBERED", "ROOKIES · /99 OR LESS", "VINTAGE · GRADED"];
 type SiteShow = {
   id: string;
   name: string;
@@ -63,6 +73,8 @@ function todayET(): string {
 function errorText(error: unknown): string {
   const msg = error instanceof Error ? error.message : String((error as { message?: string })?.message ?? "");
   if (msg.includes("website_wanted_unique")) return "That player is already on the list there.";
+  if (msg.includes("TOP_TARGETS_FULL")) return `You already have ${MAX_TOP} top targets. Unstar one first.`;
+  if (msg.includes("website_wanted_stamp_len")) return "Keep the stamp to 28 characters or fewer.";
   return msg || "Please try again.";
 }
 
@@ -126,7 +138,7 @@ function WantedEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolea
     queryFn: async () => {
       const { data, error } = await supabase
         .from("website_wanted")
-        .select("id, sport, position, player_name, sort_order")
+        .select("id, sport, position, player_name, sort_order, top_rank, stamp")
         .eq("user_id", ownerId);
       if (error) throw error;
       return (data || []) as Wanted[];
@@ -206,6 +218,50 @@ function WantedEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolea
   };
 
   const total = rows?.length ?? 0;
+  const tops = useMemo(
+    () => (rows || []).filter((r) => r.top_rank != null).sort((a, b) => (a.top_rank ?? 0) - (b.top_rank ?? 0)),
+    [rows],
+  );
+  const [starring, setStarring] = useState<string | null>(null);
+  const [stamps, setStamps] = useState<Record<string, string>>({});
+
+  const toggleTop = async (row: Wanted) => {
+    const on = row.top_rank == null;
+    if (on && tops.length >= MAX_TOP) {
+      toast({ title: `${MAX_TOP} top targets already`, description: "Unstar one first.", variant: "destructive" });
+      return;
+    }
+    setStarring(row.id);
+    try {
+      const rank = on ? Math.max(0, ...tops.map((t) => t.top_rank ?? 0)) + 1 : null;
+      const { error } = await supabase.from("website_wanted").update({ top_rank: rank }).eq("id", row.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["websiteWanted"] });
+      toast({ title: on ? `${row.player_name} is a top target` : `${row.player_name} unstarred` });
+    } catch (e) {
+      toast({ title: "Couldn't change top targets", description: errorText(e), variant: "destructive" });
+    } finally {
+      setStarring(null);
+    }
+  };
+
+  const saveStamp = async (row: Wanted, value: string) => {
+    const next = value.trim().replace(/\s+/g, " ").toUpperCase();
+    if (next === (row.stamp ?? "")) return;
+    try {
+      const { error } = await supabase.from("website_wanted").update({ stamp: next || null }).eq("id", row.id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["websiteWanted"] });
+      setStamps((m) => {
+        const rest = { ...m };
+        delete rest[row.id];
+        return rest;
+      });
+      toast({ title: next ? `Stamp saved for ${row.player_name}` : `Stamp cleared for ${row.player_name}` });
+    } catch (e) {
+      toast({ title: "Couldn't save the stamp", description: errorText(e), variant: "destructive" });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -271,6 +327,61 @@ function WantedEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolea
         </div>
       )}
 
+      {total > 0 && (
+        <div className="night-game-card space-y-3 p-4 md:p-6">
+          <div>
+            <h2 className="text-lg font-bold text-foreground">Top targets ({tops.length}/{MAX_TOP})</h2>
+            <p className="text-sm text-muted-foreground">
+              These show as big Wanted posters at the top of the page. Tap the star next to a player below to add one.
+            </p>
+          </div>
+          {tops.length === 0 ? (
+            <p className="text-sm text-muted-foreground">None yet. The page shows just the list until you star someone.</p>
+          ) : (
+            <ul className="space-y-3">
+              {tops.map((r) => (
+                <li key={r.id} className="rounded-lg border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-foreground">{r.player_name}</div>
+                      <div className="text-xs uppercase text-muted-foreground">{r.sport}</div>
+                    </div>
+                    {!readOnly && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => toggleTop(r)}
+                        disabled={starring === r.id}
+                        className="min-h-[44px] text-muted-foreground"
+                      >
+                        {starring === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Unstar"}
+                      </Button>
+                    )}
+                  </div>
+                  {readOnly ? (
+                    r.stamp && <div className="mt-2 text-sm text-foreground">Stamp: {r.stamp}</div>
+                  ) : (
+                    <Input
+                      className="mt-2 min-h-[44px] uppercase"
+                      placeholder="Stamp, e.g. ROOKIES · AUTOS (optional)"
+                      aria-label={`Stamp for ${r.player_name}`}
+                      list="wanted-stamps"
+                      maxLength={28}
+                      value={stamps[r.id] ?? r.stamp ?? ""}
+                      onChange={(e) => setStamps((m) => ({ ...m, [r.id]: e.target.value }))}
+                      onBlur={(e) => saveStamp(r, e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <datalist id="wanted-stamps">
+            {STAMP_IDEAS.map((s) => <option key={s} value={s} />)}
+          </datalist>
+        </div>
+      )}
+
       <div className="night-game-card p-4 md:p-6">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-lg font-bold text-foreground">On the site now ({total})</h2>
@@ -300,8 +411,30 @@ function WantedEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolea
                         {p.players.map((r) => (
                           <span
                             key={r.id}
-                            className="inline-flex min-h-[36px] items-center gap-1 rounded-full border border-border bg-muted/30 pl-3 pr-1 text-sm text-foreground"
+                            className={`inline-flex min-h-[36px] items-center gap-1 rounded-full border bg-muted/30 pr-1 text-sm text-foreground ${
+                              r.top_rank != null ? "border-accent" : "border-border"
+                            } ${readOnly ? "pl-3" : "pl-1"}`}
                           >
+                            {!readOnly ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleTop(r)}
+                                disabled={starring === r.id}
+                                aria-pressed={r.top_rank != null}
+                                aria-label={r.top_rank != null ? `Unstar ${r.player_name}` : `Make ${r.player_name} a top target`}
+                                className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                                  r.top_rank != null ? "text-accent" : "text-muted-foreground hover:text-accent"
+                                }`}
+                              >
+                                {starring === r.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Star className="h-4 w-4" fill={r.top_rank != null ? "currentColor" : "none"} />
+                                )}
+                              </button>
+                            ) : (
+                              r.top_rank != null && <Star className="h-3.5 w-3.5 text-accent" fill="currentColor" aria-label="Top target" />
+                            )}
                             {r.player_name}
                             {!readOnly && (
                               <button

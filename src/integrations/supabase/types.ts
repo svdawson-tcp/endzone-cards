@@ -810,6 +810,8 @@ export type Database = {
           position: string
           sort_order: number
           sport: string
+          stamp: string | null
+          top_rank: number | null
           updated_at: string
           user_id: string
         }
@@ -820,6 +822,8 @@ export type Database = {
           position: string
           sort_order?: number
           sport: string
+          stamp?: string | null
+          top_rank?: number | null
           updated_at?: string
           user_id: string
         }
@@ -830,6 +834,8 @@ export type Database = {
           position?: string
           sort_order?: number
           sport?: string
+          stamp?: string | null
+          top_rank?: number | null
           updated_at?: string
           user_id?: string
         }
