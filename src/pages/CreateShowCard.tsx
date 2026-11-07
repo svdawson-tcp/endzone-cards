@@ -238,6 +238,8 @@ export default function CreateShowCard() {
     return null;
   })();
   const websiteOn = showOnWebsite && !websiteBlocker;
+  // Marvel / Disney cards use the Team box for the character or film (shown on the site as "MARVEL · SPIDER-MAN").
+  const isPopCulture = sport === "marvel" || sport === "disney";
 
   // Make an Offer: the hidden floor at/above which website offers are accepted automatically.
   const { data: websiteSettings } = useWebsiteSettings();
@@ -946,7 +948,7 @@ export default function CreateShowCard() {
           {(readState === "not_card" || readState === "limit" || readState === "error") && (
             <div className="rounded-lg border border-amber-400 bg-amber-50 p-3 text-amber-900" role="status">
               <p className="text-sm">
-                {readState === "not_card" && "This photo doesn't look like a sports card. Fill in the details by hand."}
+                {readState === "not_card" && "This photo doesn't look like a trading card. Fill in the details by hand."}
                 {readState === "limit" && "Today's card-reading limit is used up. Fill in the details by hand; reading is back tomorrow."}
                 {readState === "error" && "Couldn't read the card just now. Fill in the details by hand, or try again."}
               </p>
@@ -1356,13 +1358,15 @@ export default function CreateShowCard() {
                   <SelectItem value="baseball">Baseball</SelectItem>
                   <SelectItem value="hockey">Hockey</SelectItem>
                   <SelectItem value="soccer">Soccer</SelectItem>
+                  <SelectItem value="marvel">Marvel</SelectItem>
+                  <SelectItem value="disney">Disney</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label htmlFor="website-team" className="form-label">
-                Team {websiteOn && "*"}<MarkBadge k="team" />
+                {isPopCulture ? "Character / film" : "Team"} {websiteOn && "*"}<MarkBadge k="team" />
               </label>
               <Input
                 id="website-team"
@@ -1370,7 +1374,7 @@ export default function CreateShowCard() {
                 onChange={(e) => { setTeam(e.target.value); markEdited("team"); }}
                 list="website-team-options"
                 maxLength={60}
-                placeholder="e.g. Commanders"
+                placeholder={isPopCulture ? (sport === "marvel" ? "e.g. Spider-Man" : "e.g. The Lion King") : "e.g. Commanders"}
                 className={`mt-2 min-h-[44px] ${markInputClass("team")}`}
               />
               <MarkNote k="sport" />
