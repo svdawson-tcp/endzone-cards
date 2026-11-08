@@ -13,7 +13,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 export const MODEL = "claude-sonnet-5-5";
-const DAILY_CAP = 200;
+const DAILY_CAP = 500;
 const MAX_IMAGE_B64 = 2_800_000; // ~2 MB per photo after base64
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const SPORTS = ["football", "basketball", "baseball", "hockey", "soccer", "marvel", "disney", "other"];
