@@ -37,6 +37,7 @@ export async function emailBuyerPayLink(o: Offer, c: CardInfo, site = SITE) {
 <p>Total with shipping: <strong>${money(price + 6)}</strong> ($6 flat shipping per order).</p>
 <p>${button(payUrl(o, site), countered ? "ACCEPT & PAY" : "PAY NOW")}</p>
 <p style="color:#555">The card is held for you until <strong>${esc(when(o.pay_expires_at))}</strong>. After that it goes back in the case.</p>
+<p style="background:#e3f5f3;color:#0f5f59;padding:10px;border-radius:6px"><strong>Buying more than one card?</strong> Open the link above and add this card to your cart. Every card you add, offer cards and regular cards, ships together for one $6 shipping charge.</p>
 <p>Questions? Just reply to this email.</p>`),
   });
 }

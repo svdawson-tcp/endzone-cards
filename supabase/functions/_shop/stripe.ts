@@ -8,7 +8,7 @@ export function stripeClient(): Stripe | null {
   return key ? new Stripe(key, { apiVersion: "2025-08-27.basil" }) : null;
 }
 
-type Item = { price: number; discount: number | null; deal_free?: boolean | null; description: string; show_cards: { photo_front_url: string | null } | null };
+type Item = { price: number; discount: number | null; deal_free?: boolean | null; offer_id?: string | null; description: string; show_cards: { photo_front_url: string | null } | null };
 
 type Order = {
   id: string; order_number: string; shipping: number; hold_expires_at: string; stripe_session_id: string | null;
@@ -21,7 +21,7 @@ export async function createCheckoutSession(
   opts: { email?: string; cancelUrl: string; successUrl?: string; site?: string; shipLabel?: string },
 ): Promise<string> {
   const { data: items, error } = await admin.from("web_order_items")
-    .select("price, discount, deal_free, description, show_cards(photo_front_url)").eq("order_id", order.id);
+    .select("price, discount, deal_free, offer_id, description, show_cards(photo_front_url)").eq("order_id", order.id);
   if (error || !items?.length) throw new Error("Order has no items");
 
   // Stripe sessions must live 30 min–24 h. The hold always outlasts the session by a few minutes.
@@ -44,6 +44,8 @@ export async function createCheckoutSession(
           name: it.description.slice(0, 250),
           ...(it.deal_free
             ? { description: `FREE with the Bargain Bin deal (was $${Number(it.price).toFixed(2)})` }
+            : it.offer_id
+            ? { description: "Your accepted offer price" }
             : Number(it.discount ?? 0) > 0 && order.discount_code
             ? { description: `$${Number(it.price).toFixed(2)}, less $${Number(it.discount).toFixed(2)} with code ${order.discount_code}` }
             : {}),

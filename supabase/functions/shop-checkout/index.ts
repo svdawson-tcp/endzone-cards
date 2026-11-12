@@ -2,6 +2,7 @@
 // Holds the cards (all or nothing), prices them from EndZone, and returns a Stripe Checkout URL.
 import { adminClient, dbError, fail, isEmail, isToken, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
+import type Stripe from "npm:stripe@18.5.0";
 
 const CART_HOLD_MINUTES = 35; // Stripe session lasts 31–33 min; the hold outlasts it
 
@@ -55,16 +56,53 @@ Deno.serve(async (req) => {
   }
 
   const ids = Array.isArray(b?.card_ids) ? [...new Set(b!.card_ids as unknown[])] : [];
-  if (!ids.length || ids.length > 50 || !ids.every(isUuid)) {
+  // Accepted offers the buyer put in the cart (their pay-link tokens), paid at the offer price (0026).
+  const offerTokens = Array.isArray(b?.offer_tokens) ? [...new Set(b!.offer_tokens as unknown[])] : [];
+  if ((!ids.length && !offerTokens.length) || ids.length + offerTokens.length > 50 || !ids.every(isUuid) ||
+      offerTokens.length > 30 || !offerTokens.every(isToken)) {
     return fail(req, 400, "bad_request", "Your cart looks empty. Please refresh and try again.");
   }
 
   const admin = adminClient();
   await admin.rpc("web_release_stale_holds"); // tidy up abandoned holds first (cheap)
 
-  const { data: order, error } = await admin.rpc("web_create_order", {
-    p_card_ids: ids, p_source: "cart", p_hold_minutes: CART_HOLD_MINUTES,
-  });
+  // Offers: look them up by token, and close any checkout already open for them (their own pay link, or an
+  // earlier cart checkout) so only this one can be paid.
+  let offerIds: string[] = [];
+  let offerEmail: string | undefined;
+  if (offerTokens.length) {
+    const { data: offers } = await admin.from("web_offers")
+      .select("id, pay_token, buyer_email, status, pay_expires_at").in("pay_token", offerTokens as string[]);
+    const byToken = new Map((offers ?? []).map((o) => [o.pay_token as string, o]));
+    const closed = (offerTokens as string[]).filter((t) => {
+      const o = byToken.get(t);
+      return !o || !["accepted", "countered"].includes(o.status) || !o.pay_expires_at || new Date(o.pay_expires_at) <= new Date();
+    });
+    if (closed.length) return offersUnavailable(req, closed);
+    const emails = new Set((offers ?? []).map((o) => String(o.buyer_email).trim().toLowerCase()));
+    if (emails.size > 1) {
+      return fail(req, 400, "offers_mixed", "Offers made with different email addresses have to be paid separately.");
+    }
+    offerEmail = [...emails][0];
+    if (code && String(b!.email).trim().toLowerCase() !== offerEmail) {
+      return fail(req, 400, "code_email", `Your offers went to ${offerEmail}. Use that email with your code.`);
+    }
+    offerIds = (offers ?? []).map((o) => o.id as string);
+    let stillOpen: boolean;
+    try {
+      stillOpen = await closeOtherCheckouts(stripe, admin, offerIds);
+    } catch {
+      return fail(req, 502, "server_error", "Checkout hit a snag. Please try again in a minute.");
+    }
+    if (stillOpen) {
+      return fail(req, 409, "offer_paid_elsewhere",
+        "One of your offers was just paid in another window. Refresh your cart to see what's left.");
+    }
+  }
+
+  const { data: order, error } = offerIds.length
+    ? await admin.rpc("web_create_cart_order", { p_card_ids: ids, p_offer_ids: offerIds, p_hold_minutes: CART_HOLD_MINUTES })
+    : await admin.rpc("web_create_order", { p_card_ids: ids, p_source: "cart", p_hold_minutes: CART_HOLD_MINUTES });
   if (error) {
     const [code, detail] = dbError(error);
     if (code === "CARDS_UNAVAILABLE") {
@@ -74,6 +112,14 @@ Deno.serve(async (req) => {
           ? "One card in your cart was just sold or is in someone else's checkout. We took it out of your cart."
           : "Some cards in your cart were just sold or are in someone else's checkout. We took them out of your cart.",
         { card_ids: gone });
+    }
+    if (code === "OFFERS_UNAVAILABLE") {
+      const bad = new Set(detail.split(",").filter(isUuid));
+      const { data: rows } = await admin.from("web_offers").select("id, pay_token").in("id", [...bad]);
+      return offersUnavailable(req, (rows ?? []).map((r) => r.pay_token as string));
+    }
+    if (code === "OFFERS_MIXED_EMAIL") {
+      return fail(req, 400, "offers_mixed", "Offers made with different email addresses have to be paid separately.");
     }
     console.error("web_create_order failed", error);
     return fail(req, 500, "server_error", "Checkout hit a snag. Please try again.");
@@ -112,7 +158,7 @@ Deno.serve(async (req) => {
 
   // Discount code (after free shipping and the bin deal, so the order total ends up right). If the code doesn't apply,
   // stop and say why rather than quietly charging full price. The email is locked in Stripe.
-  let email: string | undefined;
+  let email: string | undefined = offerEmail; // offers: pay with the email they went to
   if (code) {
     const { data: disc, error: discErr } = await admin.rpc("web_apply_discount", {
       p_order_id: order.id, p_code: code, p_email: String(b!.email).trim(),
@@ -146,3 +192,40 @@ Deno.serve(async (req) => {
     return fail(req, 502, "server_error", "Checkout hit a snag. Please try again in a minute.");
   }
 });
+
+function offersUnavailable(req: Request, tokens: string[]) {
+  return fail(req, 409, "offers_unavailable",
+    tokens.length === 1
+      ? "One of your offers can't be paid anymore (its 24 hours ran out or it was closed). We took it out of your cart."
+      : "Some of your offers can't be paid anymore (their 24 hours ran out or they were closed). We took them out of your cart.",
+    { offer_tokens: tokens });
+}
+
+/** Expire any open Stripe checkout for these offers (their own pay link, or an earlier cart checkout that holds
+ *  them) and release earlier cart orders, so only the new checkout can be paid. Returns true if one was
+ *  already paid (then stop). */
+// deno-lint-ignore no-explicit-any
+async function closeOtherCheckouts(stripe: Stripe, admin: any, offerIds: string[]): Promise<boolean> {
+  const { data: own } = await admin.from("web_orders").select("id, source, stripe_session_id")
+    .in("offer_id", offerIds).eq("status", "pending");
+  const { data: inCart } = await admin.from("web_order_items").select("order_id, web_orders!inner(id, source, status, stripe_session_id)")
+    .in("offer_id", offerIds).eq("web_orders.status", "pending");
+  const orders = new Map<string, { id: string; source: string; stripe_session_id: string | null }>();
+  for (const o of own ?? []) orders.set(o.id, o);
+  for (const r of inCart ?? []) orders.set(r.web_orders.id, r.web_orders);
+  for (const o of orders.values()) {
+    if (o.stripe_session_id) {
+      try {
+        const sess = await stripe.checkout.sessions.retrieve(o.stripe_session_id);
+        if (sess.status === "complete") return true;
+        if (sess.status === "open") await stripe.checkout.sessions.expire(sess.id);
+      } catch (e) {
+        console.error("Could not close an earlier checkout", o.id, e);
+        throw e;
+      }
+    }
+    // an earlier cart checkout: give its cards back (offer cards return to their offer hold)
+    if (o.source === "cart") await admin.rpc("web_release_order", { p_order_id: o.id, p_status: "canceled" });
+  }
+  return false;
+}

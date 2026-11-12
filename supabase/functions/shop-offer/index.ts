@@ -11,7 +11,7 @@ const MESSAGES: Record<string, [number, string, string]> = {
   OFFER_TOO_LOW: [400, "offer_too_low", "Please enter an offer of at least $1."],
   OFFER_AT_ASKING: [400, "offer_at_asking", "That's at or above the asking price, so just add it to your cart."],
   TOO_MANY_OFFERS: [429, "too_many_offers", "That's a lot of offers in a short time. Please try again later."],
-  TOO_MANY_OPEN_OFFERS: [429, "too_many_open_offers", "You already have two accepted offers waiting to be paid. Pay or let one expire first."],
+  TOO_MANY_OPEN_OFFERS: [429, "too_many_open_offers", "You have 15 accepted offers waiting to be paid. Pay for those first (you can pay for them all together in your cart), then make more."],
   OFFERS_OFF: [403, "offers_off", "Offers are paused right now."],
 };
 
