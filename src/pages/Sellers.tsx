@@ -28,7 +28,7 @@ const CATEGORY: Record<string, string> = {
   pokemon: "Pokémon", disney: "Disney", marvel: "Marvel", "not sure": "Not sure",
 };
 const HANDOFF: Record<string, string> = {
-  show: "Meet at a show", meetup: "Meet near Harrisburg", ship: "Ship them in", "not sure": "Not sure yet",
+  show: "Meet at a show", meetup: "Meet up (within ~90 min of Harrisburg)", ship: "Ship them in (lower 48)", "not sure": "Not sure yet",
 };
 const STATUS: Record<string, { label: string; tone: "new" | "wait" | "good" | "muted" }> = {
   new: { label: "New", tone: "new" },
@@ -40,6 +40,8 @@ const STATUS: Record<string, { label: string; tone: "new" | "wait" | "good" | "m
   bought: { label: "Bought", tone: "good" },
 };
 const OPEN = new Set(["new", "offer_sent", "asked_more", "accepted"]);
+// Scott, 14 Nov 2026: CS sends a prepaid label once a seller accepts an offer of $100+ (keep in step with _shop/sell.ts).
+const PREPAID_LABEL_MIN = 100;
 
 function usePhotoUrls(leads: Lead[] | undefined) {
   const paths = useMemo(() => (leads || []).flatMap((l) => l.photo_paths), [leads]);
@@ -269,6 +271,14 @@ export default function Sellers() {
                       {lead.offer_amount != null && <>Your {closed ? "price" : "offer"}: <span className="font-semibold text-foreground">{formatMoney(lead.offer_amount)}</span>. </>}
                       {lead.responded_at && <>Last update {formatMoment(lead.responded_at)}.</>}
                       {lead.last_message && <span className="mt-1 block whitespace-pre-wrap">You wrote: “{lead.last_message}”</span>}
+                    </p>
+                  )}
+
+                  {lead.status === "accepted" && lead.handoff === "ship" && (
+                    <p className="rounded-md border-l-4 border-accent bg-muted/20 px-3 py-2 text-sm text-foreground">
+                      {Number(lead.offer_amount ?? 0) >= PREPAID_LABEL_MIN
+                        ? "They're shipping, and the deal is $100+: email them a prepaid shipping label (insured, with tracking)."
+                        : "They're shipping, and the deal is under $100: email them your address; they pay the postage."}
                     </p>
                   )}
 

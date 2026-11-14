@@ -7,13 +7,16 @@ export const REPLY_PROMISE = "within 24 hours";
 export const COLTON_PHONE = "(570) 452-3625";
 export const PHOTO_BUCKET = "sell-photos";
 export const MAX_PHOTOS = 10;
+/** Scott, 14 Nov 2026: CS sends a prepaid label once a seller accepts an offer of this much or more. */
+export const PREPAID_LABEL_MIN = 100;
+export const MEETUP_AREA = "within about 90 minutes of Harrisburg";
 
 export const CATEGORY_LABELS: Record<string, string> = {
   football: "Football", basketball: "Basketball", baseball: "Baseball", hockey: "Hockey", soccer: "Soccer",
   pokemon: "Pokémon", disney: "Disney", marvel: "Marvel", "not sure": "Not sure",
 };
 export const HANDOFF_LABELS: Record<string, string> = {
-  show: "Meet at a show", meetup: "Meet near Harrisburg", ship: "Ship them in", "not sure": "Not sure yet",
+  show: "Meet at a show", meetup: "Meet up (within ~90 min of Harrisburg)", ship: "Ship them in (lower 48)", "not sure": "Not sure yet",
 };
 
 export type Lead = {
@@ -105,7 +108,12 @@ export async function emailSellerReply(l: Lead, action: "offer" | "ask_more" | "
     subject = `Our offer for your cards: ${money(amount)}`;
     heading = `Our offer: ${money(amount)}`;
     body = `<p>Hi ${esc(firstName(l.seller_name))}, thanks for sending your cards over. Based on your photos, we can offer <b>${money(amount)}</b>.</p>${note}
-<p>To take it, ask a question or set up the handoff, just reply to this email or call or text ${COLTON_PHONE}. We check the cards in person (or when they arrive) before paying. No pressure if it's not for you.</p>${sign}`;
+<p>To take it, ask a question or set up the handoff, just reply to this email or call or text ${COLTON_PHONE}. No pressure if it's not for you.</p>
+<p><b>Handing them over:</b> we can meet up ${MEETUP_AREA}, see you at a show, or you can ship them from anywhere in the lower 48. ${
+      (amount ?? 0) >= PREPAID_LABEL_MIN
+        ? "Shipping? Once you say yes, we'll email you a prepaid shipping label."
+        : "Shipping? Once you say yes, we'll send our address. Please ship with tracking."
+    } We check the cards in person (or when they arrive) and pay you right away.</p>${sign}`;
   } else if (action === "ask_more") {
     subject = "A quick question about your cards";
     heading = "A quick question";
