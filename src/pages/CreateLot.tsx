@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -29,6 +29,9 @@ export default function CreateLot() {
   const { toast } = useToast();
   const { id } = useParams();
   const isEditMode = !!id;
+  // "Mark bought" on EndZone → Sellers opens /lots/new?seller=<lead id> (0027).
+  const [searchParams] = useSearchParams();
+  const sellerLeadId = !isEditMode ? searchParams.get("seller") : null;
 
   const todayStr = format(new Date(), "yyyy-MM-dd");
 
@@ -71,6 +74,32 @@ export default function CreateLot() {
       return data || [];
     },
   });
+
+  const { data: sellerLead } = useQuery({
+    queryKey: ["sellLead", sellerLeadId],
+    enabled: !!sellerLeadId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("web_sell_leads")
+        .select("id, seller_name, seller_email, seller_phone, zip, card_count, offer_amount, status")
+        .eq("id", sellerLeadId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (!sellerLead) return;
+    setSource((s) => s || "Website seller");
+    setTotalCost((c) => c || (sellerLead.offer_amount != null ? Number(sellerLead.offer_amount).toFixed(2) : ""));
+    // Scott (14 Nov 2026): on buys from sellers, keep the seller's name and contact with the lot.
+    setNotes((n) => n || [
+      `Bought from ${sellerLead.seller_name} through cssportscards.com/sell.`,
+      `Contact: ${[sellerLead.seller_email, sellerLead.seller_phone, sellerLead.zip].filter(Boolean).join(", ")}.`,
+      sellerLead.card_count ? `Size: ${sellerLead.card_count}.` : "",
+    ].filter(Boolean).join(" ").slice(0, 500));
+  }, [sellerLead]);
 
   useEffect(() => {
     if (existingLot) {
@@ -198,6 +227,22 @@ export default function CreateLot() {
           title: "Lot created!",
           description: `${source} - $${totalCost} recorded. Cash balance updated.`,
         });
+
+        if (sellerLead && lot) {
+          const { error: linkError } = await supabase.rpc("web_sell_lead_link_lot", {
+            p_lead_id: sellerLead.id,
+            p_lot_id: lot.id,
+          });
+          if (linkError) {
+            toast({
+              title: "Lot saved, but not linked to the seller",
+              description: "The lot is fine. On Sellers, this one still shows as open.",
+              variant: "destructive",
+            });
+          }
+          navigate(`/sellers?lead=${sellerLead.id}`);
+          return;
+        }
       }
 
       navigate("/lots");
@@ -214,7 +259,7 @@ export default function CreateLot() {
   };
 
   const handleCancel = () => {
-    navigate("/lots");
+    navigate(sellerLeadId ? `/sellers?lead=${sellerLeadId}` : "/lots");
   };
 
   if (isEditMode && loadingLot) {
@@ -237,7 +282,17 @@ export default function CreateLot() {
         <p className="text-muted-foreground">Record a new purchase</p>
       </div>
 
-      {!isEditMode && (
+      {sellerLead && (
+        <Alert className="mb-6 border-l-4 border-accent">
+          <Info className="h-5 w-5" />
+          <AlertDescription className="ml-2">
+            Buying from <strong>{sellerLead.seller_name}</strong> (website seller). Check the cost, date and which
+            account paid, then create the lot. Their name and contact are in the notes.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!isEditMode && !sellerLead && (
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-950/20 border-l-4 border-blue-500">
           <Info className="h-5 w-5 text-blue-500" />
           <AlertDescription className="ml-2 text-blue-900 dark:text-blue-100">

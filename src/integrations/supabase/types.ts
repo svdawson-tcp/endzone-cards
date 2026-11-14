@@ -841,6 +841,50 @@ export type Database = {
         }
         Relationships: []
       }
+      web_sell_leads: {
+        Row: {
+          asking_price: number | null
+          card_count: string | null
+          categories: string[]
+          created_at: string
+          details: string | null
+          era: string | null
+          graded: string | null
+          handoff: string | null
+          id: string
+          ip_hash: string | null
+          last_message: string | null
+          lot_id: string | null
+          offer_amount: number | null
+          owner_notes: string | null
+          photo_paths: string[]
+          responded_at: string | null
+          seller_email: string
+          seller_name: string
+          seller_phone: string | null
+          source_page: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          zip: string | null
+        }
+        Insert: never
+        Update: {
+          offer_amount?: number | null
+          owner_notes?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_sell_leads_lot_id_fkey"
+            columns: ["lot_id"]
+            isOneToOne: false
+            referencedRelation: "lots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       web_offers: {
         Row: {
           action_token: string
@@ -1174,6 +1218,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      web_sell_lead_link_lot: {
+        Args: { p_lead_id: string; p_lot_id: string }
+        Returns: Database["public"]["Tables"]["web_sell_leads"]["Row"]
+      }
       get_big_games_admin: {
         Args: Record<PropertyKey, never>
         Returns: Json

@@ -20,7 +20,7 @@ export function useWebsiteSettings() {
   });
 }
 
-/** Counts for the navigation badges: offers waiting on Colton, paid orders not yet shipped. */
+/** Counts for the navigation badges: offers waiting on Colton, paid orders not yet shipped, new sellers (0027). */
 export function useWebShopCounts() {
   const { viewingUserId, getEffectiveUserId } = useMentorAccess();
   return useQuery({
@@ -28,7 +28,7 @@ export function useWebShopCounts() {
     refetchInterval: 60_000,
     queryFn: async () => {
       const userId = await getEffectiveUserId();
-      const [offers, orders] = await Promise.all([
+      const [offers, orders, sellers] = await Promise.all([
         supabase
           .from("web_offers")
           .select("id", { count: "exact", head: true })
@@ -40,10 +40,16 @@ export function useWebShopCounts() {
           .eq("user_id", userId)
           .eq("status", "paid")
           .is("shipped_at", null),
+        supabase
+          .from("web_sell_leads")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .eq("status", "new"),
       ]);
       if (offers.error) throw offers.error;
       if (orders.error) throw orders.error;
-      return { pendingOffers: offers.count || 0, ordersToShip: orders.count || 0 };
+      // Sellers is new (0027): a missing table before the migration is applied must not break the other badges.
+      return { pendingOffers: offers.count || 0, ordersToShip: orders.count || 0, newSellers: sellers.error ? 0 : sellers.count || 0 };
     },
   });
 }

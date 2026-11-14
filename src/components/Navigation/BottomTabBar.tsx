@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag, Inbox } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -22,7 +22,7 @@ const BottomTabBar = () => {
   const [goalsMenuOpen, setGoalsMenuOpen] = useState(false);
   const { isViewingAsMentor, logActivity } = useMentorAccess();
   const { data: shopCounts } = useWebShopCounts();
-  const menuBadgeTotal = (shopCounts?.pendingOffers || 0) + (shopCounts?.ordersToShip || 0);
+  const menuBadgeTotal = (shopCounts?.pendingOffers || 0) + (shopCounts?.ordersToShip || 0) + (shopCounts?.newSellers || 0);
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
@@ -46,6 +46,7 @@ const BottomTabBar = () => {
     { icon: Calendar, label: "Shows", route: "/shows", description: "Upcoming events & shows" },
     { icon: HandCoins, label: "Offers", route: "/offers", description: "Website offers to accept, counter or decline", badge: shopCounts?.pendingOffers || 0 },
     { icon: ShoppingBag, label: "Web Orders", route: "/web-orders", description: "Website orders to ship", badge: shopCounts?.ordersToShip || 0 },
+    { icon: Inbox, label: "Sellers", route: "/sellers", description: "People who want to sell you cards (Got Cards?)", badge: shopCounts?.newSellers || 0 },
     { icon: Globe, label: "Website", route: "/website", description: "Weekly Headliner, Most Wanted list and show schedule" },
     { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
     { icon: Landmark, label: "Tax", route: "/tax", description: "Weekly set-aside and estimated payments" },
