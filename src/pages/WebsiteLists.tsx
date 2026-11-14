@@ -7,6 +7,7 @@ import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useWebsiteSettings } from "@/hooks/useWebsiteSettings";
 import { HeadlinerEditor } from "@/components/website/HeadlinerEditor";
 import { TickerEditor } from "@/components/website/TickerEditor";
+import { HuntEditor } from "@/components/website/HuntEditor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -99,11 +100,12 @@ export default function WebsiteLists() {
         </div>
       ) : (
         <Tabs defaultValue="headliner" className="space-y-4">
-          <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="headliner" className="min-h-[44px]">Headliner</TabsTrigger>
             <TabsTrigger value="wanted" className="min-h-[44px]">Most Wanted</TabsTrigger>
             <TabsTrigger value="shows" className="min-h-[44px]">Shows</TabsTrigger>
             <TabsTrigger value="ticker" className="min-h-[44px]">Ticker</TabsTrigger>
+            <TabsTrigger value="hunt" className="col-span-2 min-h-[44px] sm:col-span-1">On the Hunt</TabsTrigger>
           </TabsList>
           <TabsContent value="headliner">
             <HeadlinerEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
@@ -116,6 +118,9 @@ export default function WebsiteLists() {
           </TabsContent>
           <TabsContent value="ticker">
             <TickerEditor readOnly={isViewingAsMentor} />
+          </TabsContent>
+          <TabsContent value="hunt">
+            <HuntEditor ownerId={settings.owner_user_id} readOnly={isViewingAsMentor} />
           </TabsContent>
         </Tabs>
       )}

@@ -841,6 +841,45 @@ export type Database = {
         }
         Relationships: []
       }
+      website_hunt: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          pay_up_to: number | null
+          photo_url: string
+          sort_order: number
+          title: string
+          updated_at: string
+          user_id: string
+          visible: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          pay_up_to?: number | null
+          photo_url: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          user_id: string
+          visible?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          pay_up_to?: number | null
+          photo_url?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+          visible?: boolean
+        }
+        Relationships: []
+      }
       web_sell_leads: {
         Row: {
           asking_price: number | null
