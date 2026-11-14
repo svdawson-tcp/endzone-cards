@@ -239,7 +239,9 @@ export default function CreateShowCard() {
   })();
   const websiteOn = showOnWebsite && !websiteBlocker;
   // Marvel / Disney cards use the Team box for the character or film (shown on the site as "MARVEL · SPIDER-MAN").
-  const isPopCulture = sport === "marvel" || sport === "disney";
+  // Pokémon (0028): the Pokémon's name goes in the name box and the series (e.g. Scarlet & Violet) in the Team box.
+  const isPokemon = sport === "pokemon";
+  const isPopCulture = sport === "marvel" || sport === "disney" || isPokemon;
 
   // Make an Offer: the hidden floor at/above which website offers are accepted automatically.
   const { data: websiteSettings } = useWebsiteSettings();
@@ -478,7 +480,7 @@ export default function CreateShowCard() {
     }
 
     if (!playerName.trim()) {
-      newErrors.playerName = isPopCulture ? "Character is required" : "Player name is required";
+      newErrors.playerName = isPokemon ? "Pokémon is required" : isPopCulture ? "Character is required" : "Player name is required";
       isValid = false;
     }
 
@@ -998,7 +1000,7 @@ export default function CreateShowCard() {
 
           {/* Player Name */}
           <div>
-            <label htmlFor="player-name" className="form-label">{isPopCulture ? "Character" : "Player Name"} *<MarkBadge k="playerName" /></label>
+            <label htmlFor="player-name" className="form-label">{isPokemon ? "Pokémon" : isPopCulture ? "Character" : "Player Name"} *<MarkBadge k="playerName" /></label>
             <Input
               id="player-name"
               type="text"
@@ -1008,7 +1010,7 @@ export default function CreateShowCard() {
                 markEdited("playerName");
                 if (errors.playerName) setErrors({ ...errors, playerName: "" });
               }}
-              placeholder={sport === "marvel" ? "Spider-Man" : sport === "disney" ? "Mickey Mouse" : "Dak Prescott"}
+              placeholder={sport === "marvel" ? "Spider-Man" : sport === "disney" ? "Mickey Mouse" : isPokemon ? "Charizard ex" : "Dak Prescott"}
               maxLength={100}
               className={`mt-2 min-h-[44px] ${markInputClass("playerName")}`}
             />
@@ -1360,13 +1362,14 @@ export default function CreateShowCard() {
                   <SelectItem value="soccer">Soccer</SelectItem>
                   <SelectItem value="marvel">Marvel</SelectItem>
                   <SelectItem value="disney">Disney</SelectItem>
+                  <SelectItem value="pokemon">Pokémon</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
               <label htmlFor="website-team" className="form-label">
-                {isPopCulture ? "Character / film" : "Team"} {websiteOn && "*"}<MarkBadge k="team" />
+                {isPokemon ? "Series" : isPopCulture ? "Character / film" : "Team"} {websiteOn && "*"}<MarkBadge k="team" />
               </label>
               <Input
                 id="website-team"
@@ -1374,7 +1377,7 @@ export default function CreateShowCard() {
                 onChange={(e) => { setTeam(e.target.value); markEdited("team"); }}
                 list="website-team-options"
                 maxLength={60}
-                placeholder={isPopCulture ? (sport === "marvel" ? "e.g. Spider-Man" : "e.g. The Lion King") : "e.g. Commanders"}
+                placeholder={isPokemon ? "e.g. Scarlet & Violet" : isPopCulture ? (sport === "marvel" ? "e.g. Spider-Man" : "e.g. The Lion King") : "e.g. Commanders"}
                 className={`mt-2 min-h-[44px] ${markInputClass("team")}`}
               />
               <MarkNote k="sport" />

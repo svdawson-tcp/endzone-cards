@@ -16,7 +16,7 @@ export const MODEL = "claude-sonnet-5-5";
 const DAILY_CAP = 500;
 const MAX_IMAGE_B64 = 2_800_000; // ~2 MB per photo after base64
 const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const SPORTS = ["football", "basketball", "baseball", "hockey", "soccer", "marvel", "disney", "other"];
+const SPORTS = ["football", "basketball", "baseball", "hockey", "soccer", "marvel", "disney", "pokemon", "other"];
 
 const ALLOWED_ORIGINS = [
   /^https:\/\/endzone-cards\.netlify\.app$/,
@@ -83,7 +83,7 @@ const flagField = (description: string) => ({
 const SCHEMA = {
     type: "object",
     properties: {
-      is_sports_card: { type: "boolean", description: "false if the photo is not a trading card (or a slab holding one). Sports, Marvel and Disney trading cards all count as cards." },
+      is_sports_card: { type: "boolean", description: "false if the photo is not a trading card (or a slab holding one). Sports, Marvel, Disney and Pokémon trading cards all count as cards." },
       player_name: textField("Player's full name as printed, e.g. 'Jayden Daniels'. For multi-player cards, names joined with ' / '."),
       year: textField("Card year as collectors list it: the year in the product name (e.g. 2024 for '2024 Panini Prizm'). For two-season products like 2023-24, the first year (2023). If only a copyright year is visible and no product year, use it but set sure=false."),
       brand: textField("Manufacturer only: Panini, Topps, Upper Deck, Fleer, Leaf, Donruss (pre-Panini), Bowman (pre-Topps), etc. Modern Donruss/Prizm/Select/Optic are Panini; modern Bowman/Chrome/Finest are Topps."),
@@ -107,7 +107,7 @@ const SCHEMA = {
         required: ["value", "sure", "note"],
         additionalProperties: false,
       },
-      team: textField("Team on the card as 'City Nickname', e.g. 'Washington Commanders', 'Indiana Fever'. For college cards, the school. For Marvel or Disney cards, the film or franchise if printed, e.g. 'X-Men', 'Frozen'; otherwise empty."),
+      team: textField("Team on the card as 'City Nickname', e.g. 'Washington Commanders', 'Indiana Fever'. For college cards, the school. For Marvel or Disney cards, the film or franchise if printed, e.g. 'X-Men', 'Frozen'; otherwise empty. For Pokémon cards, the series/era if you clearly recognise it, e.g. 'Scarlet & Violet', 'Sword & Shield'; otherwise empty."),
     },
     required: [
       "is_sports_card", "player_name", "year", "brand", "set_name", "card_number", "parallel", "serial_number",
@@ -116,8 +116,11 @@ const SCHEMA = {
     additionalProperties: false,
 };
 
-const SYSTEM = `You read trading cards (mostly sports; some Marvel and Disney) from photos for a card dealer's inventory app.
+const SYSTEM = `You read trading cards (mostly sports; some Marvel, Disney and Pokémon) from photos for a card dealer's inventory app.
 For Marvel or Disney cards, put the character's name in player_name and use sport 'marvel' or 'disney'.
+For Pokémon cards, use sport 'pokemon'; put the Pokémon's name exactly as printed (e.g. 'Charizard ex') in player_name,
+'Pokémon' as brand, the expansion name (e.g. 'Obsidian Flames') in set_name, the number as printed (e.g. '125/197') in
+card_number, and a special finish (e.g. 'Reverse Holo', 'Holo') in parallel. Pokémon cards are never rookie cards.
 Read only what is visible on the card, its back, or a grading slab label. Do not guess from general knowledge
 when the card does not show it, except brand/set, which you may infer from the card design when you clearly
 recognise it (then set sure=true only if you are confident).
