@@ -9,6 +9,7 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const CATEGORIES = new Set(["football", "basketball", "baseball", "hockey", "soccer", "pokemon", "disney", "marvel", "not sure"]);
 const HANDOFFS = new Set(["show", "meetup", "ship", "not sure"]);
 const GRADED = new Set(["yes", "no", "not sure"]);
+const HEARD_FROM = new Set(["google", "facebook", "instagram", "craigslist_nextdoor", "show", "card_flyer", "friend", "other"]);
 
 async function sha256(text: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
@@ -52,6 +53,7 @@ Deno.serve(async (req) => {
   const categories = form.getAll("categories").map(String).map((c) => c.toLowerCase()).filter((c) => CATEGORIES.has(c));
   const handoff = text(form, "handoff", 20).toLowerCase();
   const graded = text(form, "graded", 20).toLowerCase();
+  const heardFrom = text(form, "heard_from", 30).toLowerCase();
 
   const files = form.getAll("photos").filter((p): p is File => p instanceof File && p.size > 0);
   if (!files.length) return fail(req, 400, "photos_required", "Please add at least one photo.");
@@ -84,6 +86,7 @@ Deno.serve(async (req) => {
     p_details: text(form, "details", 3000) || null, p_asking: asking === null ? null : Math.round(asking * 100) / 100,
     p_handoff: HANDOFFS.has(handoff) ? handoff : null, p_photo_paths: paths,
     p_ip_hash: ip ? await sha256(`cs-sell:${ip}`) : null, p_source_page: text(form, "source", 200) || null,
+    p_heard_from: HEARD_FROM.has(heardFrom) ? heardFrom : null,
   });
   if (error) {
     await admin.storage.from(PHOTO_BUCKET).remove(paths);

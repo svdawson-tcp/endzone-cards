@@ -30,6 +30,11 @@ const CATEGORY: Record<string, string> = {
 const HANDOFF: Record<string, string> = {
   show: "Meet at a show", meetup: "Meet up (within ~90 min of Harrisburg)", ship: "Ship them in (lower 48)", "not sure": "Not sure yet",
 };
+// "How did you hear about us?" (migration 0030; keep in step with _shop/sell.ts and the site's sell.html).
+const HEARD_FROM: Record<string, string> = {
+  google: "Google search or Maps", facebook: "Facebook", instagram: "Instagram", craigslist_nextdoor: "Craigslist or Nextdoor",
+  show: "A card show", card_flyer: "Our card, flyer or package insert", friend: "A friend or family member", other: "Something else",
+};
 const STATUS: Record<string, { label: string; tone: "new" | "wait" | "good" | "muted" }> = {
   new: { label: "New", tone: "new" },
   offer_sent: { label: "Offer sent", tone: "wait" },
@@ -261,6 +266,7 @@ export default function Sellers() {
                     {lead.era && <Fact k="Mostly from" v={lead.era} />}
                     <Fact k="Asking" v={lead.asking_price != null ? formatMoney(lead.asking_price) : "No price — wants an offer"} />
                     {lead.handoff && <Fact k="Handoff" v={HANDOFF[lead.handoff] ?? lead.handoff} />}
+                    {lead.heard_from && <Fact k="Heard about us" v={HEARD_FROM[lead.heard_from] ?? lead.heard_from} />}
                   </dl>
                   {lead.details && (
                     <p className="whitespace-pre-wrap break-words rounded-md bg-muted/20 px-3 py-2 text-sm text-foreground/90">“{lead.details}”</p>

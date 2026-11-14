@@ -890,6 +890,7 @@ export type Database = {
           era: string | null
           graded: string | null
           handoff: string | null
+          heard_from: string | null
           id: string
           ip_hash: string | null
           last_message: string | null

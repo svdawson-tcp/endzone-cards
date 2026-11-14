@@ -19,11 +19,17 @@ export const HANDOFF_LABELS: Record<string, string> = {
   show: "Meet at a show", meetup: "Meet up (within ~90 min of Harrisburg)", ship: "Ship them in (lower 48)", "not sure": "Not sure yet",
 };
 
+/** "How did you hear about us?" (migration 0030; keep in step with sell.html and Sellers.tsx). */
+export const HEARD_FROM_LABELS: Record<string, string> = {
+  google: "Google search or Maps", facebook: "Facebook", instagram: "Instagram", craigslist_nextdoor: "Craigslist or Nextdoor",
+  show: "A card show", card_flyer: "Our card, flyer or package insert", friend: "A friend or family member", other: "Something else",
+};
+
 export type Lead = {
   id: string; user_id: string; seller_name: string; seller_email: string; seller_phone: string | null;
   zip: string | null; categories: string[]; card_count: string | null; graded: string | null; era: string | null;
   details: string | null; asking_price: number | null; handoff: string | null; photo_paths: string[];
-  status: string; offer_amount: number | null; created_at: string;
+  status: string; offer_amount: number | null; created_at: string; heard_from?: string | null;
 };
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] || "there";
@@ -49,6 +55,7 @@ function leadRows(l: Lead): string {
     ["Mostly from", l.era ? esc(l.era) : null],
     ["Asking", l.asking_price != null ? money(l.asking_price) : "No price given"],
     ["Handoff", l.handoff ? esc(HANDOFF_LABELS[l.handoff] ?? l.handoff) : null],
+    ["Heard about us", l.heard_from ? esc(HEARD_FROM_LABELS[l.heard_from] ?? l.heard_from) : null],
     ["Details", l.details ? esc(l.details).replace(/\n/g, "<br>") : null],
   ]);
 }
