@@ -45,7 +45,7 @@ function leadRows(l: Lead): string {
     ["Zip", l.zip ? esc(l.zip) : null],
     ["Cards", l.categories.length ? esc(l.categories.map((c) => CATEGORY_LABELS[c] ?? c).join(", ")) : null],
     ["How many", l.card_count ? esc(l.card_count) : null],
-    ["Graded", l.graded ? esc(l.graded) : null],
+    ["Graded", l.graded ? esc(l.graded.charAt(0).toUpperCase() + l.graded.slice(1)) : null],
     ["Mostly from", l.era ? esc(l.era) : null],
     ["Asking", l.asking_price != null ? money(l.asking_price) : "No price given"],
     ["Handoff", l.handoff ? esc(HANDOFF_LABELS[l.handoff] ?? l.handoff) : null],

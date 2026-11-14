@@ -148,6 +148,27 @@ export function cardBlock(c: CardInfo, priceLabel?: string): string {
 ${priceLabel ? `<div style="font-size:16px">${priceLabel}</div>` : ""}</td></tr></table>`;
 }
 
+/** Plain-text twin of an email's HTML. Spam filters (Outlook especially) mark down HTML-only mail. */
+export function htmlToText(html: string): string {
+  const ent: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", nbsp: " ", middot: "·", rarr: "→", mdash: "—", ndash: "–" };
+  return html
+    .replace(/<(head|style|script)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<a\b[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/gi, (_m, href: string, label: string) => {
+      const text = label.replace(/<[^>]+>/g, "").trim();
+      const url = href.replace(/&amp;/g, "&");
+      return !text || text === url || url.startsWith("mailto:") ? (text || url) : `${text} (${url})`;
+    })
+    .replace(/<img\b[^>]*alt="([^"]*)"[^>]*>/gi, (_m, alt: string) => (alt ? `[${alt}]` : ""))
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|tr|h[1-6]|li|table)>/gi, "\n")
+    .replace(/<\/td>/gi, "  ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(#39|[a-z]+);/gi, (m, e: string) => ent[e.toLowerCase()] ?? m)
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function sendEmail(msg: {
   to: string; subject: string; html: string; from?: "orders" | "site"; replyTo?: string;
 }): Promise<boolean> {
@@ -166,6 +187,7 @@ export async function sendEmail(msg: {
         reply_to: msg.replyTo,
         subject: msg.subject,
         html: msg.html,
+        text: htmlToText(msg.html),
       }),
     });
     if (!res.ok) console.error("Resend failed", res.status, await res.text());
