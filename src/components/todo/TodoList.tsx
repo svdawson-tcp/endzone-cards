@@ -14,7 +14,8 @@ import { formatBusinessDate, toLocalDateString } from "@/lib/dateUtils";
 import type { TodoItem, TripPrefill } from "@/lib/todo";
 import { addDays } from "date-fns";
 import {
-  AlertTriangle, CalendarClock, Car, CheckCircle2, ClipboardCheck, Info, Landmark, ListTodo, Scale, Send, Settings2,
+  AlertTriangle, CalendarClock, Car, CheckCircle2, ClipboardCheck, HandCoins, Inbox, Info, Landmark, ListTodo, Package,
+  Scale, Send, Settings2, Star, Store, Target,
 } from "lucide-react";
 
 const ICONS = {
@@ -26,6 +27,15 @@ const ICONS = {
   checkup: ClipboardCheck,
   trip: Car,
   task: ListTodo,
+  sell_lead: Inbox,
+  offer: HandCoins,
+  order: Package,
+  show_fee: Store,
+  show_prep: Store,
+  show_close: Store,
+  old_shows: Store,
+  headliner: Star,
+  wanted: Target,
 } as const;
 
 /** The signed-in person (Colton, or Scott in mentor view) — needed to know which tasks Scott may edit. */
@@ -86,6 +96,18 @@ export function TodoList({ items }: { items: TodoItem[] }) {
     onError: (error: Error) => toast({ title: "Could not mark it done", description: error.message, variant: "destructive" }),
   });
 
+  const closeShowsMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("shows").update({ status: "completed" }).in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      toast({ title: `Closed ${ids.length} show${ids.length === 1 ? "" : "s"}` });
+      invalidate();
+    },
+    onError: (error: Error) => toast({ title: "Could not close the shows", description: error.message, variant: "destructive" }),
+  });
+
   if (items.length === 0) return null;
 
   const primaryAction = (r: TodoItem) => {
@@ -105,6 +127,36 @@ export function TodoList({ items }: { items: TodoItem[] }) {
         return { label: "Log the drive", onClick: () => setTripPrefill({ ...r.trip, prompt_key: r.key }) };
       case "task":
         return { label: "Done", onClick: () => r.task_id && doneMutation.mutate(r.task_id) };
+      case "sell_lead":
+        return { label: "Reply", onClick: () => navigate(r.link || "/sellers") };
+      case "offer":
+        return { label: "Answer", onClick: () => navigate(r.link || "/offers") };
+      case "order":
+        return { label: "Open orders", onClick: () => navigate(r.link || "/web-orders") };
+      case "show_fee": {
+        // the expense form comes back to To Do and clears this card
+        const back = `/todo?dismiss=${encodeURIComponent(r.key)}`;
+        const date = r.show_date && r.show_date <= toLocalDateString(new Date()) ? `&date=${r.show_date}` : "";
+        return {
+          label: "Record the fee",
+          onClick: () => navigate(`/expenses/new?category=${encodeURIComponent("Table / Booth Fees")}${date}&returnTo=${encodeURIComponent(back)}`),
+        };
+      }
+      case "show_prep":
+        return r.needs_show
+          ? { label: "Add the show", onClick: () => navigate("/shows/new") }
+          : { label: "Ready", onClick: () => stateMutation.mutate({ item: r }) };
+      case "show_close":
+        return { label: "Open the show", onClick: () => navigate(r.link || "/shows") };
+      case "old_shows":
+        return {
+          label: `Close all ${r.show_ids?.length ?? ""}`.trim(),
+          onClick: () => r.show_ids?.length && closeShowsMutation.mutate(r.show_ids),
+        };
+      case "headliner":
+        return { label: "Pick one", onClick: () => navigate(r.link || "/website?tab=headliner") };
+      case "wanted":
+        return { label: "Open the list", onClick: () => navigate(r.link || "/website?tab=wanted") };
       default:
         return null;
     }
@@ -115,7 +167,21 @@ export function TodoList({ items }: { items: TodoItem[] }) {
     switch (r.kind) {
       case "setup":
       case "task":
+      case "sell_lead":
+      case "offer":
+      case "order":
+      case "show_close":
         return null;
+      case "show_fee":
+        return { label: "Already paid", onClick: () => stateMutation.mutate({ item: r }) };
+      case "show_prep":
+        return r.needs_show ? { label: "Ready", onClick: () => stateMutation.mutate({ item: r }) } : null;
+      case "old_shows":
+        return { label: "Not now", onClick: () => stateMutation.mutate({ item: r, snoozeDays: 7 }) };
+      case "headliner":
+        return { label: "Keep it another week", onClick: () => stateMutation.mutate({ item: r, snoozeDays: 7 }) };
+      case "wanted":
+        return { label: "Still good", onClick: () => stateMutation.mutate({ item: r, snoozeDays: 7 }) };
       case "info":
         return { label: "Done", onClick: () => stateMutation.mutate({ item: r }) };
       case "tax_transfer":
@@ -156,7 +222,7 @@ export function TodoList({ items }: { items: TodoItem[] }) {
                 <div className="text-base md:text-lg font-bold text-foreground">{r.title}</div>
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {r.body}
-                  {r.due && !["tax_transfer", "trip"].includes(r.kind) &&
+                  {r.due && !["tax_transfer", "trip", "sell_lead", "offer", "order", "show_close", "show_fee", "show_prep"].includes(r.kind) &&
                     ` ${r.overdue ? "Was due" : "Due"} ${formatBusinessDate(r.due, "MMM d")}.`}
                   {r.added_by_mentor && " Added by Scott."}
                 </p>
@@ -165,7 +231,7 @@ export function TodoList({ items }: { items: TodoItem[] }) {
                     {action && (
                       <Button
                         onClick={action.onClick}
-                        disabled={doneMutation.isPending}
+                        disabled={doneMutation.isPending || closeShowsMutation.isPending}
                         className="min-h-[44px] bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                       >
                         {r.kind === "task" && <CheckCircle2 className="mr-1 h-4 w-4" />}

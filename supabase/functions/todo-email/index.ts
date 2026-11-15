@@ -1,7 +1,8 @@
 // todo-email — EndZone To Do emails to Colton (0031). Runs hourly from pg_cron (todo_email_tick, at :31).
 //  * Sunday digest from 6 pm ET: everything in Now and This week, leading with the monthly checkup when it's due.
 //    Skipped (and logged) when there's nothing due or Colton has switched the weekly email off.
-//  * Urgent, as soon as it applies: an estimated tax payment due within 3 days, or a task marked urgent.
+//  * Urgent, as soon as it applies: an estimated tax payment due within 3 days, a task marked urgent, or (0032)
+//    a Got Cards? submission waiting 20 hours for a reply.
 // The database decides what is due (todo_email_pending); this function only writes and sends the emails.
 // Each email is logged only after Resend accepts it, so a failed send is retried on the next run;
 // the log's unique key means nothing is sent twice. Safe to call any time.
@@ -9,7 +10,7 @@ import { adminClient, button, COLTON, ENDZONE, esc, layout, pause, sendEmail } f
 
 type Item = {
   key: string; period: string; kind: string; tier: "now" | "week" | "later";
-  title: string; body: string; due: string | null; overdue?: boolean; urgent?: boolean; added_by_mentor?: boolean;
+  title: string; body: string; due: string | null; overdue?: boolean; urgent?: boolean; added_by_mentor?: boolean; link?: string;
 };
 type Pending = { kind: "digest" | "urgent"; period_key: string; send: boolean; checkup?: boolean; items: Item[] };
 
@@ -57,12 +58,12 @@ sales not entered yet, drives, and the bank check.</p>${button(`${ENDZONE}/check
 
 function urgent(p: Pending): { subject: string; html: string } {
   const i = p.items[0];
-  const subject = i.kind === "estimated_tax" ? `Reminder: ${i.title}` : `Urgent: ${i.title}`;
+  const subject = i.kind === "task" ? `Urgent: ${i.title}` : `Reminder: ${i.title}`;
   const html = layout(esc(i.title),
     `${i.body ? `<p style="font-size:16px">${esc(i.body)}</p>` : ""}
-${i.due ? `<p style="color:#444">Due ${esc(fmtDate(i.due))}.</p>` : ""}
+${i.due && i.kind !== "sell_lead" ? `<p style="color:#444">Due ${esc(fmtDate(i.due))}.</p>` : ""}
 ${i.kind === "task" && i.added_by_mentor ? `<p style="color:#444">Scott added this to your To Do list.</p>` : ""}
-<p>${button(`${ENDZONE}/todo`, "Open To Do")}</p>`);
+<p>${button(`${ENDZONE}${i.link && i.link.startsWith("/") ? i.link : "/todo"}`, i.kind === "sell_lead" ? "Reply now" : "Open To Do")}</p>`);
   return { subject, html };
 }
 

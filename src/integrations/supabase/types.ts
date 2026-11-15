@@ -1017,6 +1017,7 @@ export type Database = {
           trip_date: string
           updated_at: string
           user_id: string
+          website_show_id: string | null
         }
         Insert: {
           corrected_at?: string | null
@@ -1034,6 +1035,7 @@ export type Database = {
           trip_date: string
           updated_at?: string
           user_id: string
+          website_show_id?: string | null
         }
         Update: {
           corrected_at?: string | null
@@ -1051,6 +1053,7 @@ export type Database = {
           trip_date?: string
           updated_at?: string
           user_id?: string
+          website_show_id?: string | null
         }
         Relationships: [
           {

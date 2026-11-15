@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { ExternalLink, Loader2, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -79,7 +80,12 @@ function errorText(error: unknown): string {
   return msg || "Please try again.";
 }
 
+const WEBSITE_TABS = ["headliner", "wanted", "shows", "ticker", "hunt"];
+
 export default function WebsiteLists() {
+  // ?tab=wanted etc. (links from To Do)
+  const [searchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
   const { data: settings, isLoading } = useWebsiteSettings();
   const { isViewingAsMentor } = useMentorAccess();
 
@@ -99,7 +105,7 @@ export default function WebsiteLists() {
           This account doesn't run the website.
         </div>
       ) : (
-        <Tabs defaultValue="headliner" className="space-y-4">
+        <Tabs defaultValue={WEBSITE_TABS.includes(tabParam || "") ? (tabParam as string) : "headliner"} className="space-y-4">
           <TabsList className="grid h-auto w-full grid-cols-2 sm:grid-cols-5">
             <TabsTrigger value="headliner" className="min-h-[44px]">Headliner</TabsTrigger>
             <TabsTrigger value="wanted" className="min-h-[44px]">Most Wanted</TabsTrigger>

@@ -34,6 +34,8 @@ INSERT INTO cash_accounts (id, user_id, name, kind, is_default, sort_order) VALU
   ('a0000000-0000-0000-0000-000000000003', :'colton', 'Tax', 'tax', false, 3),
   ('a0000000-0000-0000-0000-000000000004', :'colton', 'Reserve', 'reserve', false, 4)
 ON CONFLICT DO NOTHING;
+-- 0032 adds drive prompts for the website show schedule; these tests cover EndZone shows and lots only
+DELETE FROM website_shows WHERE user_id = :'colton';
 INSERT INTO money_settings (user_id, setup_completed_at) VALUES (:'colton', '2026-10-12 12:00-04') ON CONFLICT DO NOTHING;
 INSERT INTO shows (id, user_id, name, location, show_date, status, table_cost) VALUES
   ('b0000000-0000-0000-0000-000000000001', :'colton', 'Hershey Card Show', 'Hershey, PA', DATE '2026-11-14', 'completed', 0),

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -31,6 +31,24 @@ export default function Todo() {
   const [showLater, setShowLater] = useState(false);
   const [addTask, setAddTask] = useState(false);
   const [addTrip, setAddTrip] = useState(false);
+
+  // ?dismiss=<key>: a form opened from a To Do card (e.g. "Record the fee") came back here; clear that card
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const key = searchParams.get("dismiss");
+    if (!key || isViewingAsMentor || !/^[a-z_]+:[0-9a-f-]{36}$/.test(key)) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("reminders_state").upsert(
+          { user_id: user.id, reminder_key: key, period_key: "once", dismissed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+          { onConflict: "user_id,reminder_key,period_key" },
+        );
+        queryClient.invalidateQueries({ queryKey: ["todo"] });
+      }
+      setSearchParams((prev) => { const n = new URLSearchParams(prev); n.delete("dismiss"); return n; }, { replace: true });
+    })();
+  }, [searchParams, setSearchParams, isViewingAsMentor, queryClient]);
 
   const weeklyEmail = settings?.weekly_email ?? true;
   const emailMutation = useMutation({

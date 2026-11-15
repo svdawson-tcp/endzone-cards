@@ -141,6 +141,7 @@ export function TripDialog({ open, onOpenChange, prefill, trip, onSaved }: TripD
         show_id: prefill?.show_id || null,
         lot_id: prefill?.lot_id || null,
         sell_lead_id: prefill?.sell_lead_id || null,
+        website_show_id: prefill?.website_show_id || null,
       });
       if (error) throw error;
     },

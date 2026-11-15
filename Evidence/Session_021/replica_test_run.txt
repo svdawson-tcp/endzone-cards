@@ -1,0 +1,276 @@
+SETUP scratch data
+T1 last Sunday of the month, including months that end on a Sunday
+psql:drizzle/tests/0031_todo_tests.sql:68: NOTICE:  PASS T1
+T2 the checkup appears on its last Sunday (not before), stays until done, and the mentor sees the same item
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:98: NOTICE:  PASS T2
+T3 snoozing the checkup hides it until the snooze date
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:109: NOTICE:  PASS T3
+T4 checkup records: written once by complete_checkup, never edited, owner-only to read
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:150: NOTICE:  PASS T4
+T5 trip prompts: shows and lots from launch day, not shipped lots, cleared by a trip or by "No drive"
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:179: NOTICE:  PASS T5
+T6 a Got Cards? meetup buy prompts with thepsql:drizzle/tests/0031_todo_tests.sql:182: error: unterminated quoted string
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:193: NOTICE:  PASS T6
+T7 trips: no future dates, no otherpsql:drizzle/tests/0031_todo_tests.sql:196: error: unterminated quoted string
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:238: NOTICE:  PASS T7
+T8 tasks: mentor adds and edits his own, cannot complete or touch thepsql:drizzle/tests/0031_todo_tests.sql:241: error: unterminated quoted string
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:291: NOTICE:  PASS T8
+T9 bank check: a check on or after the previouspsql:drizzle/tests/0031_todo_tests.sql:294: error: unterminated quoted string
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:318: NOTICE:  PASS T9
+T10 get_checkup flags: show with no booth fee, missing categories, $75+ without receipt, accounts
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:342: NOTICE:  PASS T10
+T11 email: digest only Sundays from 6 pm ET, once; urgent tasks once; switch off = not sent
+ act_as_service 
+----------------
+ 
+(1 row)
+
+ act_as_service 
+----------------
+ 
+(1 row)
+
+ act_as_service 
+----------------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:380: NOTICE:  PASS T11
+T12 estimated tax due within 3 days triggers an urgent email
+ act_as_service 
+----------------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:392: NOTICE:  PASS T12
+T13 mileage summary uses the rate for eachpsql:drizzle/tests/0031_todo_tests.sql:395: error: unterminated quoted string
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:405: NOTICE:  PASS T13
+T14 logged-out visitors can run none of the new functions and read none of the new tables
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0031_todo_tests.sql:433: NOTICE:  PASS T14
+SETUP: a clean slate for the business items (scratch data only)
+U1 Got Cards?: listed until answered; urgent email from 20 hours, once
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as_service 
+----------------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:63: NOTICE:  PASS U1
+U2 offers waiting for an answer, cleared once answered
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:84: NOTICE:  PASS U2
+U3 orders to ship: from launch day only; overdue after 2 days; cleared when marked shipped
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:106: NOTICE:  PASS U3
+U4 table shows: fee from 7 days out, get ready from 2 days out; buying shows get neither
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:136: NOTICE:  PASS U4
+U5 close shows: from launch day the day after; older open shows as one card
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:157: NOTICE:  PASS U5
+U6 drive prompts for website-schedule shows
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:204: NOTICE:  PASS U6
+U7 Weekly Headliner and Most Wanted: 7 days after the last change; editing resets; snooze a week
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+ act_as 
+--------
+ 
+(1 row)
+
+psql:drizzle/tests/0032_todo_tests.sql:250: NOTICE:  PASS U7
+U8 logged-out visitors can run none of the new functions; trigger functions are not callable
+psql:drizzle/tests/0032_todo_tests.sql:271: NOTICE:  PASS U8

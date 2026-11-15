@@ -4,7 +4,9 @@ import { useSearchParams } from "react-router-dom";
 export type TodoItem = {
   key: string;
   period: string;
-  kind: "setup" | "tax_transfer" | "estimated_tax" | "reconcile" | "info" | "checkup" | "trip" | "task";
+  kind:
+    | "setup" | "tax_transfer" | "estimated_tax" | "reconcile" | "info" | "checkup" | "trip" | "task"
+    | "sell_lead" | "offer" | "order" | "show_fee" | "show_prep" | "show_close" | "old_shows" | "headliner" | "wanted";
   tier: "now" | "week" | "later";
   title: string;
   body: string;
@@ -20,6 +22,14 @@ export type TodoItem = {
   added_by_mentor?: boolean;
   /** a combined bank-check card: the reminder keys it stands for */
   keys?: string[];
+  /** page to open for the item (0032 business items) */
+  link?: string;
+  show_date?: string;
+  show_id?: string;
+  show_ids?: string[];
+  website_show_id?: string;
+  needs_show?: boolean;
+  hours_waiting?: number;
 };
 
 export type TripPurpose = "show" | "seller_meetup" | "buying" | "post_office" | "supplies" | "other";
@@ -31,6 +41,7 @@ export type TripPrefill = {
   show_id?: string | null;
   lot_id?: string | null;
   sell_lead_id?: string | null;
+  website_show_id?: string | null;
   /** reminders_state key of the prompt this trip answers (so "No drive" and "Log it" both clear it) */
   prompt_key?: string;
 };
@@ -49,7 +60,7 @@ export const tripPurposeLabel = (p: string) => TRIP_PURPOSES.find((x) => x.value
 /** Only same-app paths are allowed as a return target (no other sites, no protocol-relative URLs). */
 export function safeReturnTo(value: string | null | undefined): string | null {
   if (!value) return null;
-  return /^\/(?!\/)[A-Za-z0-9/_\-?=&%.]*$/.test(value) ? value : null;
+  return /^\/(?!\/)[A-Za-z0-9/_\-?=&%.:]*$/.test(value) ? value : null;
 }
 
 /** ?returnTo=/checkup/2026-11 → where a form goes after saving, or the form's usual page. */
