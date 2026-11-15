@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useReturnTo } from "@/lib/todo";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ type DispositionType = "discarded" | "lost" | "combined";
 
 export default function Disposition() {
   const navigate = useNavigate();
+  const returnTo = useReturnTo("/lots");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -110,7 +112,7 @@ export default function Disposition() {
         description: `${quantity} cards marked as ${dispositionType}`,
       });
 
-      navigate("/lots");
+      navigate(returnTo);
     },
     onError: (error: any) => {
       toast({
@@ -309,7 +311,7 @@ export default function Disposition() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/lots")}
+              onClick={() => navigate(returnTo)}
               className="flex-1"
             >
               Cancel

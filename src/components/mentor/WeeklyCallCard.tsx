@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useTaxTracker } from "@/hooks/useTaxTracker";
+import { useTodo } from "@/hooks/useTodo";
+import { periodLabel } from "@/lib/todo";
 import { formatBusinessDate, toLocalDateString } from "@/lib/dateUtils";
 import { formatMoney } from "@/lib/numericUtils";
 import { addDays, startOfWeek, subWeeks } from "date-fns";
@@ -61,6 +63,20 @@ export function WeeklyCallCard() {
     },
   });
 
+  // Monthly checkup: only whether and when it was done (the answers are Colton's; get_checkup_status returns no answers)
+  const { data: checkups = [] } = useQuery({
+    queryKey: ["checkupStatus", viewingUserId],
+    queryFn: async () => {
+      const userId = await getEffectiveUserId();
+      const { data: st, error } = await supabase.rpc("get_checkup_status", { p_user_id: userId });
+      if (error) throw error;
+      return (st || []) as unknown as { period: string; completed_at: string }[];
+    },
+  });
+  const { data: todo = [] } = useTodo();
+  const openCheckup = todo.find((i) => i.kind === "checkup");
+  const lastCheckup = checkups[0];
+
   const reserve = data?.statements.find((s) => s.account.kind === "reserve");
   const taxStatement = data?.statements.find((s) => s.account.kind === "tax");
   const lastTaxDeposit = taxStatement?.rows.find((r) => r.type === "transfer" && Number(r.amount) > 0);
@@ -113,6 +129,15 @@ export function WeeklyCallCard() {
                   : `${s.account.name} not yet`,
               )
               .join(" · "),
+          )}
+          {line(
+            "Monthly checkup",
+            openCheckup ? `${periodLabel(openCheckup.period).split(" ")[0]}: not done` : lastCheckup ? `${periodLabel(lastCheckup.period).split(" ")[0]}: done` : "None yet",
+            openCheckup
+              ? `ready since ${formatBusinessDate(openCheckup.due, "MMM d")}`
+              : lastCheckup
+                ? `finished ${formatBusinessDate(toLocalDateString(new Date(lastCheckup.completed_at)), "MMM d")}`
+                : "first one is the last Sunday of November",
           )}
           {Number(data.metrics.owed_to_owner || 0) > 0 && line("Owed to Colton", formatMoney(data.metrics.owed_to_owner), "paid personally")}
         </div>

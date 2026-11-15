@@ -19,7 +19,7 @@ import { TrendChart, type PeriodSeriesRow } from "@/components/TrendChart";
 import { ChangeLine } from "@/components/ChangeLine";
 import { SALES_CHANNELS } from "@/lib/moneyConstants";
 import { useTaxTracker } from "@/hooks/useTaxTracker";
-import { ReminderCards } from "@/components/reminders/ReminderCards";
+import { TodoPreview } from "@/components/todo/TodoPreview";
 import { WeeklyCallCard } from "@/components/mentor/WeeklyCallCard";
 import { formatMoney } from "@/lib/numericUtils";
 
@@ -341,9 +341,9 @@ export default function Dashboard() {
         </PeriodPicker>
       </div>
 
-      {/* Reminders (owner) / weekly call card (mentor) */}
+      {/* Weekly call card (mentor) / To Do preview (both; read-only for the mentor) */}
       {isViewingAsMentor && <WeeklyCallCard />}
-      <ReminderCards />
+      <TodoPreview />
 
       {/* Section A: This Period */}
       <div className="space-y-4">

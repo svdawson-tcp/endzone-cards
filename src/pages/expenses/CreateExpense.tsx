@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useReturnTo } from "@/lib/todo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ export default function CreateExpense() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const returnTo = useReturnTo("/dashboard");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("");
   const [selectedShowId, setSelectedShowId] = useState<string>("");
@@ -57,8 +59,15 @@ export default function CreateExpense() {
     setAccountId(match.id);
   }, [accounts, category, accountTouched]);
 
-  // Pre-select show from URL param
+  // Pre-fill from URL params (show page, monthly checkup): showId, category, date, paid=1
   const showIdFromUrl = searchParams.get("showId");
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat && (EXPENSE_CATEGORIES as readonly string[]).includes(cat)) setCategory(cat);
+    const d = searchParams.get("date");
+    if (d && /^\d{4}-\d{2}-\d{2}$/.test(d) && d <= format(new Date(), "yyyy-MM-dd")) setExpenseDate(d);
+    if (searchParams.get("paid") === "1") setPaidPersonally(true);
+  }, [searchParams]);
   useEffect(() => {
     if (showIdFromUrl) {
       setSelectedShowId(showIdFromUrl);
@@ -176,7 +185,7 @@ export default function CreateExpense() {
         description: `$${parseFloat(amount).toFixed(2)} ${category} expense added`,
       });
 
-      navigate("/dashboard");
+      navigate(returnTo);
     } catch (error: any) {
       console.error("Create expense error:", error);
       toast({
@@ -300,7 +309,8 @@ export default function CreateExpense() {
         >
           <Select 
             value={selectedShowId || "none"} 
-            onValueChange={(value) => setSelectedShowId(value === "none" ? "" : value)}
+            // Radix Select reports "" while the show list is still loading; ignore it so a preset show (?showId=) sticks
+            onValueChange={(value) => value !== "" && setSelectedShowId(value === "none" ? "" : value)}
           >
             <SelectTrigger id="show" className="h-11" disabled={loadingShows}>
               <SelectValue placeholder="Select show (optional)" />
@@ -412,7 +422,7 @@ export default function CreateExpense() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(returnTo)}
             disabled={isSubmitting}
             className="flex-1 h-11"
           >

@@ -91,7 +91,7 @@ export function TaxPaymentDialog({ open, onOpenChange, defaultPeriod }: TaxPayme
       if (!date || date > todayLocal()) throw new Error("Date cannot be in the future");
       const { error } = await supabase.rpc("record_tax_payment", {
         p_account_id: taxAccount.id,
-        p_amount: normalized as string,
+        p_amount: normalized as unknown as number, // TD-007: numeric sent as exact string
         p_date: date,
         p_authority: authority,
         p_period: period,

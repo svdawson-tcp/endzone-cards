@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag, Inbox } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, ChevronDown, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Target, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag, Inbox, ListTodo, Car } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { useWebShopCounts } from "@/hooks/useWebsiteSettings";
+import { useTodo } from "@/hooks/useTodo";
 import { Badge } from "@/components/ui/badge";
 
 const DesktopSidebar = () => {
@@ -18,9 +19,12 @@ const DesktopSidebar = () => {
   const [goalsOpen, setGoalsOpen] = useState(true);
   const { isViewingAsMentor, logActivity } = useMentorAccess();
   const { data: shopCounts } = useWebShopCounts();
+  const { data: todoItems = [] } = useTodo();
+  const todoNow = todoItems.filter((i) => i.tier === "now").length;
 
   const navItems = [
     { icon: Home, label: "Dashboard", route: "/dashboard" },
+    { icon: ListTodo, label: "To Do", route: "/todo", badge: todoNow },
     { icon: Package, label: "Lots", route: "/lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards" },
     { icon: Tag, label: "Bargain Bin", route: "/bargain-bin" },
@@ -32,6 +36,7 @@ const DesktopSidebar = () => {
     { icon: Wallet, label: "Accounts", route: "/accounts" },
     { icon: Landmark, label: "Tax", route: "/tax" },
     { icon: Receipt, label: "Expenses", route: "/expenses" },
+    { icon: Car, label: "Mileage Log", route: "/trips" },
     { icon: Receipt, label: "Transaction History", route: "/transactions" },
   ];
 

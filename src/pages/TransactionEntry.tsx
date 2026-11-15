@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useReturnTo } from "@/lib/todo";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ type DispositionType = "discard" | "lost" | "combined";
 
 export default function TransactionEntry() {
   const navigate = useNavigate();
+  const returnTo = useReturnTo("/dashboard");
   const { toast } = useToast();
   
   const [transactionType, setTransactionType] = useState<TransactionType>("show_card_sale");
@@ -229,7 +231,7 @@ export default function TransactionEntry() {
         writeLastSalesChannel(salesChannel);
       }
 
-      navigate("/dashboard");
+      navigate(returnTo);
     } catch (error: any) {
       console.error("Transaction error:", error);
       toast({

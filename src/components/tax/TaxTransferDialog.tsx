@@ -60,7 +60,7 @@ export function TaxTransferDialog({ open, onOpenChange, suggestedAmount }: TaxTr
       const { error } = await supabase.rpc("record_account_transfer", {
         p_from_account: fromAccount,
         p_to_account: taxAccount.id,
-        p_amount: normalized as string,
+        p_amount: normalized as unknown as number, // TD-007: numeric sent as exact string
         p_date: date,
         p_notes: "Weekly tax set-aside",
       });
