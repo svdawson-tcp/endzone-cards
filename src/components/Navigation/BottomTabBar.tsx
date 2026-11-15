@@ -1,4 +1,4 @@
-import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag, Inbox } from "lucide-react";
+import { Home, Package, Plus, CreditCard, Calendar, DollarSign, Trash2, Receipt, TrendingUp, BookOpen, Heart, CheckSquare, BookText, Menu, Target, User, Users, Wallet, ArrowLeftRight, Landmark, HandCoins, ShoppingBag, Globe, Tag, Inbox, ListTodo, Car } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ import {
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { AccountSwitcher } from "@/components/AccountSwitcher";
 import { useWebShopCounts } from "@/hooks/useWebsiteSettings";
+import { useTodo } from "@/hooks/useTodo";
 
 const BottomTabBar = () => {
   const location = useLocation();
@@ -22,7 +23,9 @@ const BottomTabBar = () => {
   const [goalsMenuOpen, setGoalsMenuOpen] = useState(false);
   const { isViewingAsMentor, logActivity } = useMentorAccess();
   const { data: shopCounts } = useWebShopCounts();
-  const menuBadgeTotal = (shopCounts?.pendingOffers || 0) + (shopCounts?.ordersToShip || 0) + (shopCounts?.newSellers || 0);
+  const { data: todoItems = [] } = useTodo();
+  const todoNow = todoItems.filter((i) => i.tier === "now").length;
+  const menuBadgeTotal = todoNow + (shopCounts?.pendingOffers || 0) + (shopCounts?.ordersToShip || 0) + (shopCounts?.newSellers || 0);
 
   const tabs = [
     { icon: Home, label: "Home", route: "/dashboard" },
@@ -40,6 +43,7 @@ const BottomTabBar = () => {
   ];
 
   const menuItems = [
+    { icon: ListTodo, label: "To Do", route: "/todo", description: "Things to log or do, and the monthly checkup", badge: todoNow },
     { icon: Package, label: "Lots", route: "/lots", description: "Manage inventory lots" },
     { icon: CreditCard, label: "Show Cards", route: "/show-cards", description: "Premium card inventory" },
     { icon: Tag, label: "Bargain Bin", route: "/bargain-bin", description: "$2–$20 value cards" },
@@ -51,6 +55,7 @@ const BottomTabBar = () => {
     { icon: Wallet, label: "Accounts", route: "/accounts", description: "Where your money sits" },
     { icon: Landmark, label: "Tax", route: "/tax", description: "Weekly set-aside and estimated payments" },
     { icon: Receipt, label: "Expenses", route: "/expenses", description: "What you spent, by category" },
+    { icon: Car, label: "Mileage Log", route: "/trips", description: "Business drives for the tax deduction" },
     { icon: BookText, label: "Business Glossary", route: "/glossary", description: "Learn business terms" },
     { icon: User, label: "Profile", route: "/profile", description: "View your profile settings", disabled: true },
     { icon: Users, label: "Switch Account", route: "/switch-account", description: "Switch to another user account", isAccountSwitcher: true },

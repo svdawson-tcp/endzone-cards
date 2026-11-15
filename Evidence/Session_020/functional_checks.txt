@@ -1,0 +1,31 @@
+Functional checks — local full stack, 15 Nov 2026
+Stack: Postgres 16 scratch database with every migration 0000–0031 applied (the live function definitions of
+get_reminders and record_reconciliation were confirmed identical, by md5, to production's before 0031),
+PostgREST 12.2.3, a small auth stand-in, and the app built from this branch. Phone size 390x844.
+For the screenshots only, get_todo's "today" was pinned to Sun 29 Nov 2026 in the scratch copy so the
+November checkup shows; the server clock (15 Nov) was left alone for complete_checkup.
+
+Colton (owner)
+PASS harrisburg prompt gone after logging          (Log the drive -> 23 mi one way -> 46 mi round trip saved, linked to the show)
+PASS No drive clears one lot prompt
+PASS task added
+PASS task marked done
+PASS expense form prefilled from checkup           (category, show, date; ?returnTo)
+PASS expense save returns to checkup               (same step; booth-fee flag clears)
+PASS Nov checkup refused before Nov 29 (server clock)
+PASS Oct checkup finished                          ("October checkup done")
+PASS trips page shows 2026 deduction               (58 mi in June x 72.5c + 124 mi in Nov x 76c = $136.29)
+
+Scott (mentor view of Colton)
+PASS no Start checkup button for mentor
+PASS mentor sees Colton's checkup item
+PASS Edit only on Scott's task
+PASS mentor added urgent task                      (created_by = Scott, on Colton's list)
+PASS weekly call shows checkup line
+PASS checkup page blocked for mentor
+
+Bug found and fixed during these checks: on Record Expense, a show passed in the link (?showId=) was dropped
+because the show picker reported an empty value while the show list loaded. This also affected the existing
+"Add expense" link on a show page. Fixed in CreateExpense.tsx.
+
+Email: digest and urgent emails rendered from sample items (screens/50_email_digest.png). Deno type check passes.

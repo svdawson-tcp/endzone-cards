@@ -14,6 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
+      mileage_rates: {
+        Row: {
+          effective_from: string
+          rate: number
+          source: string
+        }
+        Insert: {
+          effective_from: string
+          rate: number
+          source: string
+        }
+        Update: {
+          effective_from?: string
+          rate?: number
+          source?: string
+        }
+        Relationships: []
+      }
+      monthly_checkups: {
+        Row: {
+          answers: Json
+          completed_at: string
+          items_added: number
+          note: string | null
+          period: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          items_added?: number
+          note?: string | null
+          period: string
+          started_at: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          items_added?: number
+          note?: string | null
+          period?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          created_at: string
+          created_by: string
+          done_at: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          title: string
+          updated_at: string
+          urgent: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          title: string
+          updated_at?: string
+          urgent?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          title?: string
+          updated_at?: string
+          urgent?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
+      todo_email_log: {
+        Row: {
+          created_at: string
+          item_count: number
+          kind: string
+          period_key: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_count?: number
+          kind: string
+          period_key: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_count?: number
+          kind?: string
+          period_key?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          corrected_at: string | null
+          correction_count: number
+          created_at: string
+          destination: string
+          id: string
+          lot_id: string | null
+          miles: number
+          notes: string | null
+          purpose: string
+          round_trip: boolean
+          sell_lead_id: string | null
+          show_id: string | null
+          trip_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          corrected_at?: string | null
+          correction_count?: number
+          created_at?: string
+          destination: string
+          id?: string
+          lot_id?: string | null
+          miles: number
+          notes?: string | null
+          purpose: string
+          round_trip?: boolean
+          sell_lead_id?: string | null
+          show_id?: string | null
+          trip_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          corrected_at?: string | null
+          correction_count?: number
+          created_at?: string
+          destination?: string
+          id?: string
+          lot_id?: string | null
+          miles?: number
+          notes?: string | null
+          purpose?: string
+          round_trip?: boolean
+          sell_lead_id?: string | null
+          show_id?: string | null
+          trip_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       account_reconciliations: {
         Row: {
           account_id: string
@@ -422,6 +590,7 @@ export type Database = {
           created_at: string
           first_estimate_due: string
           round_up_transfers: boolean
+          weekly_email: boolean
           setup_completed_at: string | null
           tax_rate: number
           tracker_start: string
@@ -434,6 +603,7 @@ export type Database = {
           created_at?: string
           first_estimate_due?: string
           round_up_transfers?: boolean
+          weekly_email?: boolean
           setup_completed_at?: string | null
           tax_rate?: number
           tracker_start?: string
@@ -446,6 +616,7 @@ export type Database = {
           created_at?: string
           first_estimate_due?: string
           round_up_transfers?: boolean
+          weekly_email?: boolean
           setup_completed_at?: string | null
           tax_rate?: number
           tracker_start?: string
@@ -1258,6 +1429,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_checkup: {
+        Args: { p_answers: Json; p_note?: string; p_period: string; p_started_at: string }
+        Returns: Json
+      }
+      get_checkup: {
+        Args: { p_period: string; p_today?: string }
+        Returns: Json
+      }
+      get_checkup_status: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      get_mileage_summary: {
+        Args: { p_user_id: string; p_year: number }
+        Returns: Json
+      }
+      get_todo: {
+        Args: { p_today?: string; p_user_id: string }
+        Returns: Json
+      }
       web_sell_lead_link_lot: {
         Args: { p_lead_id: string; p_lot_id: string }
         Returns: Database["public"]["Tables"]["web_sell_leads"]["Row"]

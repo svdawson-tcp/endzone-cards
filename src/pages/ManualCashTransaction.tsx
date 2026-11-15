@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useReturnTo } from "@/lib/todo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ const HELPER_TEXT: Record<CashEntryType, string> = {
 
 const ManualCashTransaction = () => {
   const navigate = useNavigate();
+  const returnTo = useReturnTo("/dashboard");
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const requested = searchParams.get("type") as CashEntryType | null;
@@ -127,7 +129,7 @@ const ManualCashTransaction = () => {
       queryClient.invalidateQueries({ queryKey: ["taxTracker"] });
       queryClient.invalidateQueries({ queryKey: ["accountStatement"] });
       queryClient.invalidateQueries({ queryKey: ["accountBalances"] });
-      navigate("/dashboard");
+      navigate(returnTo);
     },
     onError: (error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -172,7 +174,7 @@ const ManualCashTransaction = () => {
   if (isViewingAsMentor) {
     return (
       <PageContainer maxWidth="2xl">
-        <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate(returnTo)} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
         </Button>
@@ -188,7 +190,7 @@ const ManualCashTransaction = () => {
 
   return (
     <PageContainer maxWidth="2xl">
-      <Button variant="ghost" onClick={() => navigate("/dashboard")} className="mb-4">
+      <Button variant="ghost" onClick={() => navigate(returnTo)} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back to Dashboard
       </Button>
@@ -201,7 +203,7 @@ const ManualCashTransaction = () => {
           <FormField label="What is this?" htmlFor="cash-type" required>
             <Select
               value={type}
-              onValueChange={(value) => setSearchParams({ type: value }, { replace: true })}
+              onValueChange={(value) => setSearchParams((prev) => { const n = new URLSearchParams(prev); n.set("type", value); return n; }, { replace: true })}
             >
               <SelectTrigger id="cash-type" className="min-h-[44px]">
                 <SelectValue />
@@ -305,7 +307,7 @@ const ManualCashTransaction = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(returnTo)}
               className="flex-1 min-h-[44px]"
             >
               CANCEL

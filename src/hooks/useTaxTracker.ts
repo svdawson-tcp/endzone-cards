@@ -77,6 +77,8 @@ export function useTaxTracker() {
 export const MONEY_QUERY_KEYS = [
   ["taxTracker"],
   ["reminders"],
+  ["todo"],
+  ["checkup"],
   ["accountBalances"],
   ["accountStatement"],
   ["dashboardMetrics"],
