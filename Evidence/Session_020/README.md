@@ -1,6 +1,6 @@
 # Session 020: To Do list, monthly checkup, mileage log, tasks, To Do email
 
-**Branch:** `todo-checkup` (not merged; release steps below need Scott's OK)
+**Branch:** `todo-checkup`, merged to `main` as `a6c6029` (PR #2)
 **Engineer:** Claude · **Approver:** Scott Dawson · **Date:** 15 Nov 2026
 **Design:** project doc `claude/ToDo_and_Monthly_Checkup_Design.md` (approved 15 Nov) · **AD-012**
 
@@ -38,7 +38,7 @@
 1. ✅ Applied to production 15 Nov 2026 ~12:25 ET through the Supabase connector, with Scott's OK. All 15 function definitions verified identical (md5) to the tested build. The 5 tables, 3 mileage rates and `weekly_email` are present. Execute rights checked: anon can run none of the new functions; authenticated cannot run the email functions. `get_todo` runs on Colton's live data and returns his one current item (a tax transfer).
 2. ✅ 15 Nov 2026 ~12:50 ET, with Scott's OK: `todo-email` deployed (version 1, JWT verification off, as with `sync-refunds`) and scheduled hourly at :31 (cron job `todo-email`). A test call returned 200 with nothing to send. Tonight's digest (15 Nov) was marked skipped because the app isn't released yet; the first weekly digest is Sun 22 Nov.
 3. ✅ 15 Nov 2026: `types.ts` regenerated from the live schema, replacing the hand edits. It had been stale since Round 4, and this also closes that follow-up. The new types flagged 4 places that send money amounts as exact strings (TD-007) to numeric parameters: `ReconcileDialog`, `TaxPaymentDialog` and `TaxTransferDialog`. They now use the existing `as unknown as number` cast, so behaviour is unchanged. Type check clean, build passes, no lint errors in those files.
-4. Merge `todo-checkup`; Netlify publishes.
+4. ✅ 15 Nov 2026 ~14:15 ET, with Scott's OK: PR #2 merged (merge commit `a6c6029`). Netlify production was serving the new build (`index-Dicvp8_0.js`) about 40 seconds later.
 5. Add the two starter tasks (package-insert cards; Google Business Profile).
 6. First checkup: Sunday 29 Nov. First digest: that evening.
 
