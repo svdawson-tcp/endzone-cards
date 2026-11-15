@@ -22,4 +22,4 @@ dist/assets/index-DY89q0-n.js               1,675.10 kB │ gzip: 462.45 kB
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 9.14s
+✓ built in 8.60s

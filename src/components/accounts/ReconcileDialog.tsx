@@ -70,8 +70,8 @@ export function ReconcileDialog({ open, onOpenChange, accountId, accountName, ac
       const { data, error } = await supabase.rpc("record_reconciliation", {
         p_account_id: accountId,
         p_as_of: asOf,
-        p_bank_balance: bank,
-        p_undeposited: outside ?? "0.00",
+        p_bank_balance: bank as unknown as number, // TD-007: numeric sent as exact string
+        p_undeposited: (outside ?? "0.00") as unknown as number,
         p_note: note.trim() || undefined,
         p_post_adjustment: postAdjustment,
       });
