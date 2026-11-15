@@ -36,7 +36,7 @@
 
 ## Release (each step with Scott's OK)
 1. ✅ Applied to production 15 Nov 2026 ~12:25 ET through the Supabase connector, with Scott's OK. All 15 function definitions verified identical (md5) to the tested build. The 5 tables, 3 mileage rates and `weekly_email` are present. Execute rights checked: anon can run none of the new functions; authenticated cannot run the email functions. `get_todo` runs on Colton's live data and returns his one current item (a tax transfer).
-2. Deploy the `todo-email` Edge Function with JWT verification off, as with `sync-refunds`; then run `SELECT cron.schedule('todo-email', '31 * * * *', 'select public.todo_email_tick()');`
+2. ✅ 15 Nov 2026 ~12:50 ET, with Scott's OK: `todo-email` deployed (version 1, JWT verification off, as with `sync-refunds`) and scheduled hourly at :31 (cron job `todo-email`). A test call returned 200 with nothing to send. Tonight's digest (15 Nov) was marked skipped because the app isn't released yet; the first weekly digest is Sun 22 Nov.
 3. Regenerate `src/integrations/supabase/types.ts` from the live schema. It was hand-edited on this branch for the new tables and functions.
 4. Merge `todo-checkup`; Netlify publishes.
 5. Add the two starter tasks (package-insert cards; Google Business Profile).
