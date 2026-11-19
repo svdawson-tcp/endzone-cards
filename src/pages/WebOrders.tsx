@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Gift, Layers, Loader2, PackageCheck, Truck } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronsDownUp, ChevronsUpDown, Gift, Layers, Loader2, PackageCheck, Truck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,14 @@ export default function WebOrders() {
   const [shippingFor, setShippingFor] = useState<string | null>(null);
   const [tracking, setTracking] = useState("");
   const [savingId, setSavingId] = useState<string | null>(null);
+  // Collapsed by default so the list is easy to scan; tap an order to open it. A single order (?order=) opens on its own.
+  const [openIds, setOpenIds] = useState<Set<string>>(new Set());
+  const toggleOpen = (id: string) =>
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["webOrders", viewingUserId, filter, orderParam, pages],
@@ -158,10 +166,12 @@ export default function WebOrders() {
   const chooseFilter = (value: Filter) => {
     setFilter(value);
     setPages(1);
+    setOpenIds(new Set());
     if (orderParam) setSearchParams({});
   };
 
   const startShipping = (order: OrderRow) => {
+    setOpenIds((prev) => new Set(prev).add(order.id));
     setShippingFor(order.id);
     setTracking(order.tracking_number || "");
   };
@@ -200,6 +210,8 @@ export default function WebOrders() {
   };
 
   const hasMore = (orders?.length || 0) >= pages * PAGE_SIZE;
+  const isOpen = (id: string) => !!orderParam || openIds.has(id) || shippingFor === id;
+  const allOpen = !!orders?.length && orders.every((o) => isOpen(o.id));
   const { data: settings } = useWebsiteSettings();
 
   return (
@@ -236,6 +248,23 @@ export default function WebOrders() {
         </p>
       )}
 
+      {!orderParam && !!orders?.length && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {orders.length} {orders.length === 1 ? "order" : "orders"}. Tap an order to open it.
+          </p>
+          <Button
+            variant="outline"
+            className="min-h-[44px] shrink-0"
+            onClick={() => setOpenIds(allOpen ? new Set() : new Set(orders.map((o) => o.id)))}
+            data-testid="toggle-all-orders"
+          >
+            {allOpen ? <ChevronsDownUp className="mr-2 h-4 w-4" /> : <ChevronsUpDown className="mr-2 h-4 w-4" />}
+            {allOpen ? "Collapse all" : "Expand all"}
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
@@ -266,15 +295,43 @@ export default function WebOrders() {
               && new Date(order.my_link.expires_at) > new Date();
             const together = (order.my_link?.combined || []).filter((o) => o.status === "paid").map((o) => o.order_number);
 
+            const open = isOpen(order.id);
+            const cardCount = order.web_order_items.length;
+
             return (
-              <div key={order.id} className="night-game-card space-y-4 p-4 md:p-6" data-testid="web-order">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-lg font-bold text-foreground">{order.order_number}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {paid ? `Paid ${formatMoment(order.paid_at, "MMM d, yyyy h:mm a")}` : formatMoment(order.created_at, "MMM d, yyyy h:mm a")}
-                      {order.source === "offer" && " · Accepted offer"}
-                    </p>
+              <div key={order.id} className={cn("night-game-card p-4 md:p-6", open && "space-y-4")} data-testid="web-order">
+                <button
+                  type="button"
+                  className="flex min-h-[44px] w-full items-start justify-between gap-3 text-left"
+                  aria-expanded={open}
+                  aria-controls={`order-body-${order.id}`}
+                  onClick={() => toggleOpen(order.id)}
+                  data-testid="web-order-toggle"
+                >
+                  <div className="flex min-w-0 items-start gap-2">
+                    <ChevronDown
+                      className={cn("mt-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform", !open && "-rotate-90")}
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-lg font-bold text-foreground">{order.order_number}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {paid ? `Paid ${formatMoment(order.paid_at, "MMM d, yyyy h:mm a")}` : formatMoment(order.created_at, "MMM d, yyyy h:mm a")}
+                        {order.source === "offer" && " · Accepted offer"}
+                      </p>
+                      {!open && (
+                        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground" data-testid="web-order-summary">
+                          <span className="truncate">{order.buyer_name || order.buyer_email || "—"}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span>{cardCount} {cardCount === 1 ? "card" : "cards"}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="font-semibold">{formatMoney(order.total)}</span>
+                          {order.problem_note && <AlertTriangle className="h-4 w-4 text-destructive" aria-label="Problem on this order" />}
+                          {order.bonus_card && <Gift className="h-4 w-4 text-amber-500" aria-label="Bonus card" />}
+                          {(shipsWith || together.length > 0) && <Layers className="h-4 w-4 text-accent" aria-label="Ships with another order" />}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   {paid ? (
                     order.shipped_at ? (
@@ -287,7 +344,10 @@ export default function WebOrders() {
                       {UNPAID_LABELS[order.status] || order.status}
                     </Badge>
                   )}
-                </div>
+                </button>
+
+                {open && (
+                <div id={`order-body-${order.id}`} className="space-y-4">
 
                 {(shipsWith || windowOpen || together.length > 0) && (
                   <div className="space-y-1 rounded-md border-2 border-[hsl(var(--accent))] px-3 py-2 text-sm text-foreground" data-testid="ships-with">
@@ -501,6 +561,8 @@ export default function WebOrders() {
                       </Button>
                     )}
                   </div>
+                )}
+                </div>
                 )}
               </div>
             );
