@@ -708,6 +708,7 @@ export type Database = {
           disposition_type: string | null
           held_for: string | null
           held_until: string | null
+          homefield: string | null
           id: string
           in_bargain_bin: boolean
           lot_id: string
@@ -733,6 +734,7 @@ export type Database = {
           disposition_type?: string | null
           held_for?: string | null
           held_until?: string | null
+          homefield?: string | null
           id?: string
           in_bargain_bin?: boolean
           lot_id: string
@@ -758,6 +760,7 @@ export type Database = {
           disposition_type?: string | null
           held_for?: string | null
           held_until?: string | null
+          homefield?: string | null
           id?: string
           in_bargain_bin?: boolean
           lot_id?: string
@@ -1769,6 +1772,48 @@ export type Database = {
         }
         Relationships: []
       }
+      web_stadiums: {
+        Row: {
+          active: boolean
+          kind: string
+          name: string
+          photo: string | null
+          photo_credit: string | null
+          photo_source: string | null
+          region: string
+          slug: string
+          sort_order: number
+          teams_label: string
+          years_label: string | null
+        }
+        Insert: {
+          active?: boolean
+          kind: string
+          name: string
+          photo?: string | null
+          photo_credit?: string | null
+          photo_source?: string | null
+          region: string
+          slug: string
+          sort_order?: number
+          teams_label: string
+          years_label?: string | null
+        }
+        Update: {
+          active?: boolean
+          kind?: string
+          name?: string
+          photo?: string | null
+          photo_credit?: string | null
+          photo_source?: string | null
+          region?: string
+          slug?: string
+          sort_order?: number
+          teams_label?: string
+          years_label?: string | null
+        }
+        Relationships: []
+      }
       website_wanted: {
         Row: {
           created_at: string
@@ -1891,6 +1936,7 @@ export type Database = {
           brand: string
           card_number: string
           condition: string
+          homefield: string
           id: string
           in_bin: boolean
           listed_at: string
@@ -1905,6 +1951,7 @@ export type Database = {
           set_name: string
           sport: string
           team: string
+          vintage: boolean
           year: string
         }[]
       }
@@ -1914,7 +1961,26 @@ export type Database = {
         Returns: Json
       }
       get_todo: { Args: { p_today?: string; p_user_id: string }; Returns: Json }
+      get_web_stadiums: {
+        Args: never
+        Returns: {
+          kind: string
+          name: string
+          photo: string
+          photo_credit: string
+          photo_source: string
+          region: string
+          slug: string
+          sort_order: number
+          teams_label: string
+          years_label: string
+        }[]
+      }
       get_website_lists: { Args: never; Returns: Json }
+      web_homefield_suggest: {
+        Args: { p_sport: string; p_team: string; p_year: string }
+        Returns: string
+      }
       has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       last_sunday_of_month: { Args: { p_date: string }; Returns: string }
       mileage_rate_for: { Args: { p_date: string }; Returns: number }

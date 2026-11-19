@@ -98,6 +98,8 @@ export default function CreateShowCard() {
   const [offerFloor, setOfferFloor] = useState(""); // blank = website default %
   const [sport, setSport] = useState("");
   const [team, setTeam] = useState("");
+  // Homefield Advantage (0033): "auto" = EndZone's suggestion from team + year; else a stadium, "pa_born" or "none".
+  const [homefield, setHomefield] = useState("auto");
   const [frontPhoto, setFrontPhoto] = useState<File | null>(null);
   const [backPhoto, setBackPhoto] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -175,6 +177,7 @@ export default function CreateShowCard() {
       setOfferFloor(existingCard.offer_floor != null ? Number(existingCard.offer_floor).toFixed(2) : "");
       setSport(existingCard.sport || "");
       setTeam(existingCard.team || "");
+      setHomefield(existingCard.homefield ?? "auto");
       
       // Set existing photo URLs (not File objects)
       if (existingCard.photo_front_url) {
@@ -242,6 +245,40 @@ export default function CreateShowCard() {
   // Pokémon (0028): the Pokémon's name goes in the name box and the series (e.g. Scarlet & Violet) in the Team box.
   const isPokemon = sport === "pokemon";
   const isPopCulture = sport === "marvel" || sport === "disney" || isPokemon;
+
+  // Website collections (0033). Turn Back the Clock = 1969 and earlier, from the year.
+  const cardYear = Number((year.match(/(19|20)\d\d/) || [])[0]) || null;
+  const isClock = cardYear != null && cardYear <= 1969;
+  const homefieldSport = ["football", "baseball", "basketball", "hockey"].includes(sport);
+  const [suggestKey, setSuggestKey] = useState({ team: "", sport: "", year: "" });
+  useEffect(() => {
+    const t = setTimeout(() => setSuggestKey({ team: team.trim(), sport, year: year.trim() }), 400);
+    return () => clearTimeout(t);
+  }, [team, sport, year]);
+  const { data: stadiums } = useQuery({
+    queryKey: ["web-stadiums"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("web_stadiums").select("slug, name, region, years_label")
+        .eq("active", true).order("sort_order");
+      if (error) throw error;
+      return data || [];
+    },
+    staleTime: 60 * 60 * 1000,
+  });
+  const { data: suggested } = useQuery({
+    queryKey: ["homefield-suggest", suggestKey],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("web_homefield_suggest",
+        { p_team: suggestKey.team, p_sport: suggestKey.sport, p_year: suggestKey.year });
+      if (error) throw error;
+      return (data as string | null) || null;
+    },
+    enabled: homefieldSport && suggestKey.team !== "",
+    staleTime: 5 * 60 * 1000,
+  });
+  const stadiumName = (slug: string | null | undefined) =>
+    (stadiums || []).find((s) => s.slug === slug)?.name || null;
+  const homefieldShows = homefieldSport && (homefield === "auto" ? !!suggested : homefield !== "none");
 
   // Make an Offer: the hidden floor at/above which website offers are accepted automatically.
   const { data: websiteSettings } = useWebsiteSettings();
@@ -671,6 +708,7 @@ export default function CreateShowCard() {
         photo_back_url: backPhotoUrl,
         sport: sport || null,
         team: team.trim() || null,
+        homefield: homefieldSport && homefield !== "auto" ? homefield : null,
         // Never send "on" for a card that isn't ready; the database rejects it anyway.
         show_on_website: websiteOn && !!frontPhotoUrl && sport !== "" && team.trim() !== "",
         offer_floor: !inBin && offerFloor.trim() ? Number(normalizeMoneyInput(offerFloor)) : null,
@@ -1391,6 +1429,39 @@ export default function CreateShowCard() {
                 <p className="text-sm text-destructive mt-1">Sport and team are needed to list on the website.</p>
               )}
             </div>
+            {homefieldSport && (
+              <div data-testid="homefield-picker">
+                <label htmlFor="homefield" className="form-label">Homefield Advantage</label>
+                <Select value={homefield} onValueChange={setHomefield}>
+                  <SelectTrigger id="homefield" className="mt-2 min-h-[44px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">
+                      {suggested ? `Automatic: ${stadiumName(suggested) || suggested}` : "Automatic: not a PA team"}
+                    </SelectItem>
+                    {(stadiums || []).map((st) => (
+                      <SelectItem key={st.slug} value={st.slug}>
+                        {st.name}{st.years_label ? ` (${st.years_label})` : ""}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="pa_born">Born in PA (plays for another team)</SelectItem>
+                    <SelectItem value="none">Keep out of Homefield Advantage</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1" data-testid="homefield-help">
+                  {homefield === "none" ? "This card won't show on the Homefield Advantage page."
+                    : homefield === "pa_born" ? "Shows under Born in PA on the Homefield Advantage page."
+                    : homefieldShows ? `Shows under ${stadiumName(homefield === "auto" ? suggested : homefield)} on the Homefield Advantage page.`
+                    : "Pennsylvania teams are placed by team and year. Pick a stadium or Born in PA to add this card."}
+                </p>
+              </div>
+            )}
+            {isClock && (
+              <p className="text-xs text-muted-foreground" data-testid="clock-note">
+                {cardYear} card: it also shows in Turn Back the Clock (1969 and earlier) on the website.
+              </p>
+            )}
             <p className="text-xs text-gray-600">
               Marking this card sold anywhere in EndZone takes it off the website automatically.
             </p>
