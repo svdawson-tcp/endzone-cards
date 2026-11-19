@@ -246,9 +246,9 @@ export default function CreateShowCard() {
   const isPokemon = sport === "pokemon";
   const isPopCulture = sport === "marvel" || sport === "disney" || isPokemon;
 
-  // Website collections (0033). Turn Back the Clock = 1969 and earlier, from the year.
+  // Website collections (0033). Turn Back the Clock = 1999 and earlier, from the year.
   const cardYear = Number((year.match(/(19|20)\d\d/) || [])[0]) || null;
-  const isClock = cardYear != null && cardYear <= 1969;
+  const isClock = cardYear != null && cardYear <= 1999;
   const homefieldSport = ["football", "baseball", "basketball", "hockey"].includes(sport);
   const [suggestKey, setSuggestKey] = useState({ team: "", sport: "", year: "" });
   useEffect(() => {
@@ -1459,7 +1459,7 @@ export default function CreateShowCard() {
             )}
             {isClock && (
               <p className="text-xs text-muted-foreground" data-testid="clock-note">
-                {cardYear} card: it also shows in Turn Back the Clock (1969 and earlier) on the website.
+                {cardYear} card: it also shows in Turn Back the Clock (1999 and earlier) on the website.
               </p>
             )}
             <p className="text-xs text-gray-600">
