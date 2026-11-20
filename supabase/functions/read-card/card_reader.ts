@@ -121,6 +121,12 @@ For Marvel or Disney cards, put the character's name in player_name and use spor
 For Pokémon cards, use sport 'pokemon'; put the Pokémon's name exactly as printed (e.g. 'Charizard ex') in player_name,
 'Pokémon' as brand, the expansion name (e.g. 'Obsidian Flames') in set_name, the number as printed (e.g. '125/197') in
 card_number, and a special finish (e.g. 'Reverse Holo', 'Holo') in parallel. Pokémon cards are never rookie cards.
+Cards printed in another language (most often Japanese): the shop's buyers search in English, so write every field in
+English. player_name is the Pokémon's English name (e.g. a Japanese リザードンex card is 'Charizard ex'); set sure=true only
+if you are certain of the translation. set_name is the English name of the set if you clearly recognise it, otherwise
+empty (do not write the Japanese set name or a romanised guess). card_number stays exactly as printed. Start parallel
+with the language, e.g. 'Japanese', 'Japanese Holo', 'Japanese Reverse Holo', 'Korean', 'Chinese'. The same applies to
+non-English sports, Marvel and Disney cards.
 Read only what is visible on the card, its back, or a grading slab label. Do not guess from general knowledge
 when the card does not show it, except brand/set, which you may infer from the card design when you clearly
 recognise it (then set sure=true only if you are confident).
