@@ -1457,7 +1457,12 @@ export default function CreateShowCard() {
                 </p>
               </div>
             )}
-            {isClock && (
+            {isPokemon && (
+              <p className="text-xs text-muted-foreground" data-testid="pokemon-note">
+                Pokémon cards show only on the Pokémon page: Showcase if $10+, Bargain Bin section if in the bin.
+              </p>
+            )}
+            {isClock && !isPokemon && (
               <p className="text-xs text-muted-foreground" data-testid="clock-note">
                 {cardYear} card: it also shows in Turn Back the Clock (1999 and earlier) on the website.
               </p>
