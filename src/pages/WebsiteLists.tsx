@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Loader2, Pencil, Plus, Star, Trash2, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
@@ -54,6 +54,10 @@ type SiteShow = {
   start_date: string;
   end_date: string | null;
   kind: string;
+  start_time: string | null;
+  link: string | null;
+  approved: boolean;
+  source: string | null;
 };
 
 /** "NOV 14", "DEC 11 – 13", "OCT 30 – NOV 1" — the same way the website prints dates. */
@@ -468,8 +472,16 @@ function WantedEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolea
 }
 
 // ---------------------------------------------------------------- Shows
-type ShowForm = { id?: string; name: string; location: string; start: string; end: string; kind: "buying" | "table" };
-const EMPTY_SHOW: ShowForm = { name: "", location: "", start: "", end: "", kind: "buying" };
+// Area shows (20 Nov 2026): kind "area" = another card show near Harrisburg that Colton isn't at, listed on
+// the site's Shows page for collectors. Shows pulled from public listings arrive unapproved ("Needs your OK").
+type ShowKind = "buying" | "table" | "area";
+type ShowForm = { id?: string; name: string; location: string; start: string; end: string; kind: ShowKind; time: string; link: string };
+const EMPTY_SHOW: ShowForm = { name: "", location: "", start: "", end: "", kind: "buying", time: "", link: "" };
+const KIND_LABEL: Record<ShowKind, [string, string]> = {
+  buying: ["BUYING", "Walking the floor, buying"],
+  table: ["TABLE", "You have a table with cards for sale"],
+  area: ["AREA SHOW", "Another show near Harrisburg, listed for collectors"],
+};
 
 function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean }) {
   const { toast } = useToast();
@@ -484,15 +496,30 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
     queryFn: async () => {
       const { data, error } = await supabase
         .from("website_shows")
-        .select("id, name, location, start_date, end_date, kind")
+        .select("id, name, location, start_date, end_date, kind, start_time, link, approved, source")
         .eq("user_id", ownerId)
         .order("start_date");
       if (error) throw error;
       return (data || []) as SiteShow[];
     },
   });
-  const upcoming = (shows || []).filter((s) => (s.end_date ?? s.start_date) >= today);
-  const past = (shows || []).filter((s) => (s.end_date ?? s.start_date) < today).reverse();
+  const all = shows || [];
+  const isUpcoming = (s: SiteShow) => (s.end_date ?? s.start_date) >= today;
+  const pending = all.filter((s) => !s.approved && isUpcoming(s));
+  const upcoming = all.filter((s) => s.approved && isUpcoming(s) && s.kind !== "area");
+  const area = all.filter((s) => s.approved && isUpcoming(s) && s.kind === "area");
+  const past = all.filter((s) => !isUpcoming(s)).reverse();
+
+  const approve = async (ids: string[]) => {
+    if (!ids.length) return;
+    const { error } = await supabase.from("website_shows").update({ approved: true }).in("id", ids);
+    if (error) {
+      toast({ title: "Couldn't approve", description: errorText(error), variant: "destructive" });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["websiteShows"] });
+    toast({ title: ids.length === 1 ? "Show added to the site" : `${ids.length} shows added to the site` });
+  };
 
   const save = async () => {
     const name = form.name.trim();
@@ -504,12 +531,20 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
       toast({ title: "The last day can't be before the first day", variant: "destructive" });
       return;
     }
+    const link = form.link.trim();
+    if (link && !/^https:\/\/\S+$/.test(link)) {
+      toast({ title: "The link must start with https://", variant: "destructive" });
+      return;
+    }
     const row = {
       name,
       location: form.location.trim() || null,
       start_date: form.start,
       end_date: form.end && form.end !== form.start ? form.end : null,
       kind: form.kind,
+      start_time: form.time.trim() || null,
+      link: link || null,
+      approved: true,
     };
     setSaving(true);
     try {
@@ -548,25 +583,41 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
       location: s.location ?? "",
       start: s.start_date,
       end: s.end_date ?? "",
-      kind: s.kind === "table" ? "table" : "buying",
+      kind: s.kind === "table" || s.kind === "area" ? s.kind : "buying",
+      time: s.start_time ?? "",
+      link: s.link ?? "",
     });
 
   const showRow = (s: SiteShow, muted = false) => (
     <li key={s.id} className={`flex items-center gap-3 border-b border-border py-3 last:border-0 ${muted ? "opacity-60" : ""}`}>
-      <div className="w-28 shrink-0 text-sm font-bold text-accent">{showDateLabel(s.start_date, s.end_date)}</div>
+      <div className="w-16 shrink-0 text-sm font-bold text-accent sm:w-28">{showDateLabel(s.start_date, s.end_date)}</div>
       <div className="min-w-0 flex-1">
-        <div className="truncate font-semibold text-foreground">{s.name}</div>
-        {s.location && <div className="truncate text-xs text-muted-foreground">{s.location}</div>}
+        <div className="font-semibold leading-snug text-foreground">{s.name}</div>
+        {(s.location || s.start_time) && (
+          <div className="text-xs text-muted-foreground">{[s.location, s.start_time].filter(Boolean).join(" · ")}</div>
+        )}
+        {s.link && (
+          <a href={s.link} target="_blank" rel="noreferrer" className="inline-flex min-h-[32px] items-center gap-1 text-xs text-accent">
+            Details <ExternalLink className="h-3 w-3" />
+          </a>
+        )}
       </div>
-      <Badge variant={s.kind === "table" ? "default" : "outline"} className="shrink-0 text-xs">
-        {s.kind === "table" ? "TABLE" : "BUYING"}
-      </Badge>
+      {s.kind !== "area" && (
+        <Badge variant={s.kind === "table" ? "default" : "outline"} className="shrink-0 text-xs">
+          {s.kind === "table" ? "TABLE" : "BUYING"}
+        </Badge>
+      )}
       {!readOnly && (
         <div className="flex shrink-0">
-          <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => edit(s)} aria-label={`Edit ${s.name}`}>
+          {!s.approved && (
+            <Button variant="ghost" size="icon" className="h-11 w-10 text-accent" onClick={() => approve([s.id])} aria-label={`Approve ${s.name}`} data-testid="approve-show">
+              <Check className="h-5 w-5" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" className="h-11 w-10" onClick={() => edit(s)} aria-label={`Edit ${s.name}`}>
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-11 w-11" onClick={() => setDeleting(s)} aria-label={`Delete ${s.name}`}>
+          <Button variant="ghost" size="icon" className="h-11 w-10" onClick={() => setDeleting(s)} aria-label={`Delete ${s.name}`}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -576,6 +627,24 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
 
   return (
     <div className="space-y-4">
+      {pending.length > 0 && (
+        <div className="night-game-card border-2 border-accent p-4 md:p-6" data-testid="pending-shows">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-bold text-foreground">Needs your OK ({pending.length})</h2>
+            {!readOnly && (
+              <Button size="sm" className="min-h-[44px]" onClick={() => approve(pending.map((s) => s.id))} data-testid="approve-all-shows">
+                Approve all
+              </Button>
+            )}
+          </div>
+          <p className="mb-2 text-xs text-muted-foreground">
+            Other card shows near Harrisburg, pulled from public listings. Check each one: tap the check mark to put it on the
+            website's Shows page, the pencil to fix it, or the trash can if it's wrong or too far away. Nothing here is on the site yet.
+          </p>
+          <ul>{pending.map((s) => showRow(s))}</ul>
+        </div>
+      )}
+
       {!readOnly && (
         <div className="night-game-card space-y-3 p-4 md:p-6">
           <h2 className="text-lg font-bold text-foreground">{form.id ? "Edit show" : "Add a show"}</h2>
@@ -616,8 +685,27 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
               />
             </label>
           </div>
-          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="What you're doing there">
-            {(["buying", "table"] as const).map((k) => (
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              placeholder="Time (optional)"
+              value={form.time}
+              onChange={(e) => setForm({ ...form, time: e.target.value })}
+              className="min-h-[44px]"
+              maxLength={30}
+              aria-label="Time"
+            />
+            <Input
+              placeholder="Link (optional)"
+              value={form.link}
+              onChange={(e) => setForm({ ...form, link: e.target.value })}
+              className="min-h-[44px]"
+              maxLength={300}
+              inputMode="url"
+              aria-label="Link"
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3" role="radiogroup" aria-label="What you're doing there">
+            {(["buying", "table", "area"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
@@ -628,8 +716,8 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
                   form.kind === k ? "border-accent bg-accent/10 text-foreground" : "border-border text-muted-foreground"
                 }`}
               >
-                <span className="block font-bold">{k === "table" ? "TABLE" : "BUYING"}</span>
-                <span className="text-xs">{k === "table" ? "You have a table with cards for sale" : "Walking the floor, buying"}</span>
+                <span className="block font-bold">{KIND_LABEL[k][0]}</span>
+                <span className="text-xs">{KIND_LABEL[k][1]}</span>
               </button>
             ))}
           </div>
@@ -649,7 +737,7 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
 
       <div className="night-game-card p-4 md:p-6">
         <div className="mb-1 flex items-center justify-between gap-2">
-          <h2 className="text-lg font-bold text-foreground">Upcoming on the site ({upcoming.length})</h2>
+          <h2 className="text-lg font-bold text-foreground">Your shows on the site ({upcoming.length})</h2>
           <a
             href={`${SITE}/shows`}
             target="_blank"
@@ -666,6 +754,13 @@ function ShowsEditor({ ownerId, readOnly }: { ownerId: string; readOnly: boolean
           <p className="text-muted-foreground">No upcoming shows on the site.</p>
         ) : (
           <ul>{upcoming.map((s) => showRow(s))}</ul>
+        )}
+        <h3 className="mt-6 text-base font-bold text-foreground">Other shows near Harrisburg ({area.length})</h3>
+        <p className="mb-2 text-xs text-muted-foreground">Listed under yours on the Shows page for collectors.</p>
+        {area.length === 0 ? (
+          <p className="text-sm text-muted-foreground">None approved yet.</p>
+        ) : (
+          <ul data-testid="area-shows">{area.map((s) => showRow(s))}</ul>
         )}
         {past.length > 0 && (
           <details className="mt-4">

@@ -1747,6 +1747,10 @@ export type Database = {
       }
       website_shows: {
         Row: {
+          approved: boolean
+          link: string | null
+          source: string | null
+          start_time: string | null
           created_at: string
           end_date: string | null
           id: string
@@ -1758,6 +1762,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approved?: boolean
+          link?: string | null
+          source?: string | null
+          start_time?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
@@ -1769,6 +1777,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approved?: boolean
+          link?: string | null
+          source?: string | null
+          start_time?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
