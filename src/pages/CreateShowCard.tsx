@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
+import { PriceLookupButtons } from "@/components/showCards/PriceLookup";
 import {
   Select,
   SelectContent,
@@ -1313,6 +1314,13 @@ export default function CreateShowCard() {
             <p className="text-xs text-gray-600 mt-1">
               What price will you list this card at?
             </p>
+            {playerName.trim() && (
+              <div className="mt-3">
+                <p className="text-xs text-gray-600 mb-2">Check what it's selling for:</p>
+                <PriceLookupButtons compact card={{ player_name: playerName, year, sport, brand, set, card_number: cardNumber,
+                  parallel, serial_number: serialNumber, condition, autograph }} />
+              </div>
+            )}
             {errors.askingPrice && (
               <p className="text-destructive text-sm mt-1">{errors.askingPrice}</p>
             )}

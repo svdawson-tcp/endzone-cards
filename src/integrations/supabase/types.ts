@@ -712,6 +712,9 @@ export type Database = {
           id: string
           in_bargain_bin: boolean
           lot_id: string
+          market_price: number | null
+          market_price_at: string | null
+          market_price_source: string | null
           offer_floor: number | null
           photo_back_url: string | null
           photo_front_url: string | null
@@ -738,6 +741,9 @@ export type Database = {
           id?: string
           in_bargain_bin?: boolean
           lot_id: string
+          market_price?: number | null
+          market_price_at?: string | null
+          market_price_source?: string | null
           offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null
@@ -764,6 +770,9 @@ export type Database = {
           id?: string
           in_bargain_bin?: boolean
           lot_id?: string
+          market_price?: number | null
+          market_price_at?: string | null
+          market_price_source?: string | null
           offer_floor?: number | null
           photo_back_url?: string | null
           photo_front_url?: string | null

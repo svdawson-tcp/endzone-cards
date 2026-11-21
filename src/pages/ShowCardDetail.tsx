@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { ReleaseHoldButton } from "@/components/showCards/ReleaseHoldButton";
+import { MarketCheck } from "@/components/showCards/PriceLookup";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -464,6 +465,7 @@ const ShowCardDetail = () => {
               ) : (
                 <p className="text-[hsl(var(--silver-base))] text-center py-4">No asking price set</p>
               )}
+              <MarketCheck card={{ ...((card.card_details as Record<string, any>) ?? {}), ...card }} />
             </CardContent>
           </Card>
         )}
