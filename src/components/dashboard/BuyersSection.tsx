@@ -11,6 +11,7 @@ import { kpiTooltips } from "@/data/kpiTooltips";
 type BuyerKpis = {
   buyers: number; new_buyers: number; returning_buyers: number;
   buyer_sales: number; repeat_sales: number; new_sales: number;
+  new_count: number; repeat_count: number; new_avg: number | null; repeat_avg: number | null;
   buyers_to_date: number; repeat_to_date: number;
   untagged_sales: number; untagged_count: number;
   new_found_via: { via: string; buyers: number }[];
@@ -24,6 +25,9 @@ const VIA_LABELS: Record<string, string> = {
 };
 
 const money = (v: unknown) => `$${Number(v || 0).toFixed(2)}`;
+/** "Avg sale $71.00 (10 sales)" — the average comes from get_buyer_kpis. */
+const avgLine = (avg: number | null, count: number) =>
+  count > 0 && avg != null ? `Avg sale ${money(avg)} (${count} ${count === 1 ? "sale" : "sales"})` : "Avg sale —";
 const pct = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : "—");
 
 export function BuyersSection({ start, end, enabled }: { start: string | null; end: string | null; enabled: boolean }) {
@@ -42,9 +46,11 @@ export function BuyersSection({ start, end, enabled }: { start: string | null; e
   const k = data;
   const tiles = [
     { icon: UserPlus, title: "First-Time Buyers", tooltip: kpiTooltips.newBuyers,
-      value: k ? String(k.new_buyers) : "", sub: k ? `${money(k.new_sales)} in first purchases` : "" },
+      value: k ? String(k.new_buyers) : "", sub: k ? `${money(k.new_sales)} in first purchases` : "",
+      avg: k ? avgLine(k.new_avg, k.new_count) : "" },
     { icon: Repeat, title: "Returning Buyers", tooltip: kpiTooltips.returningBuyers,
-      value: k ? String(k.returning_buyers) : "", sub: k ? `${money(k.repeat_sales)} from repeat purchases` : "" },
+      value: k ? String(k.returning_buyers) : "", sub: k ? `${money(k.repeat_sales)} from repeat purchases` : "",
+      avg: k ? avgLine(k.repeat_avg, k.repeat_count) : "" },
     { icon: Percent, title: "Sales From Repeat Buyers", tooltip: kpiTooltips.repeatSales,
       value: k ? pct(Number(k.repeat_sales), Number(k.buyer_sales)) : "", sub: k ? `of ${money(k.buyer_sales)} from known buyers` : "" },
     { icon: Users, title: "Repeat Rate", tooltip: kpiTooltips.repeatRate,
@@ -67,6 +73,9 @@ export function BuyersSection({ start, end, enabled }: { start: string | null; e
             ) : (
               <>
                 <div className="text-2xl md:text-3xl font-bold text-foreground">{t.value}</div>
+                {"avg" in t && t.avg && (
+                  <p className="text-sm md:text-base font-semibold text-foreground mt-2">{t.avg}</p>
+                )}
                 <p className="text-xs md:text-sm text-muted-foreground mt-2">{t.sub}</p>
               </>
             )}
