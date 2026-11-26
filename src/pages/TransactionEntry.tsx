@@ -22,7 +22,7 @@ import { formatBusinessDate } from "@/lib/dateUtils";
 import { parseRequiredAmount, parseAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
-import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
+import { SaleExtraFields, buyerNameForSave, validateGrossAmount } from "@/components/forms/SaleExtraFields";
 import { useEffect } from "react";
 
 type TransactionType = "show_card_sale" | "bulk_sale" | "disposition";
@@ -48,6 +48,7 @@ export default function TransactionEntry() {
   const [channelError, setChannelError] = useState("");
   const [grossAmount, setGrossAmount] = useState<string>("");
   const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
+  const [buyerName, setBuyerName] = useState<string>("");
   const [grossError, setGrossError] = useState("");
 
   // Keep entry fast: selecting a show means it sold at the show
@@ -159,6 +160,7 @@ export default function TransactionEntry() {
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             sales_channel: salesChannel,
+            buyer_name: buyerNameForSave(salesChannel, buyerName),
             gross_amount: parseAmount(grossAmount),
             shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
             notes: notes || null,
@@ -182,6 +184,7 @@ export default function TransactionEntry() {
             revenue: parseRequiredAmount(revenue),
             transaction_date: transactionDate,
             sales_channel: salesChannel,
+            buyer_name: buyerNameForSave(salesChannel, buyerName),
             gross_amount: parseAmount(grossAmount),
             shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
             notes: notes || null,
@@ -380,6 +383,8 @@ export default function TransactionEntry() {
               />
 
               <SaleExtraFields
+                buyer={buyerName}
+                onBuyerChange={setBuyerName}
                 idPrefix="entry-card"
                 channel={salesChannel}
                 net={revenue}
@@ -508,6 +513,8 @@ export default function TransactionEntry() {
               />
 
               <SaleExtraFields
+                buyer={buyerName}
+                onBuyerChange={setBuyerName}
                 idPrefix="entry-bulk"
                 channel={salesChannel}
                 net={revenue}

@@ -3,6 +3,7 @@
 // {tokens:[...], peek:true} → the cart's view of the offers in it (0026)
 // {token}                → Stripe Checkout URL for this one card at the agreed price
 import { adminClient, cardLine, fail, isToken, json, readJson, cors, siteFor } from "../_shop/shared.ts";
+import { saveOrderSource } from "../_shop/source.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
@@ -96,6 +97,7 @@ Deno.serve(async (req) => {
   // Make sure the hold outlasts the Stripe session (review H2): at least 35 minutes from now.
   const { data: order, error: extErr } = await admin.rpc("web_extend_hold", { p_order_id: held.id, p_minutes: 35 });
   if (extErr || !order) return fail(req, 410, "offer_closed", "This card is no longer available.");
+  await saveOrderSource(admin, order.id, b as Record<string, unknown>); // how the buyer found us (0037)
 
   try {
     const url = await createCheckoutSession(stripe, admin, order, {

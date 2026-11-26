@@ -1,6 +1,7 @@
 // shop-checkout — cart checkout from cssportscards.com/cart.
 // Holds the cards (all or nothing), prices them from EndZone, and returns a Stripe Checkout URL.
 import { adminClient, dbError, fail, isEmail, isToken, isUuid, json, readJson, cors, siteFor } from "../_shop/shared.ts";
+import { saveOrderSource } from "../_shop/source.ts";
 import { createCheckoutSession, stripeClient } from "../_shop/stripe.ts";
 import type Stripe from "npm:stripe@18.5.0";
 
@@ -124,6 +125,8 @@ Deno.serve(async (req) => {
     console.error("web_create_order failed", error);
     return fail(req, 500, "server_error", "Checkout hit a snag. Please try again.");
   }
+
+  await saveOrderSource(admin, order.id, b); // how the buyer found us (0037)
 
   // Combined shipping: a buyer who came through their "add to your order" link (or a stack link from Colton)
   // ships free. The link is checked here on the server; the cart only shows what to expect.

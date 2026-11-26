@@ -920,6 +920,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          buyer_name: string | null
           corrected_at: string | null
           correction_count: number | null
           correction_note: string | null
@@ -943,6 +944,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          buyer_name?: string | null
           corrected_at?: string | null
           correction_count?: number | null
           correction_note?: string | null
@@ -966,6 +968,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          buyer_name?: string | null
           corrected_at?: string | null
           correction_count?: number | null
           correction_note?: string | null
@@ -1397,6 +1400,10 @@ export type Database = {
           discount: number
           discount_code: string | null
           emails_sent_at: string | null
+          first_landing: string | null
+          first_referrer: string | null
+          first_visit_at: string | null
+          heard_from: string | null
           hold_expires_at: string
           id: string
           offer_id: string | null
@@ -1421,6 +1428,9 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
           bonus_card?: boolean
@@ -1431,6 +1441,10 @@ export type Database = {
           discount?: number
           discount_code?: string | null
           emails_sent_at?: string | null
+          first_landing?: string | null
+          first_referrer?: string | null
+          first_visit_at?: string | null
+          heard_from?: string | null
           hold_expires_at: string
           id?: string
           offer_id?: string | null
@@ -1455,6 +1469,9 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
           bonus_card?: boolean
@@ -1465,6 +1482,10 @@ export type Database = {
           discount?: number
           discount_code?: string | null
           emails_sent_at?: string | null
+          first_landing?: string | null
+          first_referrer?: string | null
+          first_visit_at?: string | null
+          heard_from?: string | null
           hold_expires_at?: string
           id?: string
           offer_id?: string | null
@@ -1489,6 +1510,9 @@ export type Database = {
           tracking_number?: string | null
           updated_at?: string
           user_id?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: [
           {
@@ -1656,6 +1680,83 @@ export type Database = {
           },
         ]
       }
+      web_stadium_teams: {
+        Row: {
+          id: number
+          sport: string
+          stadium_slug: string
+          team_pattern: string
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          id?: never
+          sport: string
+          stadium_slug: string
+          team_pattern: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          id?: never
+          sport?: string
+          stadium_slug?: string
+          team_pattern?: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_stadium_teams_stadium_slug_fkey"
+            columns: ["stadium_slug"]
+            isOneToOne: false
+            referencedRelation: "web_stadiums"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      web_stadiums: {
+        Row: {
+          active: boolean
+          kind: string
+          name: string
+          photo: string | null
+          photo_credit: string | null
+          photo_source: string | null
+          region: string
+          slug: string
+          sort_order: number
+          teams_label: string
+          years_label: string | null
+        }
+        Insert: {
+          active?: boolean
+          kind: string
+          name: string
+          photo?: string | null
+          photo_credit?: string | null
+          photo_source?: string | null
+          region: string
+          slug: string
+          sort_order?: number
+          teams_label: string
+          years_label?: string | null
+        }
+        Update: {
+          active?: boolean
+          kind?: string
+          name?: string
+          photo?: string | null
+          photo_credit?: string | null
+          photo_source?: string | null
+          region?: string
+          slug?: string
+          sort_order?: number
+          teams_label?: string
+          years_label?: string | null
+        }
+        Relationships: []
+      }
       website_hunt: {
         Row: {
           created_at: string
@@ -1748,90 +1849,48 @@ export type Database = {
       website_shows: {
         Row: {
           approved: boolean
-          link: string | null
-          source: string | null
-          start_time: string | null
           created_at: string
           end_date: string | null
           id: string
           kind: string
+          link: string | null
           location: string | null
           name: string
+          source: string | null
           start_date: string
+          start_time: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           approved?: boolean
-          link?: string | null
-          source?: string | null
-          start_time?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
           kind?: string
+          link?: string | null
           location?: string | null
           name: string
+          source?: string | null
           start_date: string
+          start_time?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           approved?: boolean
-          link?: string | null
-          source?: string | null
-          start_time?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
           kind?: string
+          link?: string | null
           location?: string | null
           name?: string
+          source?: string | null
           start_date?: string
+          start_time?: string | null
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      web_stadiums: {
-        Row: {
-          active: boolean
-          kind: string
-          name: string
-          photo: string | null
-          photo_credit: string | null
-          photo_source: string | null
-          region: string
-          slug: string
-          sort_order: number
-          teams_label: string
-          years_label: string | null
-        }
-        Insert: {
-          active?: boolean
-          kind: string
-          name: string
-          photo?: string | null
-          photo_credit?: string | null
-          photo_source?: string | null
-          region: string
-          slug: string
-          sort_order?: number
-          teams_label: string
-          years_label?: string | null
-        }
-        Update: {
-          active?: boolean
-          kind?: string
-          name?: string
-          photo?: string | null
-          photo_credit?: string | null
-          photo_source?: string | null
-          region?: string
-          slug?: string
-          sort_order?: number
-          teams_label?: string
-          years_label?: string | null
         }
         Relationships: []
       }
@@ -1912,6 +1971,16 @@ export type Database = {
       }
       get_big_games: { Args: never; Returns: Json }
       get_big_games_admin: { Args: never; Returns: Json }
+      get_buyer_kpis: {
+        Args: { p_end?: string; p_start?: string; p_user_id: string }
+        Returns: Json
+      }
+      get_buyer_names: {
+        Args: { p_user_id: string }
+        Returns: {
+          name: string
+        }[]
+      }
       get_checkup: {
         Args: { p_period: string; p_today?: string }
         Returns: Json
@@ -1998,10 +2067,6 @@ export type Database = {
         }[]
       }
       get_website_lists: { Args: never; Returns: Json }
-      web_homefield_suggest: {
-        Args: { p_sport: string; p_team: string; p_year: string }
-        Returns: string
-      }
       has_mentor_access: { Args: { _mentee_user_id: string }; Returns: boolean }
       last_sunday_of_month: { Args: { p_date: string }; Returns: string }
       mileage_rate_for: { Args: { p_date: string }; Returns: number }
@@ -2118,6 +2183,7 @@ export type Database = {
       }
       web_auto_combine_shipping: { Args: { p_order_id: string }; Returns: Json }
       web_big_games_tick: { Args: never; Returns: number }
+      web_card_year: { Args: { p_year: string }; Returns: number }
       web_check_discount: {
         Args: { p_code: string; p_email: string }
         Returns: Json
@@ -2153,6 +2219,10 @@ export type Database = {
           discount: number
           discount_code: string | null
           emails_sent_at: string | null
+          first_landing: string | null
+          first_referrer: string | null
+          first_visit_at: string | null
+          heard_from: string | null
           hold_expires_at: string
           id: string
           offer_id: string | null
@@ -2177,6 +2247,9 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         SetofOptions: {
           from: "*"
@@ -2202,6 +2275,10 @@ export type Database = {
           discount: number
           discount_code: string | null
           emails_sent_at: string | null
+          first_landing: string | null
+          first_referrer: string | null
+          first_visit_at: string | null
+          heard_from: string | null
           hold_expires_at: string
           id: string
           offer_id: string | null
@@ -2226,6 +2303,9 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         SetofOptions: {
           from: "*"
@@ -2320,6 +2400,10 @@ export type Database = {
           discount: number
           discount_code: string | null
           emails_sent_at: string | null
+          first_landing: string | null
+          first_referrer: string | null
+          first_visit_at: string | null
+          heard_from: string | null
           hold_expires_at: string
           id: string
           offer_id: string | null
@@ -2344,6 +2428,9 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         SetofOptions: {
           from: "*"
@@ -2367,6 +2454,10 @@ export type Database = {
           discount: number
           discount_code: string | null
           emails_sent_at: string | null
+          first_landing: string | null
+          first_referrer: string | null
+          first_visit_at: string | null
+          heard_from: string | null
           hold_expires_at: string
           id: string
           offer_id: string | null
@@ -2391,6 +2482,9 @@ export type Database = {
           tracking_number: string | null
           updated_at: string
           user_id: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         SetofOptions: {
           from: "*"
@@ -2398,6 +2492,19 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      web_homefield_of: {
+        Args: {
+          p_pick: string
+          p_sport: string
+          p_team: string
+          p_year: string
+        }
+        Returns: string
+      }
+      web_homefield_suggest: {
+        Args: { p_sport: string; p_team: string; p_year: string }
+        Returns: string
       }
       web_make_offer: {
         Args: {
@@ -2442,6 +2549,10 @@ export type Database = {
       }
       web_name_key: { Args: { p: string }; Returns: string }
       web_new_link_token: { Args: never; Returns: string }
+      web_order_found_via: {
+        Args: { o: Database["public"]["Tables"]["web_orders"]["Row"] }
+        Returns: string
+      }
       web_order_ship_link: { Args: { p_order_id: string }; Returns: Json }
       web_owner_release_hold: {
         Args: { p_card_id: string; p_user_id: string }
@@ -2578,6 +2689,19 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      web_set_order_source: {
+        Args: {
+          p_first_visit_at: string
+          p_heard_from: string
+          p_landing: string
+          p_order_id: string
+          p_referrer: string
+          p_utm_campaign: string
+          p_utm_medium: string
+          p_utm_source: string
+        }
+        Returns: undefined
       }
       web_set_stripe_fee: {
         Args: { p_fee: number; p_payment_intent: string }

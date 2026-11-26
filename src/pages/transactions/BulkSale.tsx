@@ -23,7 +23,7 @@ import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
-import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
+import { SaleExtraFields, buyerNameForSave, validateGrossAmount } from "@/components/forms/SaleExtraFields";
 import { parseAmount } from "@/lib/numericUtils";
 
 export default function BulkSale() {
@@ -40,6 +40,7 @@ export default function BulkSale() {
   const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
   const [grossAmount, setGrossAmount] = useState<string>("");
   const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
+  const [buyerName, setBuyerName] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: lots = [], isLoading: lotsLoading } = useQuery({
@@ -98,6 +99,7 @@ export default function BulkSale() {
         show_id: selectedShowId || null,
         transaction_date: saleDate,
         sales_channel: salesChannel,
+        buyer_name: buyerNameForSave(salesChannel, buyerName),
         gross_amount: parseAmount(grossAmount),
         shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
         notes: notes.trim() || null,
@@ -272,6 +274,8 @@ export default function BulkSale() {
 
         {/* Gross amount + out-of-pocket postage (both optional) */}
         <SaleExtraFields
+                buyer={buyerName}
+                onBuyerChange={setBuyerName}
           idPrefix="bulk-sale"
           channel={salesChannel}
           net={revenue}

@@ -31,7 +31,7 @@ import { PageContainer } from "@/components/layout/AppLayout";
 import { parseRequiredAmount, parseAmount } from "@/lib/numericUtils";
 import { SalesChannelChips } from "@/components/forms/SalesChannelChips";
 import { readLastSalesChannel, writeLastSalesChannel } from "@/lib/moneyConstants";
-import { SaleExtraFields, validateGrossAmount } from "@/components/forms/SaleExtraFields";
+import { SaleExtraFields, buyerNameForSave, validateGrossAmount } from "@/components/forms/SaleExtraFields";
 
 interface ShowCard {
   id: string;
@@ -59,6 +59,7 @@ export default function ShowCardSale() {
   const [salesChannel, setSalesChannel] = useState<string>(readLastSalesChannel());
   const [grossAmount, setGrossAmount] = useState<string>("");
   const [shippingOutOfPocket, setShippingOutOfPocket] = useState<string>("");
+  const [buyerName, setBuyerName] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [errors, setErrors] = useState<{ salePrice?: string; show?: string; salesChannel?: string; grossAmount?: string }>({});
 
@@ -135,6 +136,7 @@ export default function ShowCardSale() {
           notes: notes || null,
           transaction_date: saleDate,
           sales_channel: salesChannel,
+          buyer_name: buyerNameForSave(salesChannel, buyerName),
           gross_amount: parseAmount(grossAmount),
           shipping_out_of_pocket: parseAmount(shippingOutOfPocket),
         })
@@ -366,6 +368,8 @@ export default function ShowCardSale() {
 
           {/* Gross amount + out-of-pocket postage (both optional) */}
           <SaleExtraFields
+                buyer={buyerName}
+                onBuyerChange={setBuyerName}
             idPrefix="show-card-sale"
             channel={salesChannel}
             net={salePrice}

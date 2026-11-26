@@ -17,5 +17,10 @@ export const kpiTooltips = {
   listedCards: "Individually listed show cards still available, and their total asking price. Does NOT include un-itemised cards still sitting in lots, so real inventory is larger.",
   ownerDraws: "Money taken out of the business for personal use in this period. Contributions (money put in) are shown underneath.",
   reserve: "Your emergency cushion. The goal is to build it steadily; it's the best single sign the business can support you.",
+  newBuyers: "People who bought for the first time in this period. Website buyers count by email; Facebook and show buyers count when you type their name on the sale. Several orders on their first day still count as one first purchase.",
+  returningBuyers: "People who bought in this period and had already bought on an earlier day. Repeat buyers are the cheapest sales to get.",
+  repeatSales: "Share of buyer sales in this period that came from returning buyers (website orders after shipping, plus Facebook/show sales with a buyer name).",
+  repeatRate: "Of everyone who has ever bought (up to the end of this period), how many have come back on a second day.",
+  foundVia: "How this period's first-time website buyers found the site: their answer to \"How did you hear about us?\" at checkout, or else where their first visit came from. Orders before Nov 26, 2026 have no answer.",
   owedToYou: "Business costs you paid with your own money that the business hasn't paid back yet. Record a Reimbursement to clear it."
 };

@@ -18,6 +18,22 @@ import { StackLinks } from "@/components/website/StackLinks";
 
 const PAGE_SIZE = 50;
 
+const HEARD_LABELS: Record<string, string> = {
+  repeat: "Ordered before", google: "Google", facebook: "Facebook", instagram: "Instagram", ai: "ChatGPT / AI",
+  craigslist_nextdoor: "Craigslist / Nextdoor", show: "A card show", card_flyer: "Card, flyer or insert",
+  friend: "Friend or family", other: "Something else",
+};
+
+/** The buyer's answer, else where their first visit came from (site name or utm tag). */
+function foundUs(o: { heard_from?: string | null; first_referrer?: string | null; utm_source?: string | null }): string {
+  if (o.heard_from) return HEARD_LABELS[o.heard_from] ?? o.heard_from;
+  if (o.utm_source) return `${o.utm_source} (link tag)`;
+  if (o.first_referrer) {
+    try { return `${new URL(o.first_referrer).hostname.replace(/^www\./, "")} (first visit)`; } catch { return o.first_referrer; }
+  }
+  return "";
+}
+
 type OrderRow = {
   id: string;
   order_number: string;
@@ -25,6 +41,10 @@ type OrderRow = {
   status: string;
   buyer_email: string | null;
   buyer_name: string | null;
+  /** "How did you hear about us?" and the first visit's source (0037). */
+  heard_from?: string | null;
+  first_referrer?: string | null;
+  utm_source?: string | null;
   shipping_address: Json | null;
   subtotal: number;
   shipping: number;
@@ -128,6 +148,7 @@ export default function WebOrders() {
       const userId = await getEffectiveUserId();
       const BASE = `id, order_number, source, status, buyer_email, buyer_name, shipping_address, subtotal, shipping, total,
            stripe_fee, paid_at, shipped_at, tracking_number, problem_note, hold_expires_at, created_at,
+           heard_from, first_referrer, utm_source,
            web_order_items (id, price, deal_free, description, show_cards (photo_front_url))`;
       const LINKS = `, shipping_refunded, discount_code, discount, deal_discount, bonus_card, refunded_amount, refunded_at,
            ship_link:web_ship_links!web_orders_ship_link_id_fkey (kind, customer_name,
@@ -401,6 +422,9 @@ export default function WebOrders() {
                       <a href={`mailto:${order.buyer_email}`} className="break-all text-sm text-accent">
                         {order.buyer_email}
                       </a>
+                    )}
+                    {foundUs(order) && (
+                      <p className="mt-1 text-xs text-muted-foreground">Found us: {foundUs(order)}</p>
                     )}
                   </div>
                   <div>

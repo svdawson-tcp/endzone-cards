@@ -1,4 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { CurrencyInput } from "@/components/forms/CurrencyInput";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useMentorAccess } from "@/contexts/MentorAccessContext";
 
 /** Channels where a platform keeps a cut, so "what the buyer paid" is worth asking. */
 export const GROSS_CHANNELS = ["ebay", "whatnot", "facebook", "website", "other"];
@@ -26,6 +30,57 @@ interface SaleExtraFieldsProps {
   onPostageChange: (value: string) => void;
   grossError?: string;
   inputClassName?: string;
+  /** Optional buyer name (0037), for first-time vs repeat buyers. Not asked for website sales (the order has it). */
+  buyer?: string;
+  onBuyerChange?: (value: string) => void;
+}
+
+/** What to save as transactions.buyer_name: trimmed, single-spaced, blank → null, never for website sales. */
+export function buyerNameForSave(channel: string, name: string | undefined): string | null {
+  if (channel === "website") return null;
+  const v = (name ?? "").trim().replace(/\s+/g, " ").slice(0, 80);
+  return v || null;
+}
+
+/** Buyer box with suggestions from earlier sales and website buyers, so the same person is typed the same way. */
+function BuyerNameInput({ idPrefix, value, onChange, inputClassName }: {
+  idPrefix: string; value: string; onChange: (v: string) => void; inputClassName?: string;
+}) {
+  const { viewingUserId, getEffectiveUserId } = useMentorAccess();
+  const { data: names = [] } = useQuery({
+    queryKey: ["buyerNames", viewingUserId],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const userId = await getEffectiveUserId();
+      const { data, error } = await supabase.rpc("get_buyer_names", { p_user_id: userId });
+      if (error) throw error;
+      return ((data ?? []) as { name: string }[]).map((r) => r.name);
+    },
+  });
+  return (
+    <div>
+      <label htmlFor={`${idPrefix}-buyer`} className="form-label">
+        Buyer (optional)
+      </label>
+      <Input
+        id={`${idPrefix}-buyer`}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        list={`${idPrefix}-buyer-names`}
+        placeholder="Name or Facebook name"
+        autoComplete="off"
+        autoCapitalize="words"
+        maxLength={80}
+        className={`mt-2 ${inputClassName || ""}`}
+      />
+      <datalist id={`${idPrefix}-buyer-names`}>
+        {names.map((n) => <option key={n} value={n} />)}
+      </datalist>
+      <p className="text-xs text-muted-foreground mt-1">
+        Counts toward first-time and repeat buyers on the Dashboard. Pick the same name each time they buy.
+      </p>
+    </div>
+  );
 }
 
 export function SaleExtraFields({
@@ -38,6 +93,8 @@ export function SaleExtraFields({
   onPostageChange,
   grossError,
   inputClassName,
+  buyer,
+  onBuyerChange,
 }: SaleExtraFieldsProps) {
   const grossNum = parseFloat(gross);
   const netNum = parseFloat(net);
@@ -48,6 +105,10 @@ export function SaleExtraFields({
 
   return (
     <>
+      {onBuyerChange && channel && channel !== "website" && (
+        <BuyerNameInput idPrefix={idPrefix} value={buyer ?? ""} onChange={onBuyerChange} inputClassName={inputClassName} />
+      )}
+
       {channelShowsGross(channel) && (
         <div>
           <label htmlFor={`${idPrefix}-gross`} className="form-label">
