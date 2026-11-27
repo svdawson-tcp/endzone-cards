@@ -22,6 +22,6 @@
 - **Mobile:** `market_390.png` shows the section rendered at 390px from those preview numbers (mocked data layer).
 
 ## Release (each step with Scott's OK)
-1. Apply 0039 to production.
-2. Merge the PR (Netlify deploys `main`).
-3. Monthly scheduled task (around the 16th) that adds the new GemRate month and backfills gaps.
+1. ✅ 27 Nov 2026 ~16:22 ET, with Scott's OK: 0039 applied through the Supabase connector. 11 market rows are present and RLS is on. anon can neither read the table nor run the function; signed-in users can read but not insert. `get_market_comparison` on Colton's live data matches the pre-release preview row for row (base Nov 2025–Jan 2026; Jul 2026: Colton 247.6, market 165.7). No new security-advisor findings.
+2. ✅ 27 Nov 2026: PR #3 merged (`9a068ac`). Netlify production was serving `index-C2g52Yt4.js`, which contains the new section, about a minute later.
+3. ✅ Scheduled task "EndZone market figure update": 16th of each month at 2:17 pm ET, starting 16 Dec 2026, runs automatically. It adds only figures GemRate states for a month and reports revisions without changing stored rows.
