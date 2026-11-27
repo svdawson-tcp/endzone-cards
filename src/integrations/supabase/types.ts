@@ -1995,6 +1995,20 @@ export type Database = {
         Returns: Json
       }
       get_hunt_list: { Args: never; Returns: Json }
+      get_market_comparison: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: {
+          is_base: boolean
+          is_partial: boolean
+          market_index: number
+          market_usd: number
+          month: string
+          sale_count: number
+          sales: number
+          sales_index: number
+          source_url: string
+        }[]
+      }
       get_mileage_summary: {
         Args: { p_user_id: string; p_year: number }
         Returns: Json

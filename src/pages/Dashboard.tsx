@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useMentorAccess } from "@/contexts/MentorAccessContext";
 import { KpiInfoPopover } from "@/components/ui/KpiInfoPopover";
 import { BuyersSection } from "@/components/dashboard/BuyersSection";
+import { MarketSection } from "@/components/dashboard/MarketSection";
 import { kpiTooltips } from "@/data/kpiTooltips";
 import { usePeriod, formatRangeLabel } from "@/hooks/usePeriod";
 import { PeriodPicker } from "@/components/PeriodPicker";
@@ -450,6 +451,9 @@ export default function Dashboard() {
 
       {/* Trend */}
       {series && series.length > 0 && <TrendChart series={series} grain={grain} rangeLabel={rangeLabel} />}
+
+      {/* You vs the Market (0039) */}
+      <MarketSection />
 
       {/* Section B: Right Now */}
       <div className="space-y-4">
