@@ -132,6 +132,8 @@ export default function WebOrders() {
   const [pages, setPages] = useState(1);
   const [shippingFor, setShippingFor] = useState<string | null>(null);
   const [tracking, setTracking] = useState("");
+  // "Email the buyer that it shipped" — on by default; untick for local meetups.
+  const [emailBuyer, setEmailBuyer] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   // Collapsed by default so the list is easy to scan; tap an order to open it. A single order (?order=) opens on its own.
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
@@ -195,6 +197,7 @@ export default function WebOrders() {
     setOpenIds((prev) => new Set(prev).add(order.id));
     setShippingFor(order.id);
     setTracking(order.tracking_number || "");
+    setEmailBuyer(true);
   };
 
   const saveShipping = async (order: OrderRow) => {
@@ -211,9 +214,17 @@ export default function WebOrders() {
         .select("id");
       if (error) throw error;
       if (!data || data.length === 0) throw new Error("Only the business owner can update shipping.");
+      // First time marked shipped: email the buyer (tracking + review link). Best-effort — the order stays shipped.
+      let emailNote = "";
+      if (!order.shipped_at && emailBuyer && order.buyer_email) {
+        const { data: sent, error: mailErr } = await supabase.functions.invoke("order-shipped", { body: { order_id: order.id } });
+        emailNote = mailErr || !sent?.sent ? "The buyer email didn't send." : "Buyer emailed.";
+        if (mailErr) console.error("order-shipped failed", mailErr);
+      }
       toast({
         title: order.shipped_at ? "Tracking updated" : `${order.order_number} marked shipped`,
-        description: tracking.trim() ? `Tracking ${tracking.trim()}` : undefined,
+        description: [tracking.trim() ? `Tracking ${tracking.trim()}` : "", emailNote].filter(Boolean).join(" · ") || undefined,
+        variant: emailNote.startsWith("The buyer email") ? "destructive" : undefined,
       });
       setShippingFor(null);
       setTracking("");
@@ -547,6 +558,17 @@ export default function WebOrders() {
                           className="min-h-[44px]"
                           autoFocus
                         />
+                        {!order.shipped_at && order.buyer_email && (
+                          <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm text-foreground">
+                            <input
+                              type="checkbox"
+                              checked={emailBuyer}
+                              onChange={(e) => setEmailBuyer(e.target.checked)}
+                              className="h-5 w-5 accent-primary"
+                            />
+                            Email the buyer that it shipped
+                          </label>
+                        )}
                         <div className="grid grid-cols-2 gap-2">
                           <Button
                             variant="outline"
