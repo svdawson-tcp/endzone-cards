@@ -1,0 +1,31 @@
+SETUP
+T1 window, months before the first sale, empty months
+NOTICE:  ok: 18 months returned
+NOTICE:  ok: ends this month
+NOTICE:  ok: p_months = 12
+NOTICE:  ok: p_months capped at 36
+NOTICE:  ok: no sales figure before the first sale
+NOTICE:  ok: Feb 2026: $0, not blank
+T2 base months and indexes
+NOTICE:  ok: base = Nov 2025-Jan 2026 (first sale month skipped)
+NOTICE:  ok: Oct 2025 index 33.3 / 93.1
+NOTICE:  ok: Jan 2026: deleted sale ignored, index 133.3
+NOTICE:  ok: Jul 2026 market index 165.7
+NOTICE:  ok: Aug 2026: no market figure yet
+NOTICE:  ok: Mar 2026: disposition not counted
+T3 current month is partial and never a base month
+NOTICE:  ok: only this month is partial
+T4 mentor sees the same, another user sees none of the data
+NOTICE:  ok: mentor: same total as Colton
+NOTICE:  ok: other user: no sales of Colton's
+NOTICE:  ok: other user: own sales only
+T5 market table: readable when signed in, not writable; not visible logged out
+NOTICE:  ok: signed in: 11 seeded months readable
+NOTICE:  ok: signed-in insert refused
+NOTICE:  ok: signed-in update refused
+NOTICE:  ok: anon cannot read the table
+NOTICE:  ok: anon cannot run get_market_comparison
+T6 constraints and re-running the seed
+NOTICE:  ok: month must be the 1st
+NOTICE:  ok: value must be positive
+ALL TESTS PASSED

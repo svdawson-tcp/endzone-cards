@@ -22,5 +22,6 @@ export const kpiTooltips = {
   repeatSales: "Share of buyer sales in this period that came from returning buyers (website orders after shipping, plus Facebook/show sales with a buyer name).",
   repeatRate: "Of everyone who has ever bought (up to the end of this period), how many have come back on a second day.",
   foundVia: "How this period's first-time website buyers found the site: their answer to \"How did you hear about us?\" at checkout, or else where their first visit came from. Orders before Nov 26, 2026 have no answer.",
+  marketComparison: "Your monthly sales next to the whole sports card market: single sports cards sold on eBay each month, as counted by GemRate (no Pokémon, no lots or wax). Both lines start at 100 on their own average for the first three full months, so you compare growth, not dollars. If your line climbs faster, you're growing faster than the market. The market figure comes out mid-month for the month before.",
   owedToYou: "Business costs you paid with your own money that the business hasn't paid back yet. Record a Reimbursement to clear it."
 };
